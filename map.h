@@ -1,43 +1,65 @@
 #pragma once
 
 #include <vector>
+namespace MapItemSpace
+{
+    enum MapItem
+    {
+        space = 0,
+        sea,
+        obstacle,
+        robot,
+        berth,
+        error = -1,
+    };
+}
 
-class Map {
-private:
-    // 地图的宽度和高度
-    int width, height;
-    // 存储地图信息的二维数组，这里简单使用int类型，可以根据需要定义更复杂的类型
-    // 例如，0表示空地，1表示障碍物
-    std::vector<std::vector<int>> grid;
+class Map
+{
+    // 地图坐标系原点在左上角，往下为 X 轴正方向，往右为 Y 轴正方向
+public:
+    int rows, cols;
+    std::vector<std::vector<MapItemSpace::MapItem>> grid;
 
 public:
-    // 构造函数，初始化地图的大小和内容
-    Map(int width, int height) : width(width), height(height), grid(height, std::vector<int>(width, 0)) {}
+    Map(int rows, int cols)
+        : rows(rows),
+          cols(cols),
+          grid(std::vector(rows, std::vector<MapItemSpace::MapItem>(cols, MapItemSpace::space)))
+    {
+    }
 
     // 设置地图上某个位置的值
-    void setCell(int x, int y, int value) {
-        if (x >= 0 && x < width && y >= 0 && y < height) {
-            grid[y][x] = value;
+    void setCell(int x, int y, MapItemSpace::MapItem value)
+    {
+        if (x >= 0 && x < rows && y >= 0 && y < cols)
+        {
+            grid[x][y] = value;
         }
     }
 
     // 获取地图上某个位置的值
-    int getCell(int x, int y) const {
-        if (x >= 0 && x < width && y >= 0 && y < height) {
-            return grid[y][x];
+    int getCell(int x, int y) const
+    {
+        if (x >= 0 && x < rows && y >= 0 && y < cols)
+        {
+            return grid[x][y];
         }
-        return -1; // 返回-1表示越界或者错误
+        return MapItemSpace::MapItem::error; // 返回-1表示越界或者错误
     }
 
-    // 打印地图的简单方法，用于调试
-    void printMap() const {
-        for (const auto& row : grid) {
-            for (int cell : row) {
-                std::cout << (cell == 0 ? "." : "#") << " ";
-            }
-            std::cout << std::endl;
-        }
-    }
+    // // 打印地图的简单方法，用于调试
+    // void printMap() const
+    // {
+    //     for (const auto &row : grid)
+    //     {
+    //         for (int cell : row)
+    //         {
+    //             std::cout << (cell == 0 ? "." : "#") << " ";
+    //         }
+    //         std::cout << std::endl;
+    //     }
+    // }
 
     // 其他地图管理相关的方法，如路径查找、障碍物管理等
 };

@@ -3,7 +3,8 @@
 #include <fstream>
 #include <chrono>
 #include <iostream>
-#include <cstring> 
+#include <cstring>
+#include "assert.h"
 
 // 定义日志级别
 #define LOG_LEVEL_INFO 0
@@ -65,12 +66,7 @@ private:
     void initLogImpl(const std::string &filepath = "log.log")
     {
         m_OutputStream.open(filepath, std::ios::app); // 追加模式
-        if (!m_OutputStream)
-        {
-            // 处理文件无法打开的情况
-            throw "Can not open log file!";
-            return;
-        }
+        assert(m_OutputStream);
         writeHeader();
     }
 

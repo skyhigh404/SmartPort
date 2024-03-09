@@ -3,6 +3,8 @@
 
 #include "goods.h"
 #include "map.h"
+#include "utils.h"
+#include "assert.h"
 
 class Robot
 {
@@ -25,8 +27,7 @@ public:
         // 向特定方向移动
         using namespace std::string_literals;
 #ifdef DEBUG
-        if (direction < 0 || direction > 3)
-            throw "Invalid direction value!";
+        assert(direction >= 0 && direction <= 3);
 #endif
         return "move "s + std::to_string(id) + " "s + std::to_string(direction);
     }

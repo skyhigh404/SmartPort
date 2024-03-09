@@ -19,8 +19,7 @@ public:
     std::string moveToBerth(int berthId)
     {
 #ifdef DEBUG
-        if (berthId < 0 || berthId > 10)
-            throw "Invalid berthId value!";
+        assert(berthId >= 0 && berthId <= 10);
 #endif
         using namespace std::string_literals;
         return "ship "s + std::to_string(id) + " "s + std::to_string(berthId);

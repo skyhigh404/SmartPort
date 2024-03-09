@@ -5,7 +5,7 @@
 int main()
 {
 #ifdef DEBUG
-    Log::initLog("log/log.log");
+    Log::initLog("../log/log.log");
 #endif
 
     GameManager gameManager;

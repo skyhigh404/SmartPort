@@ -105,8 +105,9 @@ void GameManager::processFrameData()
 
 void GameManager::update()
 {
-    this->scheduler->scheduleRobots(robots, gameMap, goods, commandManager);
-    this->scheduler->scheduleShips(ships, berths, commandManager);
+    this->scheduler->scheduleRobots(robots, gameMap, goods);
+    this->scheduler->scheduleShips(ships, berths);
+    // commandManager，获取命令
 }
 
 void GameManager::outputCommands()

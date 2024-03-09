@@ -4,6 +4,7 @@
 
 class Berth
 {
+    // 泊位间移动时间 500 帧
 public:
     int id;
     Point2d pos;  // 泊位左上角的坐标，泊位是一个 4x4 的矩形

@@ -5,7 +5,6 @@
 #include "robot.h"
 #include "ship.h"
 #include "berth.h"
-#include "commandManager.h"
 
 enum ActionType
 {
@@ -26,16 +25,17 @@ struct Action
 
 class Scheduler
 {
+    // 去哪里
 public:
-    virtual std::vector<std::pair<int, Action>>  scheduleRobots(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, CommandManager &commandManager) = 0;
-    virtual std::vector<std::pair<int, Action>>  scheduleShips(std::vector<Ship> &ships, std::vector<Berth> &berths, CommandManager &commandManager) = 0;
+    virtual std::vector<std::pair<int, Action>>  scheduleRobots(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods) = 0;
+    virtual std::vector<std::pair<int, Action>>  scheduleShips(std::vector<Ship> &ships, std::vector<Berth> &berths) = 0;
 };
 
 class SimpleTransportStrategy : public Scheduler
 {
 public:
-    std::vector<std::pair<int, Action>>  scheduleRobots(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, CommandManager &commandManager) override;
-    std::vector<std::pair<int, Action>>  scheduleShips(std::vector<Ship> &ships, std::vector<Berth> &berths, CommandManager &commandManager) override;
+    std::vector<std::pair<int, Action>>  scheduleRobots(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods) override;
+    std::vector<std::pair<int, Action>>  scheduleShips(std::vector<Ship> &ships, std::vector<Berth> &berths) override;
 };
 
 // class EfficientTransportStrategy : public Scheduler {

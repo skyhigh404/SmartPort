@@ -1,4 +1,5 @@
 #pragma once
+
 #define DEBUG
 
 const int MAPROWS = 200, MAPCOLS = 200;

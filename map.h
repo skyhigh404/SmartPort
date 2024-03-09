@@ -5,12 +5,12 @@ namespace MapItemSpace
 {
     enum MapItem
     {
-        space = 0,
-        sea,
-        obstacle,
-        robot,
-        berth,
-        error = -1,
+        SPACE = 0,
+        SEA,
+        OBSTACLE,
+        ROBOT,
+        BERTH,
+        ERROR = -1,
     };
 }
 
@@ -25,7 +25,7 @@ public:
     Map(int rows, int cols)
         : rows(rows),
           cols(cols),
-          grid(std::vector(rows, std::vector<MapItemSpace::MapItem>(cols, MapItemSpace::space)))
+          grid(std::vector(rows, std::vector<MapItemSpace::MapItem>(cols, MapItemSpace::SPACE)))
     {
     }
 
@@ -45,7 +45,7 @@ public:
         {
             return grid[x][y];
         }
-        return MapItemSpace::MapItem::error; // 返回-1表示越界或者错误
+        return MapItemSpace::MapItem::ERROR; // 返回-1表示越界或者错误
     }
 
     // // 打印地图的简单方法，用于调试

@@ -16,12 +16,13 @@ void GameManager::initializeGame()
             switch (map_data[j])
             {
             case '.':
+                this->gameMap.setCell(i, j, MapItemSpace::MapItem::SPACE);
                 break;
             case '*':
-                this->gameMap.setCell(i, j, MapItemSpace::MapItem::sea);
+                this->gameMap.setCell(i, j, MapItemSpace::MapItem::SEA);
                 break;
             case '#':
-                this->gameMap.setCell(i, j, MapItemSpace::MapItem::obstacle);
+                this->gameMap.setCell(i, j, MapItemSpace::MapItem::OBSTACLE);
                 break;
             case 'A':
                 // this->robots.emplace_back(robotID++, Point2d(i, j));

@@ -12,6 +12,7 @@ public:
     int id;
     Point2d pos;
     int carryingItem; // 0 表示未携带物品，1 表示携带物品
+    int carryingItemId; // 携带的物品id
     int state;        // 0 表示恢复状态，1 表示正常运行状态
 
 public:

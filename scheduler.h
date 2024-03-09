@@ -7,18 +7,35 @@
 #include "berth.h"
 #include "commandManager.h"
 
+enum ActionType
+{
+    MOVE_TO_POSITION,
+    PICK_UP_GOODS,
+    DROP_OFF_GOODS,
+    MOVE_TO_BERTH,
+    DEPART_BERTH
+};
+
+struct Action
+{
+    ActionType type;
+    Point2d position; // 用于移动
+    int targetId;     // 用于标识具体的货物或泊位，根据上下文决定其含义
+};
+
+
 class Scheduler
 {
 public:
-    virtual void scheduleRobots(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, CommandManager &commandManager) = 0;
-    virtual void scheduleShips(std::vector<Ship> &ships, std::vector<Berth> &berths, CommandManager &commandManager) = 0;
+    virtual std::vector<std::pair<int, Action>>  scheduleRobots(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, CommandManager &commandManager) = 0;
+    virtual std::vector<std::pair<int, Action>>  scheduleShips(std::vector<Ship> &ships, std::vector<Berth> &berths, CommandManager &commandManager) = 0;
 };
 
 class SimpleTransportStrategy : public Scheduler
 {
 public:
-    void scheduleRobots(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, CommandManager &commandManager);
-    void scheduleShips(std::vector<Ship> &ships, std::vector<Berth> &berths, CommandManager &commandManager);
+    std::vector<std::pair<int, Action>>  scheduleRobots(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, CommandManager &commandManager) override;
+    std::vector<std::pair<int, Action>>  scheduleShips(std::vector<Ship> &ships, std::vector<Berth> &berths, CommandManager &commandManager) override;
 };
 
 // class EfficientTransportStrategy : public Scheduler {

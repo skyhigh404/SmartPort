@@ -1,5 +1,7 @@
 #pragma once
 #include <ostream>
+#include <cmath>
+#include <tuple>
 
 #define DEBUG
 
@@ -47,7 +49,24 @@ struct Point2d
         os << "(" << point.x << "," << point.y << ")";
         return os;
     }
+    static inline int calculateManhattanDistance(const Point2d& p1, const Point2d& p2) {
+        return std::abs(p1.x - p2.x) + std::abs(p1.y - p2.y);
+    }
 };
+
+inline bool operator < (const Point2d &a, const Point2d &b) {
+  return std::tie(a.x, a.y) < std::tie(b.x, b.y);
+}
+
+namespace std {
+/* implement hash function so we can put GridLocation into an unordered_set */
+template <> struct hash<Point2d> {
+  std::size_t operator()(const Point2d& id) const noexcept {
+    // NOTE: better to use something like boost hash_combine
+    return std::hash<int>()(id.x ^ (id.y << 16));
+  }
+};
+}
 
 struct Vec2f
 {

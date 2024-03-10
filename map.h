@@ -1,9 +1,13 @@
 #pragma once
 
 #include <vector>
+#include <array>
+#include <string>
+#include <unordered_map>
+#include "utils.h"
 namespace MapItemSpace
 {
-    enum MapItem
+    enum class MapItem
     {
         SPACE = 0,
         SEA,
@@ -21,11 +25,13 @@ public:
     int rows, cols;
     std::vector<std::vector<MapItemSpace::MapItem>> grid;
 
+    static std::array<Point2d, 4> DIRS;
+
 public:
     Map(int rows, int cols)
         : rows(rows),
           cols(cols),
-          grid(std::vector(rows, std::vector<MapItemSpace::MapItem>(cols, MapItemSpace::SPACE)))
+          grid(std::vector(rows, std::vector<MapItemSpace::MapItem>(cols, MapItemSpace::MapItem::ERROR)))
     {
     }
 
@@ -38,28 +44,41 @@ public:
         }
     }
 
-    // 获取地图上某个位置的值
-    int getCell(int x, int y) const
+    inline bool inBounds(int x, int y) const
     {
-        if (x >= 0 && x < rows && y >= 0 && y < cols)
-        {
-            return grid[x][y];
-        }
-        return MapItemSpace::MapItem::ERROR; // 返回-1表示越界或者错误
+        return x >= 0 && x < rows && y >= 0 && y < cols;
+    }
+    inline bool inBounds(Point2d pos) const
+    {
+        return inBounds(pos.x, pos.y);
     }
 
-    // // 打印地图的简单方法，用于调试
-    // void printMap() const
-    // {
-    //     for (const auto &row : grid)
-    //     {
-    //         for (int cell : row)
-    //         {
-    //             std::cout << (cell == 0 ? "." : "#") << " ";
-    //         }
-    //         std::cout << std::endl;
-    //     }
-    // }
+    // 获取地图上某个位置的值
+    inline MapItemSpace::MapItem getCell(int x, int y) const
+    {
+        return grid[x][y];
+    }
 
-    // 其他地图管理相关的方法，如路径查找、障碍物管理等
+    inline MapItemSpace::MapItem getCell(Point2d pos) const
+    {
+        return getCell(pos.x, pos.y);
+    }
+
+    inline int cost(Point2d pos1, Point2d pos2) const
+    {
+        return Point2d::calculateManhattanDistance(pos1, pos2);
+    }
+    
+public:
+    std::vector<Point2d> neighbors(Point2d id) const; // 返回当前节点上下左右的四个邻居
+    bool passable(Point2d pos) const;
+    // This outputs a grid. Pass in a distances map if you want to print
+    // the distances, or pass in a point_to map if you want to print
+    // arrows that point to the parent location, or pass in a path vector
+    // if you want to draw the path.
+    std::string drawMap(std::unordered_map<Point2d, double> *distances = nullptr,
+                        std::unordered_map<Point2d, Point2d> *point_to = nullptr,
+                        std::vector<Point2d> *path = nullptr,
+                        Point2d *start = nullptr,
+                        Point2d *goal = nullptr) const;
 };

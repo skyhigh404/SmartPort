@@ -3,6 +3,8 @@
 #include <sstream>
 #include <string>
 #include <iomanip>
+#include <queue>
+#include <climits>
 
 std::array<Point2d, 4> Map::DIRS = {
     /* East, West, North, South */
@@ -88,4 +90,34 @@ std::string Map::drawMap(std::unordered_map<Point2d, double> *distances,
     oss << std::string(field_width * cols, '~') << "\n";
     std::string result = oss.str();
     return result;
+}
+
+void Map::computeDistancesToBerthViaBFS(BerthID id, const std::vector<Point2d> &positions)
+{
+    using std::vector, std::queue;
+    vector<vector<int>> dis(rows, vector<int>(cols, INT_MAX));
+    queue<Point2d> nextToVisitQueue;
+    for (const Point2d &pos : positions)
+    {
+        if (inBounds(pos) && passable(pos))
+        {
+            dis[pos.x][pos.y] = 0;
+            nextToVisitQueue.push(pos);
+        }
+    }
+    while (!nextToVisitQueue.empty())
+    {
+        Point2d current = nextToVisitQueue.front();
+        nextToVisitQueue.pop();
+        for (const Point2d &dir : DIRS)
+        {
+            Point2d next{current.x + dir.x, current.y + dir.y};
+            if (inBounds(next) && passable(next) && dis[next.x][next.y] == INT_MAX)
+            {
+                dis[next.x][next.y] = dis[current.x][current.y] + 1;
+                nextToVisitQueue.push(next);
+            }
+        }
+    }
+    distanceMap[id] = dis;
 }

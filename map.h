@@ -24,6 +24,7 @@ class Map
 public:
     int rows, cols;
     std::vector<std::vector<MapItemSpace::MapItem>> grid;
+    std::unordered_map<BerthID, std::vector<std::vector<int>>> distanceMap;
 
     static std::array<Point2d, 4> DIRS;
 
@@ -68,7 +69,7 @@ public:
     {
         return Point2d::calculateManhattanDistance(pos1, pos2);
     }
-    
+
 public:
     std::vector<Point2d> neighbors(Point2d id) const; // 返回当前节点上下左右的四个邻居
     bool passable(Point2d pos) const;
@@ -81,4 +82,5 @@ public:
                         std::vector<Point2d> *path = nullptr,
                         Point2d *start = nullptr,
                         Point2d *goal = nullptr) const;
+    void computeDistancesToBerthViaBFS(BerthID id, const std::vector<Point2d> &positions);
 };

@@ -8,7 +8,7 @@
 const int MAPROWS = 200, MAPCOLS = 200;
 const int ROBOTNUMS = 10, SHIPNUMS = 5, BERTHNUMS = 10;
 
-
+using BerthID = int;
 
 struct Point2d
 {
@@ -43,6 +43,10 @@ struct Point2d
     bool operator!=(const Point2d &other) const // 重载!=比较运算符
     {
         return !(*this == other);
+    }
+    Point2d operator+(const Point2d& other) const // 重载+向量加法运算符
+    {
+        return Point2d(x + other.x, y + other.y);
     }
     friend std::ostream& operator<<(std::ostream& os, const Point2d& point) // 重载输出运算符
     {

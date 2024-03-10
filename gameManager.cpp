@@ -61,6 +61,17 @@ void GameManager::initializeGame()
 
     // printf("OK\n");
     // fflush(stdout);
+
+    // 计算地图上每个点到泊位的距离
+    for(const auto &berth : this->berths){
+        vector<Point2d> positions;
+        // 泊位大小 4x4
+        for(int i = 0; i < 4; ++i){
+            for(int j = 0; j < 4; ++j)
+                positions.push_back(berth.pos+Point2d(i,j));
+        }
+        this->gameMap.computeDistancesToBerthViaBFS(berth.id, positions);
+    }
 }
 
 void GameManager::processFrameData()

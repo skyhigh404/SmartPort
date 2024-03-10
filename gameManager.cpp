@@ -26,9 +26,10 @@ void GameManager::initializeGame()
                 this->gameMap.setCell(i, j, MapItemSpace::MapItem::OBSTACLE);
                 break;
             case 'A':
-                // this->robots.emplace_back(robotID++, Point2d(i, j));
+                this->gameMap.setCell(i, j, MapItemSpace::MapItem::SPACE);
                 break;
             case 'B':
+                this->gameMap.setCell(i, j, MapItemSpace::MapItem::BERTH);
                 break;
             default:
                 break;
@@ -63,12 +64,14 @@ void GameManager::initializeGame()
     // fflush(stdout);
 
     // 计算地图上每个点到泊位的距离
-    for(const auto &berth : this->berths){
+    for (const auto &berth : this->berths)
+    {
         vector<Point2d> positions;
         // 泊位大小 4x4
-        for(int i = 0; i < 4; ++i){
-            for(int j = 0; j < 4; ++j)
-                positions.push_back(berth.pos+Point2d(i,j));
+        for (int i = 0; i < 4; ++i)
+        {
+            for (int j = 0; j < 4; ++j)
+                positions.push_back(berth.pos + Point2d(i, j));
         }
         this->gameMap.computeDistancesToBerthViaBFS(berth.id, positions);
     }

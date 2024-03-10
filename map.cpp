@@ -35,7 +35,8 @@ std::vector<Point2d> Map::neighbors(Point2d pos) const
 bool Map::passable(Point2d pos) const
 {
     return (getCell(pos) != MapItemSpace::MapItem::OBSTACLE &&
-            getCell(pos) != MapItemSpace::MapItem::SEA);
+            getCell(pos) != MapItemSpace::MapItem::SEA &&
+            getCell(pos) != MapItemSpace::MapItem::BERTH);
 }
 
 std::string Map::drawMap(std::unordered_map<Point2d, double> *distances,
@@ -60,6 +61,8 @@ std::string Map::drawMap(std::unordered_map<Point2d, double> *distances,
                 oss << string(field_width, '#');
             else if (item == MapItem::SEA)
                 oss << string(field_width, '*');
+            else if (item == MapItem::BERTH)
+                oss << " B ";
             else if (start && pos == *start)
                 oss << " A ";
             else if (goal && pos == *goal)

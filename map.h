@@ -82,5 +82,6 @@ public:
                         std::vector<Point2d> *path = nullptr,
                         Point2d *start = nullptr,
                         Point2d *goal = nullptr) const;
+    static std::string drawMap(std::vector<std::vector<int>>);
     void computeDistancesToBerthViaBFS(BerthID id, const std::vector<Point2d> &positions);
 };

@@ -5,6 +5,7 @@
 #include <iomanip>
 #include <queue>
 #include <climits>
+#include "log.h"
 
 std::array<Point2d, 4> Map::DIRS = {
     /* East, West, North, South */
@@ -63,6 +64,8 @@ std::string Map::drawMap(std::unordered_map<Point2d, double> *distances,
                 oss << string(field_width, '*');
             else if (item == MapItem::BERTH)
                 oss << " B ";
+            else if (item == MapItem::SPACE)
+                oss << " . ";
             else if (start && pos == *start)
                 oss << " A ";
             else if (goal && pos == *goal)
@@ -86,7 +89,7 @@ std::string Map::drawMap(std::unordered_map<Point2d, double> *distances,
             else if (distances != nullptr && distances->count(pos))
                 oss << std::setw(field_width) << (*distances)[pos];
             else
-                oss << " . ";
+                oss << " E ";
         }
         oss << "\n";
     }
@@ -123,4 +126,25 @@ void Map::computeDistancesToBerthViaBFS(BerthID id, const std::vector<Point2d> &
         }
     }
     berthDistanceMap[id] = dis;
+}
+
+std::string Map::drawMap(std::vector<std::vector<int>> map)
+{
+    const int field_width = 3;
+    using std::string, std::find;
+    std::ostringstream oss;
+    int row = map.size(), col = map[0].size();
+
+    oss << std::string(field_width * col, '_') << '\n';
+    for (int x = 0; x < row; ++x)
+    {
+        for (int y = 0; y < col; ++y)
+        {
+            oss << std::setw(field_width) << map[x][y];
+        }
+        oss << "\n";
+    }
+    oss << std::string(field_width * col, '~') << "\n";
+    std::string result = oss.str();
+    return result;
 }

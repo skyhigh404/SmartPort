@@ -14,8 +14,8 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleRobots(std
     for (int i=0;i<robots.size();i++) {
         for (int j=0;j<goods.size();j++) {
             path2goods[i][j] = pathfinder.findPath(robots[i].pos, goods[j].pos, map);
-            if (std::holds_alternative<std::vector<Path>>(path2goods[i][j]))
-                cost2goods[i][j] = std::get<std::vector<Path>>(path2goods[i][j]).size();
+            if (std::holds_alternative<Path>(path2goods[i][j]))
+                cost2goods[i][j] = std::get<Path>(path2goods[i][j]).size();
         }
         // for (int j=0;j<berths.size();j++) {
         //     path2berths[i][j] = pathfinder.findPath(robots[i].pos, berths[j].pos, map);
@@ -27,8 +27,8 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleRobots(std
     for (int i=0;i<goods.size();i++) {
         for (int j=0;j<berths.size();j++) {
             path2berths[i][j] = pathfinder.findPath(goods[i].pos, berths[j].pos, map);
-            if (std::holds_alternative<std::vector<Path>>(path2goods[i][j]))
-                cost2berths[i][j] = std::get<std::vector<Path>>(path2berths[i][j]).size();
+            if (std::holds_alternative<Path>(path2goods[i][j]))
+                cost2berths[i][j] = std::get<Path>(path2berths[i][j]).size();
         }
     }
 

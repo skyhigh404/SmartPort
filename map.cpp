@@ -119,5 +119,5 @@ void Map::computeDistancesToBerthViaBFS(BerthID id, const std::vector<Point2d> &
             }
         }
     }
-    distanceMap[id] = dis;
+    berthDistanceMap[id] = dis;
 }

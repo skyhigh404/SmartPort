@@ -3,6 +3,7 @@
 #include <iostream>
 
 using namespace std;
+int Goods::number = 0;
 
 void GameManager::initializeGame()
 {
@@ -116,7 +117,7 @@ void GameManager::processFrameData()
 
 void GameManager::update()
 {
-    this->scheduler->scheduleRobots(robots, gameMap, goods);
+    this->scheduler->scheduleRobots(robots, gameMap, goods, berths);
     this->scheduler->scheduleShips(ships, berths);
     // commandManager，获取命令
 }

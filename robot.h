@@ -6,6 +6,15 @@
 #include "utils.h"
 #include "assert.h"
 
+enum RobotStatus
+{
+    IDLE,
+    MOVING_TO_GOODS,
+    PICKING_UP,
+    MOVING_TO_BERTH,
+    UNLOADING
+};
+
 class Robot
 {
 public:
@@ -14,6 +23,7 @@ public:
     int carryingItem; // 0 表示未携带物品，1 表示携带物品
     int carryingItemId; // 携带的物品id
     int state;        // 0 表示恢复状态，1 表示正常运行状态
+    RobotStatus status;
 
 public:
     Robot(int id, Point2d pos)

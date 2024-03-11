@@ -5,6 +5,7 @@ using std::vector;
 
 int dist(Point2d a, Point2d b) {return abs(a.x-b.x)+abs(a.y-b.y);}
 
+// 需要维护的变量：robots、goods、berths
 std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleRobots(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths)
 {
     // 寻路
@@ -31,7 +32,7 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleRobots(std
 
     // 衡量收益
     // 计算每个机器人将货物送达泊位的耗时
-    std::vector<std::vector<int>> profits(robots.size(), std::vector<int>(goods.size(), 0));
+    std::vector<std::vector<float>> profits(robots.size(), std::vector<float>(goods.size(), 0));
     vector<int> bestBerthIndex(berths.size(), -1);
     for (int i = 0; i < robots.size(); i++) {
         for (int j = 0; j < goods.size(); j++) {
@@ -55,7 +56,7 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleRobots(std
                 // 计算货物的利润
                 int profit = goods[j].value;
                 // 计算收益
-                profits[i][j] = profit / totalTime;
+                profits[i][j] = profit *1.0 / totalTime;
             }
         }
     }
@@ -100,6 +101,7 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleRobots(std
             else if (robots[i].status==UNLOADING && dist(robots[i].pos, robots[i].path[-1])==1) {
                 robotActions.push_back(std::make_pair(i, Action{MOVE_TO_BERTH, robots[i].path[-1], berths[berthsIndex].id}));
                 robotActions.push_back(std::make_pair(i, Action{DROP_OFF_GOODS, robots[i].path[-1], berths[berthsIndex].id}));
+                goods[goodsIndex].status = 2;
                 robots[i].status = IDLE;
                 break;
             }
@@ -108,6 +110,7 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleRobots(std
                 // robotDestinations[i] = std::make_pair(goodsIndex, berthsIndex);
                 robotActions.push_back(std::make_pair(i, Action{MOVE_TO_POSITION, goods[goodsIndex].pos, goods[goodsIndex].id}));
                 pickup[i] = goodsIndex;
+                berths[berthsIndex].select_goods.push_back(std::make_pair(goods[goodsIndex], profits[i][j]*goods[goodsIndex].value));
                 robots[i].status = MOVING_TO_GOODS;
                 break;
             }
@@ -116,6 +119,7 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleRobots(std
                 robotActions.push_back(std::make_pair(i, Action{MOVE_TO_POSITION, robots[i].path[-1], pickup[i]})); //goodsid
                 robotActions.push_back(std::make_pair(i, Action{PICK_UP_GOODS, robots[i].path[-1], pickup[i]}));
                 robots[i].status = MOVING_TO_BERTH;
+                goods[goodsIndex].status = 1;
                 break;
             }
         }

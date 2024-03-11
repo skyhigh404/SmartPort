@@ -20,9 +20,9 @@ class Robot
 public:
     int id;
     Point2d pos;
-    int carryingItem; // 0 表示未携带物品，1 表示携带物品
+    int carryingItem;   // 0 表示未携带物品，1 表示携带物品
     int carryingItemId; // 携带的物品id
-    int state;        // 0 表示恢复状态，1 表示正常运行状态
+    int state;          // 0 表示恢复状态，1 表示正常运行状态
     RobotStatus status;
 
 public:
@@ -41,6 +41,26 @@ public:
         assert(direction >= 0 && direction <= 3);
 #endif
         return "move "s + std::to_string(id) + " "s + std::to_string(direction);
+    }
+
+    std::string move(const Point2d &nextPos)
+    {
+        std::string instruction;
+        if (nextPos.x > pos.x)
+            instruction = move(3); // 向下
+        else if (nextPos.x < pos.x)
+            instruction = move(2); // 向上
+        else if (nextPos.y > pos.y)
+            instruction = move(0); // 向右
+        else if (nextPos.y < pos.y)
+            instruction = move(1); // 向左
+        return instruction;
+    }
+
+    std::string move(const std::vector<Point2d> &path)
+    {
+        // 移动到路径上第一个点
+        return move(path[0]);
     }
 
     std::string get()

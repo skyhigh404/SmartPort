@@ -94,6 +94,7 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleRobots(std
                 Point2d berths_pos=berths[berthsIndex].pos;
                 int stockpile=berths[berthsIndex].stockpile;
                 robotActions.push_back(std::make_pair(i, Action{MOVE_TO_BERTH, Point2d(berths_pos.x+stockpile/4, berths_pos.y+stockpile%4), berths[berthsIndex].id}));
+                robotActions.push_back(std::make_pair(i, Action{FIND_PATH, Point2d(berths_pos.x+stockpile/4, berths_pos.y+stockpile%4), berths[berthsIndex].id}));
                 robots[i].status = UNLOADING;
                 break;
             }
@@ -101,7 +102,7 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleRobots(std
             else if (robots[i].status==UNLOADING && dist(robots[i].pos, robots[i].path[-1])==1) {
                 robotActions.push_back(std::make_pair(i, Action{MOVE_TO_BERTH, robots[i].path[-1], berths[berthsIndex].id}));
                 robotActions.push_back(std::make_pair(i, Action{DROP_OFF_GOODS, robots[i].path[-1], berths[berthsIndex].id}));
-                goods[goodsIndex].status = 2;
+                goods[goodsIndex].status = 3;
                 robots[i].status = IDLE;
                 break;
             }
@@ -109,7 +110,9 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleRobots(std
             else if  (robots[i].status==IDLE && goods[goodsIndex].status==0) {
                 // robotDestinations[i] = std::make_pair(goodsIndex, berthsIndex);
                 robotActions.push_back(std::make_pair(i, Action{MOVE_TO_POSITION, goods[goodsIndex].pos, goods[goodsIndex].id}));
+                robotActions.push_back(std::make_pair(i, Action{FIND_PATH, goods[goodsIndex].pos, goods[goodsIndex].id}));
                 pickup[i] = goodsIndex;
+                goods[goodsIndex].status = 1;
                 berths[berthsIndex].select_goods.push_back(std::make_pair(goods[goodsIndex], profits[i][j]*goods[goodsIndex].value));
                 robots[i].status = MOVING_TO_GOODS;
                 break;
@@ -118,10 +121,18 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleRobots(std
             else if (robots[i].status==MOVING_TO_GOODS && dist(robots[i].pos, robots[i].path[-1])==1) {
                 robotActions.push_back(std::make_pair(i, Action{MOVE_TO_POSITION, robots[i].path[-1], pickup[i]})); //goodsid
                 robotActions.push_back(std::make_pair(i, Action{PICK_UP_GOODS, robots[i].path[-1], pickup[i]}));
+                robotActions.push_back(std::make_pair(i, Action{FIND_PATH, berths[berthsIndex].pos, berths[berthsIndex].id}));
                 robots[i].status = MOVING_TO_BERTH;
-                goods[goodsIndex].status = 1;
+                robots[i].carryingItem = 1;
+                robots[i].carryingItemId = goods[goodsIndex].id;
+                goods[goodsIndex].status = 2;
                 break;
             }
+            // else if (robots[i].status==PICKING_UP) {
+            //     robotActions.push_back(std::make_pair(i, Action{MOVE_TO_BERTH, berths[berthsIndex].pos, berths[berthsIndex].id}));
+            //     robots[i].status = MOVING_TO_BERTH;
+            //     break;
+            // }
         }
     }
 

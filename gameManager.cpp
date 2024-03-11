@@ -159,22 +159,27 @@ void GameManager::update()
         int robot_id = RobotActions[i].first;
         Action robot_action = RobotActions[i].second;
         if (robot_action.type==MOVE_TO_POSITION || robot_action.type==MOVE_TO_BERTH) {
-            LOGI(robots[robot_id].moveWithPath()=="");
+            // LOGI(robots[robot_id].moveWithPath()=="");
+            LOGI(robot_id, "移动中");
             commandManager.addRobotCommand(robots[robot_id].moveWithPath());
         }
         // 拿起货物并向泊位规划路劲
         if (robot_action.type==PICK_UP_GOODS) {
-            LOGI(robots[robot_id].get());
+            LOGI(robot_id, "拿起货物");
             commandManager.addRobotCommand(robots[robot_id].get());
         }
         if (robot_action.type==DROP_OFF_GOODS) {
-            LOGI(robots[robot_id].pull());
+            LOGI(robot_id, "放下货物");
             commandManager.addRobotCommand(robots[robot_id].pull());
         }
         if (robot_action.type==FIND_PATH) {
+            LOGI(robot_id, "需要寻路");
             std::variant<Path, PathfindingFailureReason> path = pathfinder.findPath(robots[robot_id].pos, robot_action.desination, gameMap);
             if (std::holds_alternative<Path>(path)) {
                 robots[robot_id].path = std::get<Path>(path);
+            }
+            else {
+                LOGI(robot_id, "寻路失败");
             }
         }
     }

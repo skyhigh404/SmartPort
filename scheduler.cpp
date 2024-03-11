@@ -1,6 +1,6 @@
 #include "scheduler.h"
 #include "pathFinder.h"
-#include <set>
+#include "log.h"
 
 using std::vector;
 
@@ -9,6 +9,7 @@ int dist(Point2d a, Point2d b) {return abs(a.x-b.x)+abs(a.y-b.y);}
 // 需要维护的变量：robots、goods、berths
 std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleRobots(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths)
 {
+    LOGI("test");
     // 寻路
     AStarPathfinder pathfinder;
     vector<vector<std::variant<Path, PathfindingFailureReason>>> path2goods(robots.size(), vector<std::variant<Path, PathfindingFailureReason>>(goods.size(), std::variant<Path, PathfindingFailureReason>())), \
@@ -104,6 +105,11 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleRobots(std
                 robotActions.push_back(std::make_pair(i, Action{MOVE_TO_BERTH, robots[i].path[-1], berths[berthsIndex].id}));
                 robotActions.push_back(std::make_pair(i, Action{DROP_OFF_GOODS, robots[i].path[-1], berths[berthsIndex].id}));
                 goods[goodsIndex].status = 3;
+                for (int l=0;l<berths[berthsIndex].unreached_goods.size();l++) {
+                    if (berths[berthsIndex].unreached_goods[l].id == goods[goodsIndex].id) 
+                        berths[berthsIndex].unreached_goods.erase(berths[berthsIndex].unreached_goods.begin() + l);
+                }
+                berths[berthsIndex].reached_goods.push_back(goods[goodsIndex]);
                 robots[i].status = IDLE;
                 break;
             }
@@ -114,7 +120,7 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleRobots(std
                 robotActions.push_back(std::make_pair(i, Action{FIND_PATH, goods[goodsIndex].pos, goods[goodsIndex].id}));
                 pickup[i] = goodsIndex;
                 goods[goodsIndex].status = 1;
-                // berths[berthsIndex].select_goods.push_back(std::make_pair(goods[goodsIndex], profits[i][j]*goods[goodsIndex].value));
+                berths[berthsIndex].unreached_goods.push_back(goods[goodsIndex]);
                 robots[i].status = MOVING_TO_GOODS;
                 break;
             }

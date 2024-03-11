@@ -11,6 +11,7 @@ int main()
     GameManager gameManager;
     // gameManager.setScheduler();
     gameManager.initializeGame();
+    Log::logWrite("初始化完毕");
     while (1)
     {
         gameManager.processFrameData();

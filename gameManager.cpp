@@ -120,10 +120,13 @@ void GameManager::update()
     this->scheduler->scheduleRobots(robots, gameMap, goods, berths);
     this->scheduler->scheduleShips(ships, berths);
     // commandManager，获取命令
+    // todo 输出指令
+    // CommandManager.robotCommands
 }
 
 void GameManager::outputCommands()
 {
+    
     commandManager.outputCommands();
     commandManager.clearCommands();
 }

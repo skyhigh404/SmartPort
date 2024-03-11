@@ -10,6 +10,7 @@ void GameManager::initializeGame()
 {
     // 读取地图
     string map_data;
+    int robot_id = 1;
     for (int i = 0; i < MAPROWS; ++i)
     {
         cin >> map_data;
@@ -27,7 +28,9 @@ void GameManager::initializeGame()
                 this->gameMap.setCell(i, j, MapItemSpace::MapItem::OBSTACLE);
                 break;
             case 'A':
-                this->gameMap.setCell(i, j, MapItemSpace::MapItem::SPACE);
+                // 初始化机器人
+                this->robots.emplace_back(robot_id, Point2d(i, j));
+                robot_id++;
                 break;
             case 'B':
                 this->gameMap.setCell(i, j, MapItemSpace::MapItem::BERTH);
@@ -41,8 +44,8 @@ void GameManager::initializeGame()
     // LOGI(this->gameMap.drawMap());
 
     // 初始化机器人
-    for (int i = 0; i < ROBOTNUMS; ++i)
-        this->robots.emplace_back(i, Point2d(-1, -1));
+    // for (int i = 0; i < ROBOTNUMS; ++i)
+    //     this->robots.emplace_back(i, Point2d(-1, -1));
 
     // 初始化泊位
     int id, x, y, time, velocity;
@@ -145,10 +148,13 @@ void GameManager::update()
     this->scheduler->scheduleRobots(robots, gameMap, goods, berths);
     this->scheduler->scheduleShips(ships, berths);
     // commandManager，获取命令
+    // todo 输出指令
+    // CommandManager.robotCommands
 }
 
 void GameManager::outputCommands()
 {
+    
     commandManager.outputCommands();
     commandManager.clearCommands();
 }

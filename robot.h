@@ -5,7 +5,6 @@
 #include "map.h"
 #include "utils.h"
 #include "assert.h"
-#include "pathFinder.h"
 
 enum RobotStatus
 {
@@ -21,9 +20,9 @@ class Robot
 public:
     int id;
     Point2d pos;
-    int carryingItem;   // 0 表示未携带物品，1 表示携带物品
-    int carryingItemId; // 携带的物品id
-    int state;        // 0 表示恢复状态，1 表示正常运行状态
+    int carryingItem;          // 0 表示未携带物品，1 表示携带物品
+    int carryingItemId;        // 携带的物品id
+    int state;                 // 0 表示恢复状态，1 表示正常运行状态
     std::vector<Point2d> path; // 机器人即将要走的路径
     RobotStatus status;
 
@@ -60,10 +59,15 @@ public:
         return instruction;
     }
 
-    std::string move(const std::vector<Point2d> &path)
+    std::string move()
     {
-        // 移动到路径上第一个点
-        return move(path[0]);
+        if (!path.empty())
+        {
+            Point2d pos = this->path.front();
+            this->path.erase(this->path.begin());
+            return move(pos);
+        }
+        return string("");
     }
 
     std::string get()

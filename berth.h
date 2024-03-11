@@ -13,10 +13,16 @@ public:
 
     int stockpile;      // 泊位堆积的货物量
     int stockpileValue; // 泊位堆积的货物的价值
-    std::vector<std::pair<Goods,int>> select_goods;
+    std::vector<Goods> reached_goods;  //堆积货物的列表
+    std::vector<Goods> unreached_goods;  //未到达货物的列表
+    int residue_num = 0;    //泊位当前剩余无法装在的货物数量，每帧重新计算
 public:
     Berth(int id, Point2d pos, int time, int velocity)
         : id(id), pos(pos), time(time), velocity(velocity), stockpile(0), stockpileValue(0)
     {
+    }
+    
+    int calculate_revenue(){
+
     }
 };

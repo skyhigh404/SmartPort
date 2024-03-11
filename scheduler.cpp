@@ -1,5 +1,6 @@
 #include "scheduler.h"
 #include "pathFinder.h"
+#include <set>
 
 using std::vector;
 
@@ -147,7 +148,106 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleRobots(std
     return robotActions;
 }
 
+// 泊位收益排序函数
+// 根据泊位溢出货物的价值之和进行排序
+void sortBerthsByResiGoodsValue(std::vector<Berth>& berths) {
+    std::sort(berths.begin(), berths.end(), [](const Berth& a, const Berth& b) {
+        int totalValueA = 0;
+        int totalValueB = 0;
+        if(a.residue_num > 0 && b.residue_num >0){
+            // 计算a泊位剩余货物的价值
+            for(int i = 1;i <= a.residue_num; i++){
+                if(i <= a.unreached_goods.size()){
+                    totalValueA += a.unreached_goods[a.unreached_goods.size()-i].value;
+                }else{
+                    totalValueA += a.reached_goods[a.reached_goods.size() -  i + a.unreached_goods.size()].value;
+                }
+            }
+            // 计算b泊位剩余货物的价值
+            for(int i = 1;i <= b.residue_num; i++){
+                if(i <= b.unreached_goods.size()){
+                    totalValueB += b.unreached_goods[b.unreached_goods.size()-i].value;
+                }else{
+                    totalValueB += b.reached_goods[b.reached_goods.size() -  i + b.unreached_goods.size()].value;
+                }
+            }
+            return totalValueA > totalValueB;
+        }else{
+            return a.residue_num > b.residue_num;
+        }
+    });
+}
+
 std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleShips(std::vector<Ship>& ships, std::vector<Berth>& berths)
 {
-    return std::vector<std::pair<int, Action>>();
+    // todo 根据路径代价计算未到达货物的收益 + 船只在装货时也可以进行抉择
+
+    // 初始化泊位的货物数量
+     for (auto& berth : berths) {
+            berth.residue_num = berth.reached_goods.size() + berth.unreached_goods.size();
+        }
+
+    // 根据船的状态和泊位收益调度
+    std::vector<std::pair<int, Action>> shipActions; 
+    std::vector<Ship> freeShips;    // 空闲船只
+    for(int i = 0;i < ships.size();i++){
+        switch (ships[i].state)
+        {
+        case 0:
+            // 状态错误
+            assert(ships[i].now_capacity == ships[i].capacity);
+            break;
+        case 1:
+            if(ships[i].now_capacity == 0){ //装满,去往虚拟点
+                shipActions.push_back(std::make_pair(i, Action{DEPART_BERTH,Point2d(),-1}));
+                // 重置船的容量和状态
+                ships[i].now_capacity = ships[i].capacity;
+                ships[i].state = 0;
+                ships[i].berthId = -1;
+            }else if(ships[i].berthId != -1){   //装货
+                // 计算泊位的溢出货物量
+                berths[ships[i].berthId].residue_num -= ships[i].now_capacity;
+
+                int berthId = ships[i].berthId;
+                int shipment = 0;
+                if(berths[berthId].reached_goods.size() >= berths[berthId].velocity){
+                    //堆积货物大于装货速度
+                    shipment = berths[berthId].velocity;
+                }
+                else{
+                    shipment = berths[berthId].reached_goods.size();
+                }
+
+                int res = ships[i].load(shipment);
+                assert(res < berths[berthId].reached_goods.size());
+                berths[berthId].reached_goods.erase(berths[berthId].reached_goods.begin(),berths[berthId].reached_goods.begin() + res);
+
+            }else if(ships[i].berthId == -1){  // 加入空闲船只列表
+                freeShips.push_back(ships[i]);
+            }
+            break;
+
+        case 2:
+            // 等待状态不做改变
+            
+            // 计算泊位溢出货物量
+            berths[ships[i].berthId].residue_num -= ships[i].now_capacity;
+            break;
+        }
+    }
+
+    // 计算泊位的收益排序
+    sortBerthsByResiGoodsValue(berths);
+    // 调度船只
+    for (auto& ship : freeShips) {
+        for (auto& berth : berths) {
+            if (ship.capacity <= berth.residue_num) {
+                // 如果船的容量小于或等于当前泊位的剩余需求，分配船到这个泊位
+                shipActions.push_back(std::make_pair(ship.id, Action{MOVE_TO_BERTH,Point2d(),berth.id}));
+                berth.residue_num -= ship.capacity; // 更新泊位的剩余需求
+                break; // 跳出循环，继续为下一艘船分配泊位
+            }
+        }
+    }
+    return shipActions;
 }

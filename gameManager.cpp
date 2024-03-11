@@ -10,7 +10,7 @@ void GameManager::initializeGame()
 {
     // 读取地图
     string map_data;
-    int robot_id = 1;
+    int robot_id = 0;
     for (int i = 0; i < MAPROWS; ++i)
     {
         cin >> map_data;
@@ -31,11 +31,12 @@ void GameManager::initializeGame()
                 // 初始化机器人
                 this->robots.emplace_back(robot_id, Point2d(i, j));
                 robot_id++;
+                this->gameMap.setCell(i, j, MapItemSpace::MapItem::SPACE);
                 break;
             case 'B':
                 this->gameMap.setCell(i, j, MapItemSpace::MapItem::BERTH);
                 break;
-            default:
+            default: 
                 break;
             }
         }
@@ -145,11 +146,17 @@ void GameManager::processFrameData()
 
 void GameManager::update()
 {
+    // 0.状态判断更新
+
+    // 1. 机器人调度（有需要的机器人进行路径规划；货物分配；泊位收益计算）
     this->scheduler->scheduleRobots(robots, gameMap, goods, berths);
+    // 2. 船调度（分配船只）
     this->scheduler->scheduleShips(ships, berths);
-    // commandManager，获取命令
-    // todo 输出指令
-    // CommandManager.robotCommands
+
+    // 3. 碰撞检测（机器人）
+
+    // 4. 指令输出（机器人、船的状态修改）
+
 }
 
 void GameManager::outputCommands()

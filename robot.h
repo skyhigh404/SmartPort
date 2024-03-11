@@ -63,8 +63,9 @@ public:
     {
         if (!path.empty())
         {
-            Point2d pos = this->path.front();
-            this->path.erase(this->path.begin());
+            // A* 算法输出的路径是逆序存储的，以提高弹出效率
+            Point2d pos = this->path.back();
+            this->path.pop_back();
             return move(pos);
         }
         return std::string("");

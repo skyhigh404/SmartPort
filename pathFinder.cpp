@@ -82,7 +82,7 @@ std::vector<Location> AStarPathfinder::reconstruct_path(
         path.push_back(current);
         current = came_from[current];
     }
-    path.push_back(start); // optional
-    std::reverse(path.begin(), path.end());
+    // path.push_back(start); // optional
+    // std::reverse(path.begin(), path.end());
     return path;
 }

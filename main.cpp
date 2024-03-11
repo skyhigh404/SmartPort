@@ -11,7 +11,6 @@ int main()
     GameManager gameManager;
     // gameManager.setScheduler();
     gameManager.initializeGame();
-    LOGI("processFrameData.");
     while (1)
     {
         gameManager.processFrameData();

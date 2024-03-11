@@ -95,7 +95,7 @@ void GameManager::initializeGame()
 
 void GameManager::processFrameData()
 {
-    LOGI("processFrameData.");
+    // LOGI("processFrameData.");
     int newItemCount;
     int goodsX, goodsY, value;
     int carrying, robotX, robotY, robotState;
@@ -134,10 +134,10 @@ void GameManager::processFrameData()
     string ok;
     cin >> ok;
 
-    for (int i = 0; i < ROBOTNUMS; ++i)
-    {
-        LOGI("Robot: ", this->robots[i].id, " position: ", this->robots[i].pos, " state: ", this->robots[i].state);
-    }
+    // for (int i = 0; i < ROBOTNUMS; ++i)
+    // {
+    //     LOGI("Robot: ", this->robots[i].id, " position: ", this->robots[i].pos, " state: ", this->robots[i].state);
+    // }
 }
 
 void GameManager::update()

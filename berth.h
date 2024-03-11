@@ -13,6 +13,7 @@ public:
 
     int stockpile;      // 泊位堆积的货物量
     int stockpileValue; // 泊位堆积的货物的价值
+    std::vector<std::pair<Goods,int>> select_goods;
 public:
     Berth(int id, Point2d pos, int time, int velocity)
         : id(id), pos(pos), time(time), velocity(velocity), stockpile(0), stockpileValue(0)

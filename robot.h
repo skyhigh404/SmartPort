@@ -5,6 +5,7 @@
 #include "map.h"
 #include "utils.h"
 #include "assert.h"
+#include "pathFinder.h"
 
 enum RobotStatus
 {
@@ -23,6 +24,7 @@ public:
     int carryingItem; // 0 表示未携带物品，1 表示携带物品
     int carryingItemId; // 携带的物品id
     int state;        // 0 表示恢复状态，1 表示正常运行状态
+    Path path; // 机器人即将要走的路径
     RobotStatus status;
 
 public:

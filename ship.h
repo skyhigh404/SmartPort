@@ -39,6 +39,7 @@ public:
         if(now_capacity == 0){
             // 异常情况，满货船舶停滞在泊位
             LOGW("ID: ", id, " now_capacity: ", now_capacity, " berth_id: ", berthId);
+            return 0;
         }
         else if(now_capacity >= num){
             now_capacity -= num;

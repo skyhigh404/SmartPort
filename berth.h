@@ -22,7 +22,4 @@ public:
     {
     }
     
-    int calculate_revenue(){
-
-    }
 };

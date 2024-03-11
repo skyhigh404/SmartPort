@@ -9,7 +9,7 @@ int dist(Point2d a, Point2d b) {return abs(a.x-b.x)+abs(a.y-b.y);}
 // 需要维护的变量：robots、goods、berths
 std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleRobots(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths)
 {
-    LOGI("test");
+    // LOGI("test");
     // 寻路
     AStarPathfinder pathfinder;
     vector<vector<std::variant<Path, PathfindingFailureReason>>> path2goods(robots.size(), vector<std::variant<Path, PathfindingFailureReason>>(goods.size(), std::variant<Path, PathfindingFailureReason>())), \

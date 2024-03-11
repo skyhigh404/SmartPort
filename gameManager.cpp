@@ -148,33 +148,33 @@ void GameManager::processFrameData()
 
 void GameManager::update()
 {
-    // std::vector<std::pair<int, Action>> RobotActions = this->scheduler->scheduleRobots(robots, gameMap, goods, berths);
+    std::vector<std::pair<int, Action>> RobotActions = this->scheduler->scheduleRobots(robots, gameMap, goods, berths);
     std::vector<std::pair<int, Action>> ShipActions = this->scheduler->scheduleShips(ships, berths);
     
     AStarPathfinder pathfinder;
     // commandManager，获取命令
     // todo 输出指令
     // CommandManager.robotCommands
-    // for (int i=0;i<RobotActions.size();i++) {
-    //     int robot_id = RobotActions[i].first;
-    //     Action robot_action = RobotActions[i].second;
-    //     if (robot_action.type==MOVE_TO_POSITION || robot_action.type==MOVE_TO_BERTH) {
-    //         commandManager.addRobotCommand(robots[robot_id].moveWithPath());
-    //     }
-    //     // 拿起货物并向泊位规划路劲
-    //     if (robot_action.type==PICK_UP_GOODS) {
-    //         commandManager.addRobotCommand(robots[robot_id].get());
-    //     }
-    //     if (robot_action.type==DROP_OFF_GOODS) {
-    //         commandManager.addRobotCommand(robots[robot_id].pull());
-    //     }
-    //     if (robot_action.type==FIND_PATH) {
-    //         std::variant<Path, PathfindingFailureReason> path = pathfinder.findPath(robots[robot_id].pos, robot_action.desination, gameMap);
-    //         if (std::holds_alternative<Path>(path)) {
-    //             robots[robot_id].path = std::get<Path>(path);
-    //         }
-    //     }
-    // }
+    for (int i=0;i<RobotActions.size();i++) {
+        int robot_id = RobotActions[i].first;
+        Action robot_action = RobotActions[i].second;
+        if (robot_action.type==MOVE_TO_POSITION || robot_action.type==MOVE_TO_BERTH) {
+            commandManager.addRobotCommand(robots[robot_id].moveWithPath());
+        }
+        // 拿起货物并向泊位规划路劲
+        if (robot_action.type==PICK_UP_GOODS) {
+            commandManager.addRobotCommand(robots[robot_id].get());
+        }
+        if (robot_action.type==DROP_OFF_GOODS) {
+            commandManager.addRobotCommand(robots[robot_id].pull());
+        }
+        if (robot_action.type==FIND_PATH) {
+            std::variant<Path, PathfindingFailureReason> path = pathfinder.findPath(robots[robot_id].pos, robot_action.desination, gameMap);
+            if (std::holds_alternative<Path>(path)) {
+                robots[robot_id].path = std::get<Path>(path);
+            }
+        }
+    }
 
 }
 

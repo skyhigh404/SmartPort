@@ -185,7 +185,7 @@ void GameManager::update()
         Action ship_action = ShipActions[i].second;
         // 去虚拟点
         if (ship_action.type==DEPART_BERTH) {
-            LOGI(ship_id,"装满，前往虚拟点");
+            LOGI(ship_id,"装满,前往虚拟点");
             commandManager.addRobotCommand(ships[ship_id].go());
         }
         // 去泊位

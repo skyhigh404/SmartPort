@@ -59,7 +59,7 @@ public:
         return instruction;
     }
 
-    std::string move()
+    std::string moveWithPath()
     {
         if (!path.empty())
         {

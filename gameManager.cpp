@@ -2,6 +2,7 @@
 #include <string>
 #include <iostream>
 #include "log.h"
+#include "pathFinder.h"
 
 using namespace std;
 int Goods::number = 0;
@@ -29,6 +30,7 @@ void GameManager::initializeGame()
                 break;
             case 'A':
                 // 初始化机器人
+                this->gameMap.setCell(i, j, MapItemSpace::MapItem::SPACE);
                 this->robots.emplace_back(robot_id, Point2d(i, j));
                 robot_id++;
                 this->gameMap.setCell(i, j, MapItemSpace::MapItem::SPACE);
@@ -146,16 +148,33 @@ void GameManager::processFrameData()
 
 void GameManager::update()
 {
-    // 0.状态判断更新
-
-    // 1. 机器人调度（有需要的机器人进行路径规划；货物分配；泊位收益计算）
-    this->scheduler->scheduleRobots(robots, gameMap, goods, berths);
-    // 2. 船调度（分配船只）
-    this->scheduler->scheduleShips(ships, berths);
-
-    // 3. 碰撞检测（机器人）
-
-    // 4. 指令输出（机器人、船的状态修改）
+    std::vector<std::pair<int, Action>> RobotActions = this->scheduler->scheduleRobots(robots, gameMap, goods, berths);
+    std::vector<std::pair<int, Action>> ShipActions = this->scheduler->scheduleShips(ships, berths);
+    
+    AStarPathfinder pathfinder;
+    // commandManager，获取命令
+    // todo 输出指令
+    // CommandManager.robotCommands
+    for (int i=0;i<RobotActions.size();i++) {
+        int robot_id = RobotActions[i].first;
+        Action robot_action = RobotActions[i].second;
+        if (robot_action.type==MOVE_TO_POSITION || robot_action.type==MOVE_TO_BERTH) {
+            commandManager.addRobotCommand(robots[robot_id].moveWithPath());
+        }
+        // 拿起货物并向泊位规划路劲
+        if (robot_action.type==PICK_UP_GOODS) {
+            commandManager.addRobotCommand(robots[robot_id].get());
+        }
+        if (robot_action.type==DROP_OFF_GOODS) {
+            commandManager.addRobotCommand(robots[robot_id].pull());
+        }
+        if (robot_action.type==FIND_PATH) {
+            std::variant<Path, PathfindingFailureReason> path = pathfinder.findPath(robots[robot_id].pos, robot_action.desination, gameMap);
+            if (std::holds_alternative<Path>(path)) {
+                robots[robot_id].path = std::get<Path>(path);
+            }
+        }
+    }
 
 }
 

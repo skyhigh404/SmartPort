@@ -5,7 +5,6 @@
 #include "map.h"
 #include "utils.h"
 #include "assert.h"
-#include "pathFinder.h"
 
 enum RobotStatus
 {
@@ -21,10 +20,10 @@ class Robot
 public:
     int id;
     Point2d pos;
-    int carryingItem; // 0 表示未携带物品，1 表示携带物品
-    int carryingItemId; // 携带的物品id
-    int state;        // 0 表示恢复状态，1 表示正常运行状态
-    Path path; // 机器人即将要走的路径
+    int carryingItem;          // 0 表示未携带物品，1 表示携带物品
+    int carryingItemId;        // 携带的物品id
+    int state;                 // 0 表示恢复状态，1 表示正常运行状态
+    std::vector<Point2d> path; // 机器人即将要走的路径
     RobotStatus status;
 
 public:
@@ -32,7 +31,8 @@ public:
         : id(id),
           pos(pos),
           carryingItem(0),
-          state(0)
+          state(0),
+          status(IDLE)
     {
     }
     std::string move(int direction)
@@ -43,6 +43,32 @@ public:
         assert(direction >= 0 && direction <= 3);
 #endif
         return "move "s + std::to_string(id) + " "s + std::to_string(direction);
+    }
+
+    std::string move(const Point2d &nextPos)
+    {
+        std::string instruction;
+        if (nextPos.x > pos.x)
+            instruction = move(3); // 向下
+        else if (nextPos.x < pos.x)
+            instruction = move(2); // 向上
+        else if (nextPos.y > pos.y)
+            instruction = move(0); // 向右
+        else if (nextPos.y < pos.y)
+            instruction = move(1); // 向左
+        return instruction;
+    }
+
+    std::string moveWithPath()
+    {
+        if (!path.empty())
+        {
+            // A* 算法输出的路径是逆序存储的，以提高弹出效率
+            Point2d pos = this->path.back();
+            this->path.pop_back();
+            return move(pos);
+        }
+        return std::string("");
     }
 
     std::string get()

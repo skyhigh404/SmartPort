@@ -31,7 +31,6 @@ public:
 public:
     GameManager() : gameMap(MAPROWS, MAPCOLS)
     {
-        initializeGame();
     }
     void initializeGame();   // 读取初始化信息并初始化
     void processFrameData(); // 处理每帧的输入

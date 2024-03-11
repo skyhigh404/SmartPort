@@ -14,7 +14,7 @@ public:
 
     // 目前没有剩余容量标识
 public:
-    Ship(int id, int capacity) : id(id), capacity(capacity) {}
+    Ship(int id, int capacity) : id(id), capacity(capacity), berthId(-1), state(-1) {}
 
     std::string moveToBerth(int berthId)
     {

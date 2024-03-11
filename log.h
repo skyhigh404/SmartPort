@@ -4,6 +4,7 @@
 #include <chrono>
 #include <iostream>
 #include <cstring>
+#include <sstream>
 #include "assert.h"
 
 // 定义日志级别
@@ -16,10 +17,9 @@
 #define LOG_LEVEL LOG_LEVEL_INFO
 
 // 定义记录宏
-#define LOGI(message) if (LOG_LEVEL <= LOG_LEVEL_INFO) Log::logWrite(message, LogLevel::INFO)
-#define LOGW(message) if (LOG_LEVEL <= LOG_LEVEL_WARNING) Log::logWrite(message, LogLevel::WARNING)
-#define LOGE(message) if (LOG_LEVEL <= LOG_LEVEL_ERROR) Log::logWrite(message, LogLevel::ERROR)
-
+#define LOGI(...) Log::logWriteFormatted(LogLevel::INFO, __VA_ARGS__)
+#define LOGW(...) Log::logWriteFormatted(LogLevel::WARNING, __VA_ARGS__)
+#define LOGE(...) Log::logWriteFormatted(LogLevel::ERROR, __VA_ARGS__)
 
 enum class LogLevel
 {
@@ -62,6 +62,28 @@ public:
         getInstance().logWriteImpl(message, level);
     }
 
+    // 一个辅助函数，用于递归终止
+    static void logMessage(std::ostringstream &stream)
+    {
+        // 递归终止时不做任何事
+    }
+
+    // 递归地将参数添加到输出流中
+    template <typename T, typename... Args>
+    static void logMessage(std::ostringstream &stream, const T &value, const Args &...args)
+    {
+        stream << value;
+        logMessage(stream, args...);
+    }
+
+    template <typename... Args>
+    static void logWriteFormatted(LogLevel level, const Args &...args)
+    {
+        std::ostringstream stream;
+        logMessage(stream, args...);
+        logWrite(stream.str(), level);
+    }
+
 private:
     void initLogImpl(const std::string &filepath = "log.log")
     {
@@ -97,7 +119,8 @@ private:
         std::time_t now_time = std::chrono::system_clock::to_time_t(now);
 
         std::string timeStr = std::ctime(&now_time);
-        if (!timeStr.empty() && timeStr[timeStr.length() - 1] == '\n') {
+        if (!timeStr.empty() && timeStr[timeStr.length() - 1] == '\n')
+        {
             timeStr.erase(timeStr.length() - 1); // 去除换行符
         }
 

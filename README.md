@@ -8,7 +8,15 @@ cd build && mingw32-make
 
 ## 与判题器交互
 ```
-..\judge\PreliminaryJudge.exe -m ..\judge\maps\map1.txt .\main.exe
+cd build
+..\judge\PreliminaryJudge_win_1.exe -m ..\judge\maps\map1.txt  -d ./output.txt .\main.exe
 ```
 
+## LOG 函数使用示例
+```
+LOGI("Ship ", 1 ," capacity: ", 70);
+// 输出 Ship 1 capacity: 70
+```
+
+## 注意事项
 由于平台上没有写权限，打包上传时要关闭 `DEBUG` 宏。

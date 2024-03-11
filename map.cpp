@@ -36,8 +36,7 @@ std::vector<Point2d> Map::neighbors(Point2d pos) const
 bool Map::passable(Point2d pos) const
 {
     return (getCell(pos) != MapItemSpace::MapItem::OBSTACLE &&
-            getCell(pos) != MapItemSpace::MapItem::SEA &&
-            getCell(pos) != MapItemSpace::MapItem::BERTH);
+            getCell(pos) != MapItemSpace::MapItem::SEA);
 }
 
 std::string Map::drawMap(std::unordered_map<Point2d, double> *distances,
@@ -128,9 +127,8 @@ void Map::computeDistancesToBerthViaBFS(BerthID id, const std::vector<Point2d> &
     berthDistanceMap[id] = dis;
 }
 
-std::string Map::drawMap(std::vector<std::vector<int>> map)
+std::string Map::drawMap(std::vector<std::vector<int>> map, int field_width)
 {
-    const int field_width = 3;
     using std::string, std::find;
     std::ostringstream oss;
     int row = map.size(), col = map[0].size();

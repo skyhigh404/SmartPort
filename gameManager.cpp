@@ -1,6 +1,7 @@
 #include "gameManager.h"
 #include <string>
 #include <iostream>
+#include "log.h"
 
 using namespace std;
 int Goods::number = 0;
@@ -36,6 +37,8 @@ void GameManager::initializeGame()
             }
         }
     }
+    // LOGI("Log init map info");
+    // LOGI(this->gameMap.drawMap());
 
     // 初始化机器人
     for (int i = 0; i < ROBOTNUMS; ++i)
@@ -48,6 +51,9 @@ void GameManager::initializeGame()
         cin >> id >> x >> y >> time >> velocity;
         this->berths.emplace_back(id, Point2d(x, y), time, velocity);
     }
+    LOGI("print berth init info");
+    for (const auto &berth : this->berths)
+        LOGI("ID: ", berth.id, " POS: ", berth.pos, " time: ", berth.time, " velocity: ", berth.velocity);
 
     // 初始化船舶
     int capacity;
@@ -56,29 +62,40 @@ void GameManager::initializeGame()
     {
         this->ships.emplace_back(i, capacity);
     }
-
-    string ok;
-    cin >> ok;
-
-    // printf("OK\n");
-    // fflush(stdout);
-
+    for (int i = 0; i < SHIPNUMS; ++i)
+    {
+        LOGI("Ship ", this->ships[i].id," capacity: ", this->ships[i].capacity);
+    }
+    
     // 计算地图上每个点到泊位的距离
     for (const auto &berth : this->berths)
     {
         vector<Point2d> positions;
         // 泊位大小 4x4
         for (int i = 0; i < 4; ++i)
-        {
             for (int j = 0; j < 4; ++j)
                 positions.push_back(berth.pos + Point2d(i, j));
-        }
+    
         this->gameMap.computeDistancesToBerthViaBFS(berth.id, positions);
+    }
+
+    // LOGI("Log berth 0 BFS map.");
+    // LOGI(Map::drawMap(this->gameMap.berthDistanceMap[0],12));
+
+    string ok;
+    cin >> ok;
+    if(ok == "OK"){
+        LOGI("Init complete.");
+        cout << "OK" << std::endl;
+    }
+    else{
+        LOGE("Init fail!");
     }
 }
 
 void GameManager::processFrameData()
 {
+    LOGI("processFrameData.");
     int newItemCount;
     int goodsX, goodsY, value;
     int carrying, robotX, robotY, robotState;
@@ -116,6 +133,11 @@ void GameManager::processFrameData()
     // 确认已接收完本帧的所有数据
     string ok;
     cin >> ok;
+
+    for (int i = 0; i < ROBOTNUMS; ++i)
+    {
+        LOGI("Robot: ", this->robots[i].id, " position: ", this->robots[i].pos, " state: ", this->robots[i].state);
+    }
 }
 
 void GameManager::update()

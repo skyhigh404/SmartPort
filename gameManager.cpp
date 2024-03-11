@@ -10,7 +10,7 @@ void GameManager::initializeGame()
 {
     // 读取地图
     string map_data;
-    int robot_id = 1;
+    int robot_id = 0;
     for (int i = 0; i < MAPROWS; ++i)
     {
         cin >> map_data;
@@ -29,6 +29,7 @@ void GameManager::initializeGame()
                 break;
             case 'A':
                 // 初始化机器人
+                this->gameMap.setCell(i, j, MapItemSpace::MapItem::SPACE);
                 this->robots.emplace_back(robot_id, Point2d(i, j));
                 robot_id++;
                 break;

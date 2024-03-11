@@ -12,7 +12,8 @@ enum ActionType
     PICK_UP_GOODS,
     DROP_OFF_GOODS,
     MOVE_TO_BERTH,
-    DEPART_BERTH
+    DEPART_BERTH,
+    FIND_PATH
 };
 
 struct Action

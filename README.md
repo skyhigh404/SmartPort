@@ -9,7 +9,7 @@ cd build && mingw32-make
 ## 与判题器交互
 ```
 cd build
-..\judge\PreliminaryJudge_win_1.exe -m ..\judge\maps\map1.txt  -d ./output.txt .\main.exe
+..\judge\PreliminaryJudge.exe -m ..\judge\maps\map1.txt  -d ./output.txt .\main.exe
 ```
 
 ## LOG 函数使用示例

@@ -159,13 +159,16 @@ void GameManager::update()
         int robot_id = RobotActions[i].first;
         Action robot_action = RobotActions[i].second;
         if (robot_action.type==MOVE_TO_POSITION || robot_action.type==MOVE_TO_BERTH) {
+            LOGI(robots[robot_id].moveWithPath()=="");
             commandManager.addRobotCommand(robots[robot_id].moveWithPath());
         }
         // 拿起货物并向泊位规划路劲
         if (robot_action.type==PICK_UP_GOODS) {
+            LOGI(robots[robot_id].get());
             commandManager.addRobotCommand(robots[robot_id].get());
         }
         if (robot_action.type==DROP_OFF_GOODS) {
+            LOGI(robots[robot_id].pull());
             commandManager.addRobotCommand(robots[robot_id].pull());
         }
         if (robot_action.type==FIND_PATH) {
@@ -176,6 +179,21 @@ void GameManager::update()
         }
     }
 
+    //CommandManager.shipCommands
+    for (int i=0;i<ShipActions.size();i++) {
+        int ship_id = ShipActions[i].first;
+        Action ship_action = ShipActions[i].second;
+        // 去虚拟点
+        if (ship_action.type==DEPART_BERTH) {
+            LOGI(ship_id,"装满，前往虚拟点");
+            commandManager.addRobotCommand(ships[ship_id].go());
+        }
+        // 去泊位
+        if (ship_action.type==MOVE_TO_BERTH) {
+            LOGI(ship_id,"分配去泊位",ship_action.targetId);
+            commandManager.addRobotCommand(ships[ship_id].moveToBerth(ship_action.targetId));
+        }
+    }
 }
 
 void GameManager::outputCommands()

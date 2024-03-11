@@ -57,15 +57,8 @@ std::string Map::drawMap(std::unordered_map<Point2d, double> *distances,
         {
             Point2d pos{x, y};
             MapItem item = getCell(pos);
-            if (item == MapItem::OBSTACLE)
-                oss << string(field_width, '#');
-            else if (item == MapItem::SEA)
-                oss << string(field_width, '*');
-            else if (item == MapItem::BERTH)
-                oss << " B ";
-            else if (item == MapItem::SPACE)
-                oss << " . ";
-            else if (start && pos == *start)
+
+            if (start && pos == *start)
                 oss << " A ";
             else if (goal && pos == *goal)
                 oss << " Z ";
@@ -87,6 +80,14 @@ std::string Map::drawMap(std::unordered_map<Point2d, double> *distances,
             }
             else if (distances != nullptr && distances->count(pos))
                 oss << std::setw(field_width) << (*distances)[pos];
+            else if (item == MapItem::OBSTACLE)
+                oss << string(field_width, '#');
+            else if (item == MapItem::SEA)
+                oss << string(field_width, '*');
+            else if (item == MapItem::BERTH)
+                oss << " B ";
+            else if (item == MapItem::SPACE)
+                oss << " . ";
             else
                 oss << " E ";
         }

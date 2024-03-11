@@ -67,7 +67,7 @@ public:
             this->path.erase(this->path.begin());
             return move(pos);
         }
-        return string("");
+        return std::string("");
     }
 
     std::string get()

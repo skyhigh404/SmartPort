@@ -9,7 +9,7 @@ int dist(Point2d a, Point2d b) {return abs(a.x-b.x)+abs(a.y-b.y);}
 // 需要维护的变量：robots、goods、berths
 std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleRobots(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths)
 {
-    // LOGI("test");
+    LOGI("test");
     // 寻路
     AStarPathfinder pathfinder;
     vector<vector<std::variant<Path, PathfindingFailureReason>>> path2goods(robots.size(), vector<std::variant<Path, PathfindingFailureReason>>(goods.size(), std::variant<Path, PathfindingFailureReason>())), \
@@ -21,6 +21,10 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleRobots(std
             path2goods[i][j] = pathfinder.findPath(robots[i].pos, goods[j].pos, map);
             if (std::holds_alternative<Path>(path2goods[i][j]))
                 cost2goods[i][j] = std::get<Path>(path2goods[i][j]).size();
+            else {
+                cost2goods[i][j] = INT_MAX / 2;
+                // LOGI("r-g找不到路", i, ' ', j);
+            }
         }
     }
     // vector<vector<std::variant<Path, PathfindingFailureReason>>> path2berths(goods.size(), vector<std::variant<Path, PathfindingFailureReason>>(berths.size(), std::variant<Path, PathfindingFailureReason>())); //货物到泊位的路径
@@ -29,8 +33,13 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleRobots(std
             path2berths[i][j] = pathfinder.findPath(goods[i].pos, berths[j].pos, map);
             if (std::holds_alternative<Path>(path2goods[i][j]))
                 cost2berths[i][j] = std::get<Path>(path2berths[i][j]).size();
+            else {
+                cost2berths[i][j] = INT_MAX / 2;
+                // LOGI("g-b找不到路", i, ' ', j);
+            }
         }
     }
+    LOGI("test");
 
     // 衡量收益
     // 计算每个机器人将货物送达泊位的耗时
@@ -62,11 +71,12 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleRobots(std
             }
         }
     }
+    LOGI("test");
 
     // 确定\分配机器人目的地
     std::vector<std::pair<int, int>> robotDestinations(robots.size(), std::make_pair(-1, -1)); // (货物索引, 泊位索引)
     std::vector<vector<int>> indices(robots.size(), std::vector<int>(goods.size(), 0));
-    std::vector<std::pair<int, Action>> robotActions; // (货物索引, 泊位索引)
+    std::vector<std::pair<int, Action>> robotActions;
     for (int i = 0; i < robots.size(); ++i) {
         for (int j=0;j<goods.size();j++) {
             indices[i][j] = j;
@@ -78,12 +88,18 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleRobots(std
             return profits[i][a] > profits[i][b]; // 根据第二个维度进行降序排序
         });
 
+        LOGI(i);
+        // for (int j=0;j<goods.size();j++) 
+        //     LOGI(profits[i][j]);
+
         for (int j = 0; j < goods.size(); ++j) {
             int goodsIndex = indices[i][j];
             int berthsIndex = bestBerthIndex[goodsIndex];
+            // LOGI(j, goods.size());
 
             if (robots[i].carryingItem && robots[i].carryingItemId!=j) continue; // 机器人和货物不匹配
             if (!robots[i].carryingItem && goods[goodsIndex].status!=0) continue; //货物不可分配
+            if (profits[i][j]<1e-10) continue;
 
             // 携带货物但离泊位还远
             if (robots[i].status==MOVING_TO_BERTH && dist(robots[i].pos, berths[berthsIndex].pos)>6) {
@@ -135,13 +151,9 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleRobots(std
                 goods[goodsIndex].status = 2;
                 break;
             }
-            // else if (robots[i].status==PICKING_UP) {
-            //     robotActions.push_back(std::make_pair(i, Action{MOVE_TO_BERTH, berths[berthsIndex].pos, berths[berthsIndex].id}));
-            //     robots[i].status = MOVING_TO_BERTH;
-            //     break;
-            // }
         }
     }
+    LOGI("test");
 
     // 调度机器人（寻路+碰撞检测+避让+指令生成）
     /*

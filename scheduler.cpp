@@ -382,6 +382,16 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleShips(std:
                 // 计算泊位的溢出货物量
                 berths[ships[i].berthId].residue_num -= ships[i].now_capacity;
 
+                // 无货物装配，发船
+                if (berths[ships[i].berthId].residue_num <= 0){
+                    shipActions.push_back(std::make_pair(i, Action{DEPART_BERTH,Point2d(),-1}));
+                    // 重置船的容量和状态
+                    berths[ships[i].berthId].assigned_ships = std::min(berths[ships[i].berthId].assigned_ships - 1,0);
+                    ships[i].now_capacity = ships[i].capacity;
+                    ships[i].state = 0;
+                    ships[i].berthId = -1;
+                }
+
                 int berthId = ships[i].berthId;
                 int shipment = 0;
                 if(berths[berthId].reached_goods.size() >= berths[berthId].velocity){

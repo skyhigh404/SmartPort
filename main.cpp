@@ -2,7 +2,7 @@
 #include "scheduler.h"
 #include "log.h"
 #include "pathFinder.h"
-
+#include <chrono>
 int main()
 {
 #ifdef DEBUG
@@ -18,11 +18,16 @@ int main()
     // 测试 A* 算法
     // AStarPathfinder astar;
     // Point2d pos(47,10);
+    // LOGI("Start: ",gameManager.robots[0].pos," target: ", pos);
+    
+    // auto start = std::chrono::high_resolution_clock::now();
     // std::variant<Path, PathfindingFailureReason> path = astar.findPath(gameManager.robots[0].pos,pos,gameManager.gameMap);
+    // auto stop = std::chrono::high_resolution_clock::now();
+    // auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+    // LOGI("A* calculate take time: ",duration.count()," ms");
+
     // std::vector<Point2d> *p = std::get_if<std::vector<Point2d>>(&path);
     // if(p){
-    //     // for(const auto &pos : *p)
-    //     //     LOGI("Position: ", pos);
     //     LOGI("Log A* from point ", gameManager.robots[0].pos," to ",pos);
     //     LOGI(gameManager.gameMap.drawMap(nullptr,nullptr, p, &gameManager.robots[0].pos, &pos));
     // }
@@ -30,6 +35,7 @@ int main()
     //     PathfindingFailureReason *p = std::get_if<PathfindingFailureReason>(&path);
     //     LOGI("Find path error.", static_cast<int>(*p));
     // }
+    // return 0;
 
     LOGI("初始化完毕");
     while (1)

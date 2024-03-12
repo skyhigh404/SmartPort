@@ -14,8 +14,9 @@ std::array<Point2d, 4> Map::DIRS = {
 std::vector<Point2d> Map::neighbors(Point2d pos) const
 {
     std::vector<Point2d> results;
+    results.reserve(4);
 
-    for (Point2d dir : DIRS)
+    for (const Point2d &dir : DIRS)
     {
         Point2d next{pos.x + dir.x, pos.y + dir.y};
         if (inBounds(next) && passable(next))
@@ -33,7 +34,7 @@ std::vector<Point2d> Map::neighbors(Point2d pos) const
     return results;
 }
 
-bool Map::passable(Point2d pos) const
+inline bool Map::passable(Point2d pos) const
 {
     return (getCell(pos) != MapItemSpace::MapItem::OBSTACLE &&
             getCell(pos) != MapItemSpace::MapItem::SEA);

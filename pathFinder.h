@@ -46,7 +46,7 @@ struct PriorityQueue
         elements.emplace(priority, item);
     }
 
-    T get()
+    inline T get()
     {
         T best_item = elements.top().second;
         elements.pop();
@@ -65,12 +65,12 @@ public:
                      const Location &start,
                      const Location &goal,
                      std::unordered_map<Location, Location> &came_from,
-                     std::unordered_map<Location, double> &cost_so_far);
+                     std::unordered_map<Location, int> &cost_so_far);
 
     template <typename Location>
     std::vector<Location> reconstruct_path(
-        Location start, Location goal,
-        std::unordered_map<Location, Location> came_from);
+        const Location &start, const Location &goal,
+        const std::unordered_map<Location, Location>& came_from);
 
 public:
     inline int heuristic(Point2d pos1, Point2d pos2){

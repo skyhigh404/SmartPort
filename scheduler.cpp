@@ -31,13 +31,14 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleRobots(std
     // vector<vector<std::variant<Path, PathfindingFailureReason>>> path2berths(goods.size(), vector<std::variant<Path, PathfindingFailureReason>>(berths.size(), std::variant<Path, PathfindingFailureReason>())); //货物到泊位的路径
     for (int i=0;i<goods.size();i++) {
         for (int j=0;j<berths.size();j++) {
-            path2berths[i][j] = pathfinder.findPath(goods[i].pos, berths[j].pos, map);
-            if (std::holds_alternative<Path>(path2berths[i][j]))
-                cost2berths[i][j] = std::get<Path>(path2berths[i][j]).size();
-            else {
-                cost2berths[i][j] = INT_MAX / 2;
-                // LOGI("g-b找不到路", i, ' ', j);
-            }
+            cost2berths[i][j] = map.berthDistanceMap[berths[j].id][goods[i].pos.x][goods[i].pos.y];
+            // path2berths[i][j] = pathfinder.findPath(goods[i].pos, berths[j].pos, map);
+            // if (std::holds_alternative<Path>(path2berths[i][j]))
+            //     cost2berths[i][j] = std::get<Path>(path2berths[i][j]).size();
+            // else {
+            //     cost2berths[i][j] = INT_MAX / 2;
+            //     // LOGI("g-b找不到路", i, ' ', j);
+            // }
             LOGI("货物",i,"到泊位",j,"的路径长度为：",cost2berths[i][j]);
         }
     }

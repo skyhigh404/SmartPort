@@ -148,6 +148,10 @@ void GameManager::processFrameData()
 
 void GameManager::update()
 {
+    // 货物生命周期维护
+    for (auto& good : goods)
+        good.TTL = std::max(good.TTL - 1,-1);
+    
     auto robot_start = std::chrono::high_resolution_clock::now();
     std::vector<std::pair<int, Action>> RobotActions = this->scheduler->scheduleRobots(robots, gameMap, goods, berths);
     auto robot_end = std::chrono::high_resolution_clock::now();

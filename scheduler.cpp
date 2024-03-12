@@ -38,7 +38,7 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleRobots(std
                 cost2berths[i][j] = INT_MAX / 2;
                 // LOGI("g-b找不到路", i, ' ', j);
             }
-            LOGI("货物",i,"到货物",j,"的路径长度为：",cost2berths[i][j]);
+            LOGI("货物",i,"到泊位",j,"的路径长度为：",cost2berths[i][j]);
         }
     }
     LOGI("test");
@@ -119,9 +119,9 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleRobots(std
                 break;
             }
             // 即将到达卸货地点，到达并卸货
-            else if (robots[i].status==UNLOADING && dist(robots[i].pos, robots[i].path[-1])==1) {
-                robotActions.push_back(std::make_pair(i, Action{MOVE_TO_BERTH, robots[i].path[-1], berths[berthsIndex].id}));
-                robotActions.push_back(std::make_pair(i, Action{DROP_OFF_GOODS, robots[i].path[-1], berths[berthsIndex].id}));
+            else if (robots[i].status==UNLOADING && dist(robots[i].pos, robots[i].path[0])==1) {
+                robotActions.push_back(std::make_pair(i, Action{MOVE_TO_BERTH, robots[i].path[0], berths[berthsIndex].id}));
+                robotActions.push_back(std::make_pair(i, Action{DROP_OFF_GOODS, robots[i].path[0], berths[berthsIndex].id}));
                 goods[goodsIndex].status = 3;
                 for (int l=0;l<berths[berthsIndex].unreached_goods.size();l++) {
                     if (berths[berthsIndex].unreached_goods[l].id == goods[goodsIndex].id) 
@@ -142,10 +142,16 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleRobots(std
                 robots[i].status = MOVING_TO_GOODS;
                 break;
             }
+            // 机器人前往货物地点
+            else if (robots[i].status==MOVING_TO_GOODS && dist(robots[i].pos, robots[i].path[0])>1) {
+                robotActions.push_back(std::make_pair(i, Action{MOVE_TO_POSITION, robots[i].path[0], pickup[i]})); //goodsid
+                break;
+
+            }
             // 机器人即将抵达取货地点，到达并取货
-            else if (robots[i].status==MOVING_TO_GOODS && dist(robots[i].pos, robots[i].path[-1])==1) {
-                robotActions.push_back(std::make_pair(i, Action{MOVE_TO_POSITION, robots[i].path[-1], pickup[i]})); //goodsid
-                robotActions.push_back(std::make_pair(i, Action{PICK_UP_GOODS, robots[i].path[-1], pickup[i]}));
+            else if (robots[i].status==MOVING_TO_GOODS && dist(robots[i].pos, robots[i].path[0])==1) {
+                robotActions.push_back(std::make_pair(i, Action{MOVE_TO_POSITION, robots[i].path[0], pickup[i]})); //goodsid
+                robotActions.push_back(std::make_pair(i, Action{PICK_UP_GOODS, robots[i].path[0], pickup[i]}));
                 robotActions.push_back(std::make_pair(i, Action{FIND_PATH, berths[berthsIndex].pos, berths[berthsIndex].id}));
                 robots[i].status = MOVING_TO_BERTH;
                 robots[i].carryingItem = 1;

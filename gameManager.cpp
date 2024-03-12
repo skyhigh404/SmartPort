@@ -179,6 +179,10 @@ void GameManager::update()
             if (std::holds_alternative<Path>(path)) {
                 LOGI(robot_id, "寻路成功");
                 robots[robot_id].path = std::get<Path>(path);
+                LOGI(robot_id,"路径长度：",robots[robot_id].path.size());
+                // for(const auto& item : robots[robot_id].path){
+                //     LOGI("路径(",item.x,",",item.y,")");
+                // }
             }
             else {
                 LOGI(robot_id, "寻路失败");

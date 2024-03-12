@@ -5,6 +5,7 @@
 #include "map.h"
 #include "utils.h"
 #include "assert.h"
+#include "log.h"
 
 enum RobotStatus
 {

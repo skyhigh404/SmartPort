@@ -86,6 +86,20 @@ void GameManager::initializeGame()
         this->gameMap.computeDistancesToBerthViaBFS(berth.id, positions);
     }
 
+    // 判断机器人是否位于死点
+    for(auto& robot : this->robots){
+        bool is_isolated = true;
+        for(const auto& berth : this->berths){
+            if(this->gameMap.berthDistanceMap.at(berth.id)[robot.pos.x][robot.pos.y] != INT_MAX){
+                is_isolated = false;
+                break;
+            }
+        }
+        // 孤立机器人
+        if (is_isolated)
+            robot.status = DEATH;
+    }
+
     // LOGI("Log berth 0 BFS map.");
     // LOGI(Map::drawMap(this->gameMap.berthDistanceMap[0],12));
 
@@ -259,12 +273,12 @@ void GameManager::update()
         // 去虚拟点
         if (ship_action.type==DEPART_BERTH) {
             LOGI(ship_id,"装满,前往虚拟点");
-            commandManager.addRobotCommand(ships[ship_id].go());
+            commandManager.addShipCommand(ships[ship_id].go());
         }
         // 去泊位
         if (ship_action.type==MOVE_TO_BERTH) {
             LOGI(ship_id,"分配去泊位",ship_action.targetId);
-            commandManager.addRobotCommand(ships[ship_id].moveToBerth(ship_action.targetId));
+            commandManager.addShipCommand(ships[ship_id].moveToBerth(ship_action.targetId));
         }
     }
 }

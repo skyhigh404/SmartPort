@@ -350,6 +350,7 @@ void sortBerthsByResiGoodsValue(std::vector<Berth>& berths) {
     });
 }
 
+// 根据时间排序unreachedGood
 std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleShips(std::vector<Ship>& ships, std::vector<Berth>& berths)
 {
     // todo 根据路径代价计算未到达货物的收益 + 船只在装货时也可以进行抉择

@@ -24,7 +24,7 @@ class Map
 public:
     int rows, cols;
     std::vector<std::vector<MapItemSpace::MapItem>> grid;
-    std::unordered_map<BerthID, std::vector<std::vector<int>>> berthDistanceMap;
+    std::unordered_map<int, std::vector<std::vector<int>>> berthDistanceMap;
 
     static std::array<Point2d, 4> DIRS;
 

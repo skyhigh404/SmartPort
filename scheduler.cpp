@@ -15,8 +15,12 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleRobots(std
     vector<vector<std::variant<Path, PathfindingFailureReason>>> path2goods(robots.size(), vector<std::variant<Path, PathfindingFailureReason>>(goods.size(), std::variant<Path, PathfindingFailureReason>())), \
                                     path2berths(robots.size(), vector<std::variant<Path, PathfindingFailureReason>>(berths.size(), std::variant<Path, PathfindingFailureReason>())); //机器人到达货物\泊位的路径
     vector<vector<int>> cost2goods(robots.size(), vector<int>(goods.size())), \
-                        cost2berths(robots.size(), vector<int>(berths.size()));
+                        cost2berths(goods.size(), vector<int>(berths.size()));
     for (int i=0;i<robots.size();i++) {
+        if (robots[i].carryingItem) {
+            continue;
+
+        }
         for (int j=0;j<goods.size();j++) {
             path2goods[i][j] = pathfinder.findPath(robots[i].pos, goods[j].pos, map);
             if (std::holds_alternative<Path>(path2goods[i][j]))
@@ -25,21 +29,14 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleRobots(std
                 cost2goods[i][j] = INT_MAX / 2;
                 // LOGI("r-g找不到路", i, ' ', j);
             }
-            LOGI("机器人",i,"到货物",j,"的路径长度为：",cost2goods[i][j]);
+            // LOGI("机器人",i,"到货物",j,"的路径长度为：",cost2goods[i][j]);
         }
     }
-    // vector<vector<std::variant<Path, PathfindingFailureReason>>> path2berths(goods.size(), vector<std::variant<Path, PathfindingFailureReason>>(berths.size(), std::variant<Path, PathfindingFailureReason>())); //货物到泊位的路径
     for (int i=0;i<goods.size();i++) {
         for (int j=0;j<berths.size();j++) {
-            cost2berths[i][j] = map.berthDistanceMap[berths[j].id][goods[i].pos.x][goods[i].pos.y];
-            // path2berths[i][j] = pathfinder.findPath(goods[i].pos, berths[j].pos, map);
-            // if (std::holds_alternative<Path>(path2berths[i][j]))
-            //     cost2berths[i][j] = std::get<Path>(path2berths[i][j]).size();
-            // else {
-            //     cost2berths[i][j] = INT_MAX / 2;
-            //     // LOGI("g-b找不到路", i, ' ', j);
-            // }
-            LOGI("货物",i,"到泊位",j,"的路径长度为：",cost2berths[i][j]);
+            const std::vector<std::vector<int>> &bfsmap = map.berthDistanceMap.at(berths[j].id);
+            cost2berths[i][j] = bfsmap[goods[i].pos.x][goods[i].pos.y];
+            // LOGI("货物",i,"到泊位",j,"的路径长度为：",cost2berths[i][j]);
         }
     }
     LOGI("test");
@@ -72,8 +69,8 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleRobots(std
                 // 计算收益
                 profits[i][j] = profit *1.0 / totalTime;
             }
-            for (int j=0;j<goods.size();j++) 
-                LOGI("profits ",i,' ',j," :",profits[i][j]);
+            // for (int j=0;j<goods.size();j++) 
+                // LOGI("profits ",i,' ',j," :",profits[i][j]);
         }
     }
     LOGI("test");
@@ -221,6 +218,98 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleRobots(std
     */
     return robotActions;
 }
+
+Action  SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths)
+{
+    LOGI("调度开始:goodsize:",goods.size());
+    // 寻路
+    AStarPathfinder pathfinder;
+    vector<std::variant<Path, PathfindingFailureReason>> path2goods(goods.size(), std::variant<Path, PathfindingFailureReason>()), \
+                                    path2berths(berths.size(), std::variant<Path, PathfindingFailureReason>()); //机器人到达货物\泊位的路径
+    vector<int> cost2goods(goods.size());
+    vector<vector<int>> cost2berths(goods.size(), vector<int>(berths.size()));
+    vector<int> bestBerthIndex(berths.size(), -1);
+    for (int i=0;i<goods.size();i++) {
+        int time = INT_MAX;
+        for (int j=0;j<berths.size();j++) {
+            const std::vector<std::vector<int>> &bfsmap = map.berthDistanceMap.at(berths[j].id);
+            cost2berths[i][j] = bfsmap[goods[i].pos.x][goods[i].pos.y];
+            if (cost2berths[i][j] < time) {
+                    time = cost2berths[i][j];
+                    bestBerthIndex[i] = j;
+            }
+            // LOGI("货物",i,"到泊位",j,"的路径长度为：",cost2berths[i][j]);
+        }
+    }
+    // LOGI("test");
+
+    // 若有货物，则向泊位调度
+    if (robot.carryingItem==1 && bestBerthIndex[robot.carryingItemId]!=-1) {
+        LOGI("分配泊位");
+        return Action{MOVE_TO_BERTH, berths[bestBerthIndex[robot.carryingItemId]].pos, berths[bestBerthIndex[robot.carryingItemId]].id};
+    }
+    // 若无货物，则分配货物
+
+    LOGI("计算最佳泊位");
+    for (int j=0;j<goods.size();j++) {
+        if (goods[j].status!=0) {
+            cost2goods[j] = INT_MAX;
+            continue;
+        }
+        path2goods[j] = pathfinder.findPath(robot.pos, goods[j].pos, map);
+        if (std::holds_alternative<Path>(path2goods[j]))
+            cost2goods[j] = std::get<Path>(path2goods[j]).size();
+        else {
+            cost2goods[j] = INT_MAX;
+            // LOGI("r-g找不到路", i, ' ', j);
+        }
+        // LOGI("机器人",i,"到货物",j,"的路径长度为：",cost2goods[i][j]);
+    }
+    
+    LOGI("开始衡量收益");
+    // 衡量收益
+    // 计算每个机器人将货物送达泊位的耗时
+    std::vector<float> profits(goods.size(), 0);
+    for (int j = 0; j < goods.size(); j++) {
+        int timeToGoods = cost2goods[j];
+        int timeToBerths = cost2berths[j][bestBerthIndex[goods[j].id]];
+        if (timeToBerths==INT_MAX || timeToGoods==INT_MAX) continue;
+        profits[j] = goods[j].value*1.0 / (timeToGoods+timeToBerths);
+        LOGI("货物",j,"收益为：",profits[j]);
+    }
+    
+    LOGI("开始分配货物");
+
+    // 确定\分配机器人目的地
+    std::vector<int> indices(goods.size(), 0);
+    std::vector<std::pair<int, Action>> robotActions;
+    for (int j=0;j<goods.size();j++) {
+        indices[j] = j;
+    }
+    std::sort(indices.begin(), indices.end(), [&](int a, int b) {
+        return profits[a] > profits[b]; // 根据第二个维度进行降序排序
+    });
+    vector<float> profits_sorted;
+    for (int i : indices) {
+        profits_sorted.push_back(profits[i]);
+    }
+    profits = profits_sorted;
+
+    for (int j = 0; j < goods.size(); ++j) {
+        int goodsIndex = indices[j];
+        int berthsIndex = bestBerthIndex[goodsIndex];
+        LOGI("货物id：",goods[goodsIndex].id,"货物状态：",goods[goodsIndex].status,"货物收益：",profits[j]);
+        if (goods[goodsIndex].status==0 && profits[j]>0) {
+            LOGI("分配货物",goods[goodsIndex].id);
+            robot.targetid = goods[goodsIndex].id;
+            goods[goodsIndex].status = 1;
+            return Action{MOVE_TO_POSITION, goods[goodsIndex].pos, goods[goodsIndex].id};
+        }
+    }
+    LOGI("分配货物失败");
+    return Action{FAIL, Point2d(0,0), 0};
+}
+
 
 // 泊位收益排序函数
 // 根据泊位溢出货物的价值之和进行排序

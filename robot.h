@@ -26,6 +26,7 @@ public:
     int state;                 // 0 表示恢复状态，1 表示正常运行状态
     std::vector<Point2d> path; // 机器人即将要走的路径
     RobotStatus status;
+    int targetid;
 
 public:
     Robot(int id, Point2d pos)
@@ -33,7 +34,8 @@ public:
           pos(pos),
           carryingItem(0),
           state(0),
-          status(IDLE)
+          status(IDLE),
+          targetid(0)
     {
     }
     std::string move(int direction)

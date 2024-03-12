@@ -13,7 +13,8 @@ enum ActionType
     DROP_OFF_GOODS,
     MOVE_TO_BERTH,
     DEPART_BERTH,
-    FIND_PATH
+    FIND_PATH,
+    FAIL
 };
 
 struct Action
@@ -29,6 +30,7 @@ class Scheduler
     // 去哪里
 public:
     int pickup[10]; // 机器人要取的货的id
+    virtual Action scheduleRobot(Robot &robot, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths) = 0;
     virtual std::vector<std::pair<int, Action>>  scheduleRobots(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths) = 0;
     virtual std::vector<std::pair<int, Action>>  scheduleShips(std::vector<Ship> &ships, std::vector<Berth> &berths) = 0;
 };
@@ -36,6 +38,7 @@ public:
 class SimpleTransportStrategy : public Scheduler
 {
 public:
+    Action scheduleRobot(Robot &robot, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths) override;
     std::vector<std::pair<int, Action>>  scheduleRobots(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths) override;
     std::vector<std::pair<int, Action>>  scheduleShips(std::vector<Ship> &ships, std::vector<Berth> &berths) override;
 };

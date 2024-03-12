@@ -176,10 +176,12 @@ void GameManager::update()
             LOGI(robot_id, "需要寻路");
             std::variant<Path, PathfindingFailureReason> path = pathfinder.findPath(robots[robot_id].pos, robot_action.desination, gameMap);
             if (std::holds_alternative<Path>(path)) {
+                LOGI(robot_id, "寻路成功");
                 robots[robot_id].path = std::get<Path>(path);
             }
             else {
                 LOGI(robot_id, "寻路失败");
+                robots[robot_id].status = IDLE;
             }
         }
     }

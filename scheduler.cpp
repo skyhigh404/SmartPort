@@ -25,18 +25,20 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleRobots(std
                 cost2goods[i][j] = INT_MAX / 2;
                 // LOGI("r-g找不到路", i, ' ', j);
             }
+            LOGI("机器人",i,"到货物",j,"的路径长度为：",cost2goods[i][j]);
         }
     }
     // vector<vector<std::variant<Path, PathfindingFailureReason>>> path2berths(goods.size(), vector<std::variant<Path, PathfindingFailureReason>>(berths.size(), std::variant<Path, PathfindingFailureReason>())); //货物到泊位的路径
     for (int i=0;i<goods.size();i++) {
         for (int j=0;j<berths.size();j++) {
             path2berths[i][j] = pathfinder.findPath(goods[i].pos, berths[j].pos, map);
-            if (std::holds_alternative<Path>(path2goods[i][j]))
+            if (std::holds_alternative<Path>(path2berths[i][j]))
                 cost2berths[i][j] = std::get<Path>(path2berths[i][j]).size();
             else {
                 cost2berths[i][j] = INT_MAX / 2;
                 // LOGI("g-b找不到路", i, ' ', j);
             }
+            LOGI("货物",i,"到货物",j,"的路径长度为：",cost2berths[i][j]);
         }
     }
     LOGI("test");
@@ -69,6 +71,8 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleRobots(std
                 // 计算收益
                 profits[i][j] = profit *1.0 / totalTime;
             }
+            for (int j=0;j<goods.size();j++) 
+                LOGI("profits ",i,' ',j," :",profits[i][j]);
         }
     }
     LOGI("test");
@@ -89,8 +93,6 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleRobots(std
         });
 
         LOGI(i);
-        // for (int j=0;j<goods.size();j++) 
-        //     LOGI(profits[i][j]);
 
         for (int j = 0; j < goods.size(); ++j) {
             int goodsIndex = indices[i][j];
@@ -99,7 +101,7 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleRobots(std
 
             if (robots[i].carryingItem && robots[i].carryingItemId!=j) continue; // 机器人和货物不匹配
             if (!robots[i].carryingItem && goods[goodsIndex].status!=0) continue; //货物不可分配
-            if (profits[i][j]<1e-10) continue;
+            if (profits[i][j]<1e-4) continue;
 
             // 携带货物但离泊位还远
             if (robots[i].status==MOVING_TO_BERTH && dist(robots[i].pos, berths[berthsIndex].pos)>6) {

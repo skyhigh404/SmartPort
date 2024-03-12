@@ -243,14 +243,17 @@ Action  SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std
     }
     // LOGI("test");
 
-    // 若有货物，则向泊位调度
     if (robot.carryingItem==1 && bestBerthIndex[robot.carryingItemId]!=-1) {
         LOGI("分配泊位");
-        return Action{MOVE_TO_BERTH, berths[bestBerthIndex[robot.carryingItemId]].pos, berths[bestBerthIndex[robot.carryingItemId]].id};
+        Berth berth = berths[bestBerthIndex[robot.carryingItemId]];
+        int num = berth.reached_goods.size() + berth.unreached_goods.size();
+        berth.unreached_goods.push_back(goods[robot.carryingItemId]);
+        robot.targetid = berth.id;
+        Point2d dest(berth.pos.x+num/4, berth.pos.y+num%4);
+        return Action{MOVE_TO_BERTH, dest, berths[bestBerthIndex[robot.carryingItemId]].id};
     }
-    // 若无货物，则分配货物
 
-    LOGI("计算最佳泊位");
+    LOGI("计算到货物路径");
     for (int j=0;j<goods.size();j++) {
         if (goods[j].status!=0) {
             cost2goods[j] = INT_MAX;

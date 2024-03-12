@@ -1,4 +1,5 @@
 #include "pathFinder.h"
+#include "log.h"
 
 std::variant<Path, PathfindingFailureReason> AStarPathfinder::findPath(const Point2d &start,
                                                                        const Point2d &goal,
@@ -16,7 +17,7 @@ std::variant<Path, PathfindingFailureReason> AStarPathfinder::findPath(const Poi
         return PathfindingFailureReason::START_AND_END_POINT_SAME;
 
     std::unordered_map<Point2d, Point2d> came_from;  // came_from 用于追踪路径
-    std::unordered_map<Point2d, double> cost_so_far; // cost_so_far 用于记录到达每个点的成本
+    std::unordered_map<Point2d, int> cost_so_far; // cost_so_far 用于记录到达每个点的成本
     aStarSearch(map, start, goal, came_from, cost_so_far);
 
     // 如果未找到路径（即目标不在 came_from 中）
@@ -35,8 +36,9 @@ void AStarPathfinder::aStarSearch(const Graph &graph,
                                   const Location &start,
                                   const Location &goal,
                                   std::unordered_map<Location, Location> &came_from,
-                                  std::unordered_map<Location, double> &cost_so_far)
+                                  std::unordered_map<Location, int> &cost_so_far)
 {
+    // int calTime = 0;
     PriorityQueue<Location, double> frontier;
     frontier.put(start, 0);
 
@@ -45,31 +47,33 @@ void AStarPathfinder::aStarSearch(const Graph &graph,
 
     while (!frontier.empty())
     {
-        Location current = frontier.get();
+        const Location &current = frontier.get();
 
         if (current == goal)
         {
             break;
         }
-
-        for (Location next : graph.neighbors(current))
+        // calTime += 4;
+        for (const Location &next : graph.neighbors(current))
         {
-            double new_cost = cost_so_far[current] + graph.cost(current, next);
+            int new_cost = cost_so_far[current] + graph.cost(current, next);
             if (cost_so_far.find(next) == cost_so_far.end() || new_cost < cost_so_far[next])
             {
                 cost_so_far[next] = new_cost;
-                double priority = new_cost + heuristic(next, goal);
+                int priority = new_cost + heuristic(next, goal);
                 frontier.put(next, priority);
                 came_from[next] = current;
             }
         }
     }
+    // LOGI("A* 遍历节点个数：",calTime);
+    // LOGI("优先队列长度：",frontier.elements.size());
 }
 
 template <typename Location>
 std::vector<Location> AStarPathfinder::reconstruct_path(
-    Location start, Location goal,
-    std::unordered_map<Location, Location> came_from)
+    const Location &start, const Location &goal,
+    const std::unordered_map<Location, Location>& came_from)
 {
     std::vector<Location> path;
     Location current = goal;
@@ -80,9 +84,10 @@ std::vector<Location> AStarPathfinder::reconstruct_path(
     while (current != start)
     {
         path.push_back(current);
-        current = came_from[current];
+        current = came_from.at(current);
     }
     // path.push_back(start); // optional
     // std::reverse(path.begin(), path.end());
+    // LOGI("路径长度：",path.size());
     return path;
 }

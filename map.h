@@ -72,7 +72,7 @@ public:
 
 public:
     std::vector<Point2d> neighbors(Point2d id) const; // 返回当前节点上下左右的四个邻居
-    bool passable(Point2d pos) const;
+    inline bool passable(Point2d pos) const;
     // This outputs a grid. Pass in a distances map if you want to print
     // the distances, or pass in a point_to map if you want to print
     // arrows that point to the parent location, or pass in a path vector

@@ -196,6 +196,12 @@ void GameManager::update()
                 }
                 else {
                     LOGI(i, "放下货物");
+                    for (int l=0;l<berths[robots[i].targetid].unreached_goods.size();l++) {
+                        if (berths[robots[i].targetid].unreached_goods[l].id==goods[robots[i].carryingItemId].id) {
+                            berths[robots[i].targetid].unreached_goods.erase(berths[robots[i].targetid].unreached_goods.begin() + l);
+                        }
+                    }
+                    berths[robots[i].targetid].reached_goods.push_back(goods[robots[i].carryingItemId]);
                     commandManager.addRobotCommand(robots[i].pull());
                     robots[i].carryingItem = 0;
                 }

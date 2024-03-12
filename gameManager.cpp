@@ -193,6 +193,8 @@ void GameManager::update()
                     commandManager.addRobotCommand(robots[i].get());
                     robots[i].carryingItem = 1;
                     robots[i].carryingItemId = robots[i].targetid;
+                    // 更新货物TTL
+                    goods[robots[i].targetid].TTL = INT_MAX;
                 }
                 else {
                     LOGI(i, "放下货物");

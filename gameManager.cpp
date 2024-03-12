@@ -148,8 +148,14 @@ void GameManager::processFrameData()
 
 void GameManager::update()
 {
+    auto robot_start = std::chrono::high_resolution_clock::now();
     std::vector<std::pair<int, Action>> RobotActions = this->scheduler->scheduleRobots(robots, gameMap, goods, berths);
+    auto robot_end = std::chrono::high_resolution_clock::now();
+    LOGI("调度机器人时长:",std::chrono::duration_cast<std::chrono::milliseconds>(robot_end - robot_start).count(),"ms");
+    auto ship_start = std::chrono::high_resolution_clock::now();
     std::vector<std::pair<int, Action>> ShipActions = this->scheduler->scheduleShips(ships, berths);
+    auto ship_end = std::chrono::high_resolution_clock::now();
+    LOGI("调度船只时长:",std::chrono::duration_cast<std::chrono::milliseconds>(ship_end - ship_start).count(),"ms");
     
     AStarPathfinder pathfinder;
     // commandManager，获取命令

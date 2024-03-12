@@ -160,8 +160,9 @@ void GameManager::update()
         Action robot_action = RobotActions[i].second;
         if (robot_action.type==MOVE_TO_POSITION || robot_action.type==MOVE_TO_BERTH) {
             // LOGI(robots[robot_id].moveWithPath()=="");
-            LOGI(robot_id, "移动中");
-            commandManager.addRobotCommand(robots[robot_id].moveWithPath());
+            const std::string temp = robots[robot_id].moveWithPath();
+            LOGI(robot_id, "移动中:",temp);
+            commandManager.addRobotCommand(temp);
         }
         // 拿起货物并向泊位规划路劲
         if (robot_action.type==PICK_UP_GOODS) {

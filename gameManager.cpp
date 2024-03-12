@@ -178,7 +178,8 @@ void GameManager::update()
     
     AStarPathfinder pathfinder;
     for (int i=0;i<robots.size();i++) {
-        if (robots[i].path.empty()) {
+        // 机器人寻路路径为空 && 不位于死点
+        if (robots[i].path.empty() && robots[i].status != DEATH) {
             // 调用调度器来获取机器人的目的地
             LOGI(i, "寻路中");
             Action action = this->scheduler->scheduleRobot(robots[i], gameMap, goods, berths);

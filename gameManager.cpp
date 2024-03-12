@@ -3,6 +3,7 @@
 #include <iostream>
 #include "log.h"
 #include "pathFinder.h"
+#include <chrono>
 
 using namespace std;
 int Goods::number = 0;
@@ -148,48 +149,97 @@ void GameManager::processFrameData()
 
 void GameManager::update()
 {
-    std::vector<std::pair<int, Action>> RobotActions = this->scheduler->scheduleRobots(robots, gameMap, goods, berths);
+    auto start = std::chrono::steady_clock::now();
+    auto robot_start = std::chrono::high_resolution_clock::now();
+    // std::vector<std::pair<int, Action>> RobotActions = this->scheduler->scheduleRobots(robots, gameMap, goods, berths);
+    auto robot_end = std::chrono::high_resolution_clock::now();
+    LOGI("调度机器人时长:",std::chrono::duration_cast<std::chrono::milliseconds>(robot_end - robot_start).count(),"ms");
+    auto ship_start = std::chrono::high_resolution_clock::now();
     std::vector<std::pair<int, Action>> ShipActions = this->scheduler->scheduleShips(ships, berths);
+    auto ship_end = std::chrono::high_resolution_clock::now();
+    LOGI("调度船只时长:",std::chrono::duration_cast<std::chrono::milliseconds>(ship_end - ship_start).count(),"ms");
     
     AStarPathfinder pathfinder;
-    // commandManager，获取命令
-    // todo 输出指令
-    // CommandManager.robotCommands
-    for (int i=0;i<RobotActions.size();i++) {
-        int robot_id = RobotActions[i].first;
-        Action robot_action = RobotActions[i].second;
-        if (robot_action.type==MOVE_TO_POSITION || robot_action.type==MOVE_TO_BERTH) {
-            // LOGI(robots[robot_id].moveWithPath()=="");
-            const std::string temp = robots[robot_id].moveWithPath();
-            LOGI(robot_id, "移动中:",temp);
-            commandManager.addRobotCommand(temp);
-        }
-        // 拿起货物并向泊位规划路劲
-        if (robot_action.type==PICK_UP_GOODS) {
-            LOGI(robot_id, "拿起货物");
-            commandManager.addRobotCommand(robots[robot_id].get());
-        }
-        if (robot_action.type==DROP_OFF_GOODS) {
-            LOGI(robot_id, "放下货物");
-            commandManager.addRobotCommand(robots[robot_id].pull());
-        }
-        if (robot_action.type==FIND_PATH) {
-            LOGI(robot_id, "需要寻路");
-            std::variant<Path, PathfindingFailureReason> path = pathfinder.findPath(robots[robot_id].pos, robot_action.desination, gameMap);
+    for (int i=0;i<robots.size();i++) {
+        if (robots[i].path.empty()) {
+            // 调用调度器来获取机器人的目的地
+            LOGI(i, "寻路中");
+            Action action = this->scheduler->scheduleRobot(robots[i], gameMap, goods, berths);
+            if (action.type==FAIL) continue;
+            std::variant<Path, PathfindingFailureReason> path = pathfinder.findPath(robots[i].pos, action.desination, gameMap);
             if (std::holds_alternative<Path>(path)) {
-                LOGI(robot_id, "寻路成功");
-                robots[robot_id].path = std::get<Path>(path);
-                LOGI(robot_id,"路径长度：",robots[robot_id].path.size());
-                // for(const auto& item : robots[robot_id].path){
-                //     LOGI("路径(",item.x,",",item.y,")");
-                // }
+                LOGI(i, "寻路成功");
+                robots[i].path = std::get<Path>(path);
+                LOGI(i,"路径长度：",robots[i].path.size());
             }
             else {
-                LOGI(robot_id, "寻路失败");
-                robots[robot_id].status = IDLE;
+                LOGI(i, "寻路失败");
+                robots[i].path = Path();
+                robots[i].status = IDLE;
+            }
+            
+        }
+        if (!robots[i].path.empty()) {
+            // 机器人有路径，继续沿着路径移动
+            const std::string temp = robots[i].moveWithPath();
+            LOGI(i, "移动中:",temp);
+            commandManager.addRobotCommand(temp);
+            if (robots[i].path.empty()) {
+                if (robots[i].carryingItem==0) {
+                    LOGI(i, "拿起货物");
+                    commandManager.addRobotCommand(robots[i].get());
+                    robots[i].carryingItem = 1;
+                    robots[i].carryingItemId = robots[i].targetid;
+                }
+                else {
+                    LOGI(i, "放下货物");
+                    commandManager.addRobotCommand(robots[i].pull());
+                    robots[i].carryingItem = 0;
+                }
             }
         }
     }
+    auto end = std::chrono::steady_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    LOGI("--------------------------------------------------------",duration.count(),"ms");
+    // commandManager，获取命令
+    // todo 输出指令
+    // CommandManager.robotCommands
+    // for (int i=0;i<RobotActions.size();i++) {
+    //     int robot_id = RobotActions[i].first;
+    //     Action robot_action = RobotActions[i].second;
+    //     if (robot_action.type==MOVE_TO_POSITION || robot_action.type==MOVE_TO_BERTH) {
+    //         // LOGI(robots[robot_id].moveWithPath()=="");
+    //         const std::string temp = robots[robot_id].moveWithPath();
+    //         LOGI(robot_id, "移动中:",temp);
+    //         commandManager.addRobotCommand(temp);
+    //     }
+    //     // 拿起货物并向泊位规划路劲
+    //     if (robot_action.type==PICK_UP_GOODS) {
+    //         LOGI(robot_id, "拿起货物");
+    //         commandManager.addRobotCommand(robots[robot_id].get());
+    //     }
+    //     if (robot_action.type==DROP_OFF_GOODS) {
+    //         LOGI(robot_id, "放下货物");
+    //         commandManager.addRobotCommand(robots[robot_id].pull());
+    //     }
+    //     if (robot_action.type==FIND_PATH) {
+    //         LOGI(robot_id, "需要寻路");
+    //         std::variant<Path, PathfindingFailureReason> path = pathfinder.findPath(robots[robot_id].pos, robot_action.desination, gameMap);
+    //         if (std::holds_alternative<Path>(path)) {
+    //             LOGI(robot_id, "寻路成功");
+    //             robots[robot_id].path = std::get<Path>(path);
+    //             LOGI(robot_id,"路径长度：",robots[robot_id].path.size());
+    //             // for(const auto& item : robots[robot_id].path){
+    //             //     LOGI("路径(",item.x,",",item.y,")");
+    //             // }
+    //         }
+    //         else {
+    //             LOGI(robot_id, "寻路失败");
+    //             robots[robot_id].status = IDLE;
+    //         }
+    //     }
+    // }
 
     //CommandManager.shipCommands
     for (int i=0;i<ShipActions.size();i++) {

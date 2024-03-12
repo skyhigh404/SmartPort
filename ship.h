@@ -49,4 +49,10 @@ public:
             return now_capacity;
         }
     }
+
+    // 打印信息
+    void info(){
+        LOGI("船只",id ,",装货量：",capacity, ",剩余容量：" ,now_capacity,",泊位id：",berthId, ";");
+    }
+
 };

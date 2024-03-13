@@ -183,12 +183,13 @@ Action SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std:
 
     if (robot.carryingItem==1 && bestBerthIndex[robot.carryingItemId]!=-1) {
         if (debug) LOGI("分配泊位");
-        Berth berth = berths[bestBerthIndex[robot.carryingItemId]];
+        Berth &berth = berths[bestBerthIndex[robot.carryingItemId]];
         int num = berth.reached_goods.size() + berth.unreached_goods.size();
-        berth.unreached_goods.push_back(goods[robot.carryingItemId]);
+        // if (debug) LOGI("泊位已预定货物数量：", berth.reached_goods.size(), ' ', berth.unreached_goods.size());
+        // berth.unreached_goods.push_back(goods[robot.carryingItemId]);
         robot.targetid = berth.id;
         Point2d dest(berth.pos.x+num/4, berth.pos.y+num%4);
-        return Action{MOVE_TO_BERTH, dest, berths[bestBerthIndex[robot.carryingItemId]].id};
+        return Action{MOVE_TO_BERTH, dest, berth.id};
     }
 
     if (debug) LOGI("计算到货物路径");

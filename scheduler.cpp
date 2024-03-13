@@ -159,73 +159,13 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleRobots(std
             }
         }
     }
-    // LOGI("test");
-
-    // 调度机器人（寻路+碰撞检测+避让+指令生成）
-    /*
-    for (int i = 0; i < robots.size(); i++) {
-        // 获取机器人要前往的目的地
-        int goodsIndex = robotDestinations[i].first;
-        int berthIndex = robotDestinations[i].second;
-        
-        // 根据机器人的状态生成不同的动作
-        if (robots[i].status == RobotStatus::IDLE) {
-            // 如果机器人当前处于空闲状态，那么机器人就前往取货
-            robotActions.push_back(std::make_pair(i, Action{MOVE_TO_POSITION, goods[goodsIndex].pos, goods[goodsIndex].id}));
-            // 更新机器人状态
-            robots[i].status = RobotStatus::MOVING_TO_GOODS;
-        }
-        else if (robots[i].status == RobotStatus::MOVING_TO_GOODS) {
-            // 如果机器人正在前往取货的途中，检查是否已经到达目的地
-            if (robots[i].pos == goods[goodsIndex].pos) {
-                // 如果到达目的地，那么机器人就开始取货
-                robotActions.push_back(std::make_pair(i, Action{PICK_UP_GOODS, goods[goodsIndex].pos, goods[goodsIndex].id}));
-                // 更新机器人状态
-                robots[i].status = RobotStatus::PICKING_UP;
-            } else {
-                // 如果还没有到达目的地，那么继续前往
-                robotActions.push_back(std::make_pair(i, Action{MOVE_TO_POSITION, goods[goodsIndex].pos, goods[goodsIndex].id}));
-            }
-        }
-        else if (robots[i].status == RobotStatus::PICKING_UP) {
-            // 如果机器人正在取货，检查是否已经完成取货
-            if (robots[i].carryingItem) {
-                // 如果已经取货成功，那么机器人就前往泊位送货
-                robotActions.push_back(std::make_pair(i, Action{MOVE_TO_POSITION, berths[berthIndex].pos, berths[berthIndex].id}));
-                // 更新机器人状态
-                robots[i].status = RobotStatus::MOVING_TO_BERTH;
-            } else {
-                // 如果取货失败，这里可以添加一些错误处理逻辑
-            }
-        }
-        else if (robots[i].status == RobotStatus::MOVING_TO_BERTH) {
-            // 如果机器人正在前往泊位的途中，检查是否已经到达目的地
-            if (robots[i].pos == berths[berthIndex].pos) {
-                // 如果到达泊位，那么机器人就完成任务
-                robotActions.push_back(std::make_pair(i, Action{DROP_OFF_GOODS, berths[berthIndex].pos, berths[berthIndex].id}));
-                // 更新机器人状态
-                robots[i].status = RobotStatus::UNLOADING;
-            } else {
-                // 如果还没有到达目的地，那么继续前往
-                robotActions.push_back(std::make_pair(i, Action{MOVE_TO_POSITION, berths[berthIndex].pos, berths[berthIndex].id}));
-            }
-        } else if (robots[i].status == RobotStatus::UNLOADING) {
-            // 如果机器人正在卸货，等待卸货完成
-            // 这里可以添加一些逻辑，例如等待一定的时间后更新机器人状态
-        }
-    }
-    // 避让：多个人导致的（用于找出相关机器人），undo，避让代价+不避让损失：
-    */
     return robotActions;
 }
 
-Action  SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths, bool debug)
+Action SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths, bool debug)
 {
     if (debug) LOGI("调度开始:goodsize:",goods.size());
-    // 寻路
-    AStarPathfinder pathfinder;
-    vector<std::variant<Path, PathfindingFailureReason>> path2goods(goods.size(), std::variant<Path, PathfindingFailureReason>()), \
-                                    path2berths(berths.size(), std::variant<Path, PathfindingFailureReason>()); //机器人到达货物\泊位的路径
+
     vector<int> cost2goods(goods.size());
     vector<vector<int>> cost2berths(goods.size(), vector<int>(berths.size()));
     vector<int> bestBerthIndex(goods.size(), -1);
@@ -238,10 +178,8 @@ Action  SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std
                     time = cost2berths[i][j];
                     bestBerthIndex[i] = j;
             }
-            // LOGI("货物",i,"到泊位",j,"的路径长度为：",cost2berths[i][j]);
         }
     }
-    // LOGI("test");
 
     if (robot.carryingItem==1 && bestBerthIndex[robot.carryingItemId]!=-1) {
         if (debug) LOGI("分配泊位");
@@ -260,14 +198,6 @@ Action  SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std
             continue;
         }
         cost2goods[j] = map.cost(robot.pos, goods[j].pos);
-        // path2goods[j] = pathfinder.findPath(robot.pos, goods[j].pos, map);
-        // if (std::holds_alternative<Path>(path2goods[j]))
-        //     cost2goods[j] = std::get<Path>(path2goods[j]).size();
-        // else {
-        //     cost2goods[j] = INT_MAX;
-        //     // LOGI("r-g找不到路", i, ' ', j);
-        // }
-        // LOGI("机器人",i,"到货物",j,"的路径长度为：",cost2goods[i][j]);
     }
     
     if (debug) LOGI("开始衡量收益");
@@ -303,7 +233,7 @@ Action  SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std
         int berthsIndex = bestBerthIndex[goodsIndex];
         // LOGI("货物id：",goods[goodsIndex].id,"货物状态：",goods[goodsIndex].status,"货物收益：",profits[j]);
         if (goods[goodsIndex].status==0 && profits[j]>0) {
-            LOGI("分配货物",goods[goodsIndex].id);
+            // LOGI("分配货物",goods[goodsIndex].id);
             robot.targetid = goods[goodsIndex].id;
             goods[goodsIndex].status = 1;
             return Action{MOVE_TO_POSITION, goods[goodsIndex].pos, goods[goodsIndex].id};
@@ -464,16 +394,6 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleShips(std:
     }
     return shipActions;
 }
-
-int costCosinGood2Robot(const Map& map,const Robot& robot,const Goods& good,const Berth& berth)
-{
-        int berth2good = map.berthDistanceMap.at(berth.id)[good.pos.x][good.pos.y];
-        int berth2robot = map.berthDistanceMap.at(berth.id)[robot.pos.x][robot.pos.y];
-        float cosin = berth.pos.cosineTo(robot.pos,good.pos);
-        int cost = static_cast<int>(::sqrt(berth2good*berth2good + berth2robot * berth2robot - 2* berth2good * berth2robot * cosin));
-        return cost;
-}
-
 
 // 获取泊位上船的数量
 int SimpleTransportStrategy::shipNumInBerth(const Berth& berth,const std::vector<Ship>& ships){

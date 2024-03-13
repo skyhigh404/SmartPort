@@ -219,9 +219,9 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleRobots(std
     return robotActions;
 }
 
-Action  SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths)
+Action  SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths, bool debug)
 {
-    // LOGI("调度开始:goodsize:",goods.size());
+    if (debug) LOGI("调度开始:goodsize:",goods.size());
     // 寻路
     AStarPathfinder pathfinder;
     vector<std::variant<Path, PathfindingFailureReason>> path2goods(goods.size(), std::variant<Path, PathfindingFailureReason>()), \
@@ -244,7 +244,7 @@ Action  SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std
     // LOGI("test");
 
     if (robot.carryingItem==1 && bestBerthIndex[robot.carryingItemId]!=-1) {
-        // LOGI("分配泊位");
+        if (debug) LOGI("分配泊位");
         Berth berth = berths[bestBerthIndex[robot.carryingItemId]];
         int num = berth.reached_goods.size() + berth.unreached_goods.size();
         berth.unreached_goods.push_back(goods[robot.carryingItemId]);
@@ -253,27 +253,24 @@ Action  SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std
         return Action{MOVE_TO_BERTH, dest, berths[bestBerthIndex[robot.carryingItemId]].id};
     }
 
-    // LOGI("计算到货物路径");
+    if (debug) LOGI("计算到货物路径");
     for (int j=0;j<goods.size();j++) {
         if (goods[j].status!=0) {
             cost2goods[j] = INT_MAX;
             continue;
         }
-
-        path2goods[j] = pathfinder.findPath(robot.pos, goods[j].pos, map);
-        if (std::holds_alternative<Path>(path2goods[j]))
-            cost2goods[j] = std::get<Path>(path2goods[j]).size();
-        else {
-            cost2goods[j] = INT_MAX;
-            // LOGI("r-g找不到路", i, ' ', j);
-        }
-
-
+        cost2goods[j] = map.cost(robot.pos, goods[j].pos);
+        // path2goods[j] = pathfinder.findPath(robot.pos, goods[j].pos, map);
+        // if (std::holds_alternative<Path>(path2goods[j]))
+        //     cost2goods[j] = std::get<Path>(path2goods[j]).size();
+        // else {
+        //     cost2goods[j] = INT_MAX;
+        //     // LOGI("r-g找不到路", i, ' ', j);
+        // }
         // LOGI("机器人",i,"到货物",j,"的路径长度为：",cost2goods[i][j]);
     }
     
-    // LOGI("开始衡量收益");
-    // 衡量收益
+    if (debug) LOGI("开始衡量收益");
     // 计算每个机器人将货物送达泊位的耗时
     std::vector<float> profits(goods.size(), 0);
     for (int j = 0; j < goods.size(); j++) {
@@ -284,7 +281,7 @@ Action  SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std
         // LOGI("货物",j,"收益为：",profits[j]);
     }
     
-    // LOGI("开始分配货物");
+    if (debug) LOGI("开始分配货物");
 
     // 确定\分配机器人目的地
     std::vector<int> indices(goods.size(), 0);
@@ -312,7 +309,7 @@ Action  SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std
             return Action{MOVE_TO_POSITION, goods[goodsIndex].pos, goods[goodsIndex].id};
         }
     }
-    // LOGI("分配货物失败");
+    if (debug) LOGI("分配货物失败");
     return Action{FAIL, Point2d(0,0), 0};
 }
 
@@ -354,7 +351,7 @@ void sortBerthsByResiGoodsValue(std::vector<Berth>& berths) {
 }
 
 // 根据时间排序unreachedGood
-std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleShips(std::vector<Ship>& ships, std::vector<Berth>& berths)
+std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleShips(std::vector<Ship>& ships, std::vector<Berth>& berths,bool debug = false)
 {
     // todo 根据路径代价计算未到达货物的收益 + 船只在装货时也可以进行抉择
 
@@ -391,22 +388,23 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleShips(std:
                     ships[i].state = 0;
                     ships[i].berthId = -1;
                 }
-                
-                // 计算泊位的溢出货物量
-                berths[ships[i].berthId].residue_num -= ships[i].now_capacity;
-                int berthId = ships[i].berthId;
-                int shipment = 0;
-                // shipment = std::min(berths[berthId].reached_goods.size(),berths[berthId].velocity);
-                if(berths[berthId].reached_goods.size() >= berths[berthId].velocity){
-                    //堆积货物大于装货速度
-                    shipment = berths[berthId].velocity;
-                }
-                else{
-                    shipment = berths[berthId].reached_goods.size();
-                }
+                else{   
+                    // 计算泊位的溢出货物量
+                    berths[ships[i].berthId].residue_num -= ships[i].now_capacity;
+                    int berthId = ships[i].berthId;
+                    int shipment = 0;
+                    // shipment = std::min(berths[berthId].reached_goods.size(),berths[berthId].velocity);
+                    if(berths[berthId].reached_goods.size() >= berths[berthId].velocity){
+                        //堆积货物大于装货速度
+                        shipment = berths[berthId].velocity;
+                    }
+                    else{
+                        shipment = berths[berthId].reached_goods.size();
+                    }
 
-                int res = ships[i].load(shipment);
-                berths[berthId].reached_goods.erase(berths[berthId].reached_goods.begin(),berths[berthId].reached_goods.begin() + res);
+                    int res = ships[i].load(shipment);
+                    berths[berthId].reached_goods.erase(berths[berthId].reached_goods.begin(),berths[berthId].reached_goods.begin() + res);
+                }
 
             }else if(ships[i].berthId == -1){  // 加入空闲船只列表
                 freeShips.push_back(ships[i]);

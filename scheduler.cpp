@@ -350,8 +350,18 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleShips(std:
                     else{
                         shipment = berths[berthId].reached_goods.size();
                     }
+                    if(debug){
+                        LOGI("装货前------------------");
+                        berths[berthId].info();
+                        ships[i].info();
+                    }
                     int res = ships[i].load(shipment);
                     berths[berthId].reached_goods.erase(berths[berthId].reached_goods.begin(),berths[berthId].reached_goods.begin() + res);
+                    if(debug){
+                        LOGI("装货后------------------");
+                        berths[berthId].info();
+                        ships[i].info();
+                    }
                 }
 
             }
@@ -389,6 +399,19 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleShips(std:
                 shipActions.push_back(std::make_pair(ship.id, Action{MOVE_TO_BERTH,Point2d(),berth.id}));
                 berth.residue_num -= ship.capacity; // 更新泊位的剩余需求
                 continue; // 跳出循环，继续为下一艘船分配泊位
+            }
+        }
+    }
+
+    //检查货物
+    if(debug){
+        for( Berth& berth : berths){
+            if(berth.reached_goods.size() >= 50){
+                LOGI("船只调度有问题-------------------------");
+                berth.info ();
+                for( auto& ship : ships){
+                    ship.info();
+                }
             }
         }
     }

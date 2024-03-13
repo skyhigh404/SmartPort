@@ -259,6 +259,7 @@ Action  SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std
             cost2goods[j] = INT_MAX;
             continue;
         }
+
         path2goods[j] = pathfinder.findPath(robot.pos, goods[j].pos, map);
         if (std::holds_alternative<Path>(path2goods[j]))
             cost2goods[j] = std::get<Path>(path2goods[j]).size();
@@ -266,6 +267,8 @@ Action  SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std
             cost2goods[j] = INT_MAX;
             // LOGI("r-g找不到路", i, ' ', j);
         }
+
+
         // LOGI("机器人",i,"到货物",j,"的路径长度为：",cost2goods[i][j]);
     }
     

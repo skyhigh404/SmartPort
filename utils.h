@@ -57,32 +57,14 @@ struct Point2d
         return std::abs(p1.x - p2.x) + std::abs(p1.y - p2.y);
     }
     static inline float calculateEuclideanDistance(const Point2d& p1, const Point2d& p2) {
-        std::sqrt((double)(std::pow(p1.x - p2.x, 2) + std::pow(p1.y - p2.y, 2)));
+        return std::sqrt((double)(std::pow(p1.x - p2.x, 2) + std::pow(p1.y - p2.y, 2)));
     }
 
     float operator*(const Point2d& other) const {   // 重载*运算符以实现点积
         return this->x * other.x + this->y * other.y;
     }
 
-    float magnitude() const {   // 提供一个成员函数来计算模长
-        return std::sqrt(this->x * this->x + this->y * this->y);
-    }
     
-    float cosineTo(const Point2d& point1, const Point2d& point2) const {    // 计算以当前点到另外两点形成的向量夹角的余弦值
-        // 计算向量
-        Point2d vectorToPoint1 = {point1.x - this->x, point1.y - this->y};
-        Point2d vectorToPoint2 = {point2.x - this->x, point2.y - this->y};
-
-        // 计算点积
-        float dotProduct = vectorToPoint1 * vectorToPoint2;
-
-        // 计算各向量的模长
-        float magnitudeToPoint1 = vectorToPoint1.magnitude();
-        float magnitudeToPoint2 = vectorToPoint2.magnitude();
-
-        // 计算余弦值
-        return dotProduct / (magnitudeToPoint1 * magnitudeToPoint2);
-    }
 };
 
 inline bool operator < (const Point2d &a, const Point2d &b) {
@@ -105,6 +87,9 @@ struct Vec2f
     
     Vec2f() : x(0), y(0) {}
     Vec2f(float x, float y) : x(x), y(y) {}
+    // 根据两个点构造向量
+    Vec2f(const Point2d& from, const Point2d& to)
+        : x(static_cast<float>(to.x - from.x)), y(static_cast<float>(to.y - from.y)) {}
 
     Vec2f(const Vec2f& other) : x(other.x), y(other.y) {} // 拷贝构造函数
     Vec2f(Vec2f&& other) noexcept : x(std::exchange(other.x, 0)), y(std::exchange(other.y, 0)) {} // 移动构造函数
@@ -168,6 +153,10 @@ struct Vec2f
         return Vec2f(x * scalar, y * scalar);
     }
 
+    float operator*(const Vec2f& other) const {
+        return x * other.x + y * other.y;
+    }
+
     Vec2f& operator*=(float scalar) // 重载*=向量与标量乘法赋值运算符
     {
         x *= scalar;
@@ -179,6 +168,15 @@ struct Vec2f
     {
         os << "(" << vec.x << "," << vec.y << ")";
         return os;
+    }
+
+    float magnitude() const {   // 提供一个成员函数来计算模长
+        return std::sqrt(this->x * this->x + this->y * this->y);
+    }
+    
+    static float cosineOf2Vec(const Vec2f& vec1, const Vec2f& vec2) {    // 计算以当前点到另外两点形成的向量夹角的余弦值
+        // 计算余弦值
+        return vec1 * vec2 / (vec1.magnitude() * vec2.magnitude());
     }
 };
 

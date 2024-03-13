@@ -70,12 +70,13 @@ public:
         return Point2d::calculateManhattanDistance(pos1, pos2);
     }
 
-    inline int costCosin(const Map &map,const Robot& robot,const Goods& good,const Berth& berth)
+    float costCosin(const Point2d& robotPos,const Point2d& goodPos,const Point2d& berthPos,const int berthID)
     {
-        int berth2good = map.berthDistanceMap.at(berth.id)[good.pos.x][good.pos.y];
-        int berth2robot = map.berthDistanceMap.at(berth.id)[robot.pos.x][robot.pos.y];
-        float cosin = berth.pos.cosineTo(robot.pos,good.pos);
-        int cost = static_cast<int>(::sqrt(berth2good*berth2good + berth2robot * berth2robot - 2* berth2good * berth2robot * cosin));
+        int berth2good = berthDistanceMap.at(berthID)[goodPos.x][goodPos.y];
+        int berth2robot = berthDistanceMap.at(berthID)[robotPos.x][robotPos.y];
+
+        float cosin = Vec2f::cosineOf2Vec(Vec2f(berthPos, robotPos), Vec2f(berthPos, goodPos));
+        int cost = static_cast<int>(std::sqrt(berth2good*berth2good + berth2robot * berth2robot - 2* berth2good * berth2robot * cosin));
         return cost;
     }
 

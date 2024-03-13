@@ -204,20 +204,29 @@ void GameManager::update()
                     // 更新货物TTL
                     goods[robots[i].targetid].TTL = INT_MAX;
                 }
+                // 放下货物，可能因为已有货物而放下失败
                 else {
-                    if (robotDebugOutput) LOGI(i, "放下货物");
-                    for (int l=0;l<berths[robots[i].targetid].unreached_goods.size();l++) {
-                        if (berths[robots[i].targetid].unreached_goods[l].id==goods[robots[i].carryingItemId].id) {
-                            berths[robots[i].targetid].unreached_goods.erase(berths[robots[i].targetid].unreached_goods.begin() + l);
-                        }
-                    }
-                    berths[robots[i].targetid].reached_goods.push_back(goods[robots[i].carryingItemId]);
+                    if (robotDebugOutput) LOGI(i, "放下货物",goods[robots[i].carryingItemId].id,"到泊位", robots[i].targetid);
+                    Berth& targetberth = berths[robots[i].targetid];
+                    if (robotDebugOutput) LOGI(targetberth.unreached_goods.size());
+                    // for (int l=0;l<targetberth.unreached_goods.size();l++) {
+                    //     if (robotDebugOutput) LOGI(targetberth.unreached_goods[l].id);
+                    //     if (targetberth.unreached_goods[l].id==goods[robots[i].carryingItemId].id) {
+                    //         if (robotDebugOutput) LOGI(i, "从unreached_goods中移除");
+                    //         targetberth.unreached_goods.erase(targetberth.unreached_goods.begin() + l);
+                    //         // break;
+                    //     }
+                    // }
+                    targetberth.reached_goods.push_back(goods[robots[i].carryingItemId]);
                     commandManager.addRobotCommand(robots[i].pull());
                     robots[i].carryingItem = 0;
+                    robots[i].carryingItemId = -1;
+                    robots[i].targetid = -1;
                 }
             }
         }
     }
+
     auto end = std::chrono::steady_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
     // LOGI("--------------------------------------------------------",duration.count(),"ms");

@@ -204,6 +204,7 @@ void GameManager::update()
                     // 更新货物TTL
                     goods[robots[i].targetid].TTL = INT_MAX;
                 }
+                // 放下货物，可能因为已有货物而放下失败
                 else {
                     if (robotDebugOutput) LOGI(i, "放下货物",goods[robots[i].carryingItemId].id,"到泊位", robots[i].targetid);
                     Berth& targetberth = berths[robots[i].targetid];
@@ -220,6 +221,7 @@ void GameManager::update()
                     commandManager.addRobotCommand(robots[i].pull());
                     robots[i].carryingItem = 0;
                     robots[i].carryingItemId = -1;
+                    robots[i].targetid = -1;
                 }
             }
         }

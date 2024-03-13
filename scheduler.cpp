@@ -393,6 +393,7 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleShips(std:
                 berths[ships[i].berthId].residue_num -= ships[i].now_capacity;
                 int berthId = ships[i].berthId;
                 int shipment = 0;
+                // shipment = std::min(berths[berthId].reached_goods.size(),berths[berthId].velocity);
                 if(berths[berthId].reached_goods.size() >= berths[berthId].velocity){
                     //堆积货物大于装货速度
                     shipment = berths[berthId].velocity;
@@ -402,7 +403,6 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleShips(std:
                 }
 
                 int res = ships[i].load(shipment);
-                assert(res < berths[berthId].reached_goods.size());
                 berths[berthId].reached_goods.erase(berths[berthId].reached_goods.begin(),berths[berthId].reached_goods.begin() + res);
 
             }else if(ships[i].berthId == -1){  // 加入空闲船只列表

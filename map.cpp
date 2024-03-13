@@ -148,3 +148,9 @@ std::string Map::drawMap(std::vector<std::vector<int>> map, int field_width)
     std::string result = oss.str();
     return result;
 }
+
+bool Map::isBerthReachable(BerthID id,Point2d position){
+    if(berthDistanceMap.at(id)[position.x][position.y] != INT_MAX)
+        return true;
+    return false;
+}

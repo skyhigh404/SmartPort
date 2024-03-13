@@ -90,7 +90,7 @@ void GameManager::initializeGame()
     for(auto& robot : this->robots){
         bool is_isolated = true;
         for(const auto& berth : this->berths){
-            if(this->gameMap.berthDistanceMap.at(berth.id)[robot.pos.x][robot.pos.y] != INT_MAX){
+            if(this->gameMap.isBerthReachable(berth.id,robot.pos)){
                 is_isolated = false;
                 break;
             }
@@ -171,10 +171,6 @@ void GameManager::update()
     // std::vector<std::pair<int, Action>> RobotActions = this->scheduler->scheduleRobots(robots, gameMap, goods, berths);
     auto robot_end = std::chrono::high_resolution_clock::now();
     LOGI("调度机器人时长:",std::chrono::duration_cast<std::chrono::milliseconds>(robot_end - robot_start).count(),"ms");
-    auto ship_start = std::chrono::high_resolution_clock::now();
-    std::vector<std::pair<int, Action>> ShipActions = this->scheduler->scheduleShips(ships, berths);
-    auto ship_end = std::chrono::high_resolution_clock::now();
-    LOGI("调度船只时长:",std::chrono::duration_cast<std::chrono::milliseconds>(ship_end - ship_start).count(),"ms");
     
     AStarPathfinder pathfinder;
     for (int i=0;i<robots.size();i++) {
@@ -228,6 +224,11 @@ void GameManager::update()
     auto end = std::chrono::steady_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
     LOGI("--------------------------------------------------------",duration.count(),"ms");
+
+    auto ship_start = std::chrono::high_resolution_clock::now();
+    std::vector<std::pair<int, Action>> ShipActions = this->scheduler->scheduleShips(ships, berths);
+    auto ship_end = std::chrono::high_resolution_clock::now();
+    LOGI("调度船只时长:",std::chrono::duration_cast<std::chrono::milliseconds>(ship_end - ship_start).count(),"ms");
     // commandManager，获取命令
     // todo 输出指令
     // CommandManager.robotCommands
@@ -273,7 +274,7 @@ void GameManager::update()
         Action ship_action = ShipActions[i].second;
         // 去虚拟点
         if (ship_action.type==DEPART_BERTH) {
-            LOGI(ship_id,"装满,前往虚拟点");
+            LOGI(ship_id,"前往虚拟点");
             commandManager.addShipCommand(ships[ship_id].go());
         }
         // 去泊位

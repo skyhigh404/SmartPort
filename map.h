@@ -84,4 +84,6 @@ public:
                         Point2d *goal = nullptr) const;
     static std::string drawMap(std::vector<std::vector<int>>, int field_width);
     void computeDistancesToBerthViaBFS(BerthID id, const std::vector<Point2d> &positions);
+
+    bool isBerthReachable(BerthID id, Point2d position);
 };

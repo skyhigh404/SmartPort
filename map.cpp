@@ -36,8 +36,10 @@ std::vector<Point2d> Map::neighbors(Point2d pos) const
 
 inline bool Map::passable(Point2d pos) const
 {
-    return (getCell(pos) != MapItemSpace::MapItem::OBSTACLE &&
-            getCell(pos) != MapItemSpace::MapItem::SEA);
+    MapItemSpace::MapItem item = getCell(pos);
+    return (item != MapItemSpace::MapItem::OBSTACLE &&
+            item != MapItemSpace::MapItem::SEA &&
+            item != MapItemSpace::MapItem::ROBOT);
 }
 
 std::string Map::drawMap(std::unordered_map<Point2d, double> *distances,

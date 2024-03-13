@@ -431,7 +431,7 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleShips(std:
                 // 如果船的容量小于或等于当前泊位的剩余需求，分配船到这个泊位
                 ship.berthId = berth.id;
                 shipActions.push_back(std::make_pair(ship.id, Action{MOVE_TO_BERTH,Point2d(),berth.id}));
-                // LOGI("分配船",ship.id,"前往泊位",berth.id);
+                if(debug) ("分配船",ship.id,"前往泊位",berth.id);
                 berth.assigned_ships += 1;
                 berth.residue_num -= ship.capacity; // 更新泊位的剩余需求
                 break; // 跳出循环，继续为下一艘船分配泊位
@@ -448,7 +448,7 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleShips(std:
                 ship.berthId = berth.id;
                 shipActions.push_back(std::make_pair(ship.id, Action{MOVE_TO_BERTH,Point2d(),berth.id}));
                 berth.assigned_ships += 1;
-                // LOGI("第二次分配船",ship.id,"前往泊位",berth.id);
+                if(debug) LOGI("第二次分配船",ship.id,"前往泊位",berth.id);
                 berth.residue_num -= ship.capacity; // 更新泊位的剩余需求
                 break; // 跳出循环，继续为下一艘船分配泊位
             }

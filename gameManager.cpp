@@ -168,22 +168,23 @@ void GameManager::update()
 {   
     auto start = std::chrono::steady_clock::now();
     
+    bool robotDebugOutput = true;
     AStarPathfinder pathfinder;
     for (int i=0;i<robots.size();i++) {
         // 机器人寻路路径为空 && 不位于死点
         if (robots[i].path.empty() && robots[i].status != DEATH) {
             // 调用调度器来获取机器人的目的地
-            // LOGI(i, "寻路中");
-            Action action = this->scheduler->scheduleRobot(robots[i], gameMap, goods, berths, false);
+            if (robotDebugOutput) LOGI(i, "寻路中");
+            Action action = this->scheduler->scheduleRobot(robots[i], gameMap, goods, berths, robotDebugOutput);
             if (action.type==FAIL) continue;
             std::variant<Path, PathfindingFailureReason> path = pathfinder.findPath(robots[i].pos, action.desination, gameMap);
             if (std::holds_alternative<Path>(path)) {
-                // LOGI(i, "寻路成功");
+                if (robotDebugOutput) LOGI(i, "寻路成功");
                 robots[i].path = std::get<Path>(path);
-                // LOGI(i,"路径长度：",robots[i].path.size());
+                if (robotDebugOutput) LOGI(i,"路径长度：",robots[i].path.size());
             }
             else {
-                // LOGI(i, "寻路失败");
+                if (robotDebugOutput) LOGI(i, "寻路失败");
                 robots[i].path = Path();
                 robots[i].status = IDLE;
             }
@@ -192,11 +193,11 @@ void GameManager::update()
         if (!robots[i].path.empty()) {
             // 机器人有路径，继续沿着路径移动
             const std::string temp = robots[i].moveWithPath();
-            // LOGI(i, "移动中:",temp);
+            if (robotDebugOutput) LOGI(i, "移动中:",temp);
             commandManager.addRobotCommand(temp);
             if (robots[i].path.empty()) {
                 if (robots[i].carryingItem==0) {
-                    // LOGI(i, "拿起货物");
+                    if (robotDebugOutput) LOGI(i, "拿起货物");
                     commandManager.addRobotCommand(robots[i].get());
                     robots[i].carryingItem = 1;
                     robots[i].carryingItemId = robots[i].targetid;
@@ -204,7 +205,7 @@ void GameManager::update()
                     goods[robots[i].targetid].TTL = INT_MAX;
                 }
                 else {
-                    // LOGI(i, "放下货物");
+                    if (robotDebugOutput) LOGI(i, "放下货物");
                     for (int l=0;l<berths[robots[i].targetid].unreached_goods.size();l++) {
                         if (berths[robots[i].targetid].unreached_goods[l].id==goods[robots[i].carryingItemId].id) {
                             berths[robots[i].targetid].unreached_goods.erase(berths[robots[i].targetid].unreached_goods.begin() + l);

@@ -164,7 +164,7 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleRobots(std
 
 Action SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths, bool debug)
 {
-    if (debug) LOGI("调度开始:goodsize:",goods.size());
+    if (debug) LOGI("调度开始:goodsize:",goods.size(),". 机器人id：",robot.id);
 
     vector<int> cost2goods(goods.size());
     vector<vector<int>> cost2berths(goods.size(), vector<int>(berths.size()));
@@ -233,7 +233,7 @@ Action SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std:
         int berthsIndex = bestBerthIndex[goodsIndex];
         // LOGI("货物id：",goods[goodsIndex].id,"货物状态：",goods[goodsIndex].status,"货物收益：",profits[j]);
         if (goods[goodsIndex].status==0 && profits[j]>0) {
-            // LOGI("分配货物",goods[goodsIndex].id);
+            LOGI("分配货物",goods[goodsIndex].id);
             robot.targetid = goods[goodsIndex].id;
             goods[goodsIndex].status = 1;
             return Action{MOVE_TO_POSITION, goods[goodsIndex].pos, goods[goodsIndex].id};

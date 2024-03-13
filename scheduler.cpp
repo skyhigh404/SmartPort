@@ -219,9 +219,9 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleRobots(std
     return robotActions;
 }
 
-Action  SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths)
+Action  SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths, bool debug)
 {
-    // LOGI("调度开始:goodsize:",goods.size());
+    if (debug) LOGI("调度开始:goodsize:",goods.size());
     // 寻路
     AStarPathfinder pathfinder;
     vector<std::variant<Path, PathfindingFailureReason>> path2goods(goods.size(), std::variant<Path, PathfindingFailureReason>()), \
@@ -244,7 +244,7 @@ Action  SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std
     // LOGI("test");
 
     if (robot.carryingItem==1 && bestBerthIndex[robot.carryingItemId]!=-1) {
-        // LOGI("分配泊位");
+        if (debug) LOGI("分配泊位");
         Berth berth = berths[bestBerthIndex[robot.carryingItemId]];
         int num = berth.reached_goods.size() + berth.unreached_goods.size();
         berth.unreached_goods.push_back(goods[robot.carryingItemId]);
@@ -253,7 +253,7 @@ Action  SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std
         return Action{MOVE_TO_BERTH, dest, berths[bestBerthIndex[robot.carryingItemId]].id};
     }
 
-    // LOGI("计算到货物路径");
+    if (debug) LOGI("计算到货物路径");
     for (int j=0;j<goods.size();j++) {
         if (goods[j].status!=0) {
             cost2goods[j] = INT_MAX;
@@ -269,8 +269,7 @@ Action  SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std
         // LOGI("机器人",i,"到货物",j,"的路径长度为：",cost2goods[i][j]);
     }
     
-    // LOGI("开始衡量收益");
-    // 衡量收益
+    if (debug) LOGI("开始衡量收益");
     // 计算每个机器人将货物送达泊位的耗时
     std::vector<float> profits(goods.size(), 0);
     for (int j = 0; j < goods.size(); j++) {
@@ -281,7 +280,7 @@ Action  SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std
         // LOGI("货物",j,"收益为：",profits[j]);
     }
     
-    // LOGI("开始分配货物");
+    if (debug) LOGI("开始分配货物");
 
     // 确定\分配机器人目的地
     std::vector<int> indices(goods.size(), 0);
@@ -309,7 +308,7 @@ Action  SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std
             return Action{MOVE_TO_POSITION, goods[goodsIndex].pos, goods[goodsIndex].id};
         }
     }
-    // LOGI("分配货物失败");
+    if (debug) LOGI("分配货物失败");
     return Action{FAIL, Point2d(0,0), 0};
 }
 

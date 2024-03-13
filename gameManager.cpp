@@ -178,7 +178,7 @@ void GameManager::update()
         if (robots[i].path.empty() && robots[i].status != DEATH) {
             // 调用调度器来获取机器人的目的地
             LOGI(i, "寻路中");
-            Action action = this->scheduler->scheduleRobot(robots[i], gameMap, goods, berths);
+            Action action = this->scheduler->scheduleRobot(robots[i], gameMap, goods, berths, true);
             if (action.type==FAIL) continue;
             std::variant<Path, PathfindingFailureReason> path = pathfinder.findPath(robots[i].pos, action.desination, gameMap);
             if (std::holds_alternative<Path>(path)) {

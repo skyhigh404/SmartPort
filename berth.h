@@ -37,5 +37,5 @@ public:
         }
         LOGI(berth_info,reach_info,";",unreach_info);
     }
-    
+
 };

@@ -168,7 +168,8 @@ void GameManager::update()
 {   
     auto start = std::chrono::steady_clock::now();
     
-    bool robotDebugOutput = true;
+    bool robotDebugOutput = false;
+    bool shipDebugOutput = true;
     AStarPathfinder pathfinder;
     for (int i=0;i<robots.size();i++) {
         // 机器人寻路路径为空 && 不位于死点
@@ -218,6 +219,7 @@ void GameManager::update()
                     //     }
                     // }
                     targetberth.reached_goods.push_back(goods[robots[i].carryingItemId]);
+                    goods[robots[i].carryingItemId].status = 3;
                     commandManager.addRobotCommand(robots[i].pull());
                     robots[i].carryingItem = 0;
                     robots[i].carryingItemId = -1;
@@ -232,7 +234,7 @@ void GameManager::update()
     // LOGI("--------------------------------------------------------",duration.count(),"ms");
 
     auto ship_start = std::chrono::high_resolution_clock::now();
-    std::vector<std::pair<int, Action>> ShipActions = this->scheduler->scheduleShips(ships, berths, false);
+    std::vector<std::pair<int, Action>> ShipActions = this->scheduler->scheduleShips(ships, berths, goods, robots, shipDebugOutput);
     auto ship_end = std::chrono::high_resolution_clock::now();
     // LOGI("调度船只时长:",std::chrono::duration_cast<std::chrono::milliseconds>(ship_end - ship_start).count(),"ms");
 

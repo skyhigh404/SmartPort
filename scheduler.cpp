@@ -367,8 +367,8 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleShips(std:
         switch (ships[i].state)
         {
         case 0:
-            // 状态错误
-            assert(ships[i].now_capacity == ships[i].capacity);
+            // 可能是前往虚拟点或者泊位途中
+            // assert(ships[i].now_capacity == ships[i].capacity);
             break;
         case 1:
             if(ships[i].now_capacity == 0){ //装满,去往虚拟点
@@ -379,9 +379,6 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleShips(std:
                 ships[i].state = 0;
                 ships[i].berthId = -1;
             }else if(ships[i].berthId != -1){   //装货
-                // 计算泊位的溢出货物量
-                berths[ships[i].berthId].residue_num -= ships[i].now_capacity;
-
                 // 无货物装配，发船
                 if (berths[ships[i].berthId].residue_num <= 0){
                     shipActions.push_back(std::make_pair(i, Action{DEPART_BERTH,Point2d(),-1}));
@@ -391,7 +388,9 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleShips(std:
                     ships[i].state = 0;
                     ships[i].berthId = -1;
                 }
-
+                
+                // 计算泊位的溢出货物量
+                berths[ships[i].berthId].residue_num -= ships[i].now_capacity;
                 int berthId = ships[i].berthId;
                 int shipment = 0;
                 if(berths[berthId].reached_goods.size() >= berths[berthId].velocity){

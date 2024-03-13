@@ -70,6 +70,15 @@ public:
         return Point2d::calculateManhattanDistance(pos1, pos2);
     }
 
+    inline int costCosin(const Map &map,const Robot& robot,const Goods& good,const Berth& berth)
+    {
+        int berth2good = map.berthDistanceMap.at(berth.id)[good.pos.x][good.pos.y];
+        int berth2robot = map.berthDistanceMap.at(berth.id)[robot.pos.x][robot.pos.y];
+        float cosin = berth.pos.cosineTo(robot.pos,good.pos);
+        int cost = static_cast<int>(::sqrt(berth2good*berth2good + berth2robot * berth2robot - 2* berth2good * berth2robot * cosin));
+        return cost;
+    }
+
 public:
     std::vector<Point2d> neighbors(Point2d id) const; // 返回当前节点上下左右的四个邻居
     inline bool passable(Point2d pos) const;
@@ -84,4 +93,6 @@ public:
                         Point2d *goal = nullptr) const;
     static std::string drawMap(std::vector<std::vector<int>>, int field_width);
     void computeDistancesToBerthViaBFS(BerthID id, const std::vector<Point2d> &positions);
+
+    bool isBerthReachable(BerthID id, Point2d position);
 };

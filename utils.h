@@ -59,6 +59,30 @@ struct Point2d
     static inline float calculateEuclideanDistance(const Point2d& p1, const Point2d& p2) {
         std::sqrt((double)(std::pow(p1.x - p2.x, 2) + std::pow(p1.y - p2.y, 2)));
     }
+
+    float operator*(const Point2d& other) const {   // 重载*运算符以实现点积
+        return this->x * other.x + this->y * other.y;
+    }
+
+    float magnitude() const {   // 提供一个成员函数来计算模长
+        return std::sqrt(this->x * this->x + this->y * this->y);
+    }
+    
+    float cosineTo(const Point2d& point1, const Point2d& point2) const {    // 计算以当前点到另外两点形成的向量夹角的余弦值
+        // 计算向量
+        Point2d vectorToPoint1 = {point1.x - this->x, point1.y - this->y};
+        Point2d vectorToPoint2 = {point2.x - this->x, point2.y - this->y};
+
+        // 计算点积
+        float dotProduct = vectorToPoint1 * vectorToPoint2;
+
+        // 计算各向量的模长
+        float magnitudeToPoint1 = vectorToPoint1.magnitude();
+        float magnitudeToPoint2 = vectorToPoint2.magnitude();
+
+        // 计算余弦值
+        return dotProduct / (magnitudeToPoint1 * magnitudeToPoint2);
+    }
 };
 
 inline bool operator < (const Point2d &a, const Point2d &b) {

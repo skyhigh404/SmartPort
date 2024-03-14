@@ -279,17 +279,26 @@ void GameManager::RobotControl()
                 }
                 continue;
             }
+
+            if (robot.pos != robot.destination && robot.path.empty()) {
+                std::variant<Path, PathfindingFailureReason> path = pathfinder.findPath(robot.pos, robot.destination, gameMap);
+                if (std::holds_alternative<Path>(path)) {
+                    Path temp_path = std::get<Path>(path);
+                    robot.path = temp_path;
+                }
+                else {
+                    LOGI("已分配泊位，但路径为空，且寻路失败.",robot.pos,',',robot.destination);
+                    robot.targetid = -1;
+                }
+            }
             
             const std::string temp = robot.moveWithPath();
             if (robotDebugOutput) LOGI(i, "向泊位移动中:",temp);
             commandManager.addRobotCommand(temp);
 
             // 放货
-            LOGI(robot.targetid);
-            for (auto berth:berths) {
-                berth.info();
-            }
             Berth &berth = berths[robot.targetid];
+            LOGI(robot);
             berth.info();
             if (robot.pos == robot.destination) {
                 // 货物可放货 todo

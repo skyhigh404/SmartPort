@@ -95,6 +95,7 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleRobots(std
         for (int j = 0; j < goods.size(); ++j) {
             int goodsIndex = indices[i][j];
             int berthsIndex = bestBerthIndex[goodsIndex];
+            LOGI("判断前：",robots[i],",泊位位置：",berths[berthsIndex].pos);
             // LOGI(j, goods.size());
 
             if (robots[i].carryingItem && robots[i].carryingItemId!=j) continue; // 机器人和货物不匹配
@@ -104,6 +105,7 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleRobots(std
             // 携带货物但离泊位还远
             if (robots[i].status==MOVING_TO_BERTH && dist(robots[i].pos, berths[berthsIndex].pos)>6) {
                 // robotDestinations[i] = std::make_pair(goodsIndex, berthsIndex);
+                LOGI(robots[i],",泊位位置：",berths[berthsIndex].pos);
                 robotActions.push_back(std::make_pair(i, Action{MOVE_TO_BERTH, berths[berthsIndex].pos, berths[berthsIndex].id}));
                 break;
             } 
@@ -111,6 +113,7 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleRobots(std
             else if (robots[i].status==MOVING_TO_BERTH && dist(robots[i].pos, berths[berthsIndex].pos)<=6) {
                 Point2d berths_pos=berths[berthsIndex].pos;
                 int stockpile=berths[berthsIndex].reached_goods.size();
+                LOGI(robots[i],",泊位位置：",Point2d(berths_pos.x+stockpile/4, berths_pos.y+stockpile%4));
                 robotActions.push_back(std::make_pair(i, Action{MOVE_TO_BERTH, Point2d(berths_pos.x+stockpile/4, berths_pos.y+stockpile%4), berths[berthsIndex].id}));
                 robotActions.push_back(std::make_pair(i, Action{FIND_PATH, Point2d(berths_pos.x+stockpile/4, berths_pos.y+stockpile%4), berths[berthsIndex].id}));
                 robots[i].status = UNLOADING;
@@ -180,7 +183,7 @@ Action SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std:
             }
         }
     }
-
+    if(debug){LOGI("carry状态：",robot.carryingItem,",carry id：",robot.carryingItemId);}
     if (robot.carryingItem==1 && bestBerthIndex[robot.carryingItemId]!=-1) {
         if (debug) LOGI("分配泊位");
         Berth &berth = berths[bestBerthIndex[robot.carryingItemId]];
@@ -189,6 +192,7 @@ Action SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std:
         // berth.unreached_goods.push_back(goods[robot.carryingItemId]);
         robot.targetid = berth.id;
         Point2d dest(berth.pos.x+num/4, berth.pos.y+num%4);
+        if(debug){LOGI("分配泊位位置：",dest);}
         return Action{MOVE_TO_BERTH, dest, berth.id};
     }
 
@@ -234,7 +238,7 @@ Action SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std:
         int berthsIndex = bestBerthIndex[goodsIndex];
         // LOGI("货物id：",goods[goodsIndex].id,"货物状态：",goods[goodsIndex].status,"货物收益：",profits[j]);
         if (goods[goodsIndex].status==0 && profits[j]>0) {
-            LOGI("分配货物",goods[goodsIndex].id);
+            // LOGI("分配货物",goods[goodsIndex].id,",给机器人：",robot.id,"机器人状态：",robot.state);
             robot.targetid = goods[goodsIndex].id;
             goods[goodsIndex].status = 1;
             return Action{MOVE_TO_POSITION, goods[goodsIndex].pos, goods[goodsIndex].id};
@@ -248,9 +252,6 @@ Action SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std:
 std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleShips(std::vector<Ship>& ships, std::vector<Berth>& berths,std::vector<Goods>& goods,std::vector<Robot> &robots,bool debug)
 {
     // todo 根据路径代价计算未到达货物的收益 + 船只在装货时也可以进行抉择
-
-    // 初始化泊位的goods
-    countGoodInBerth(robots,berths,goods);
 
     // 初始化泊位的货物数量
      for (auto& berth : berths) {
@@ -386,13 +387,19 @@ int SimpleTransportStrategy::shipNumInBerth(const Berth& berth,const std::vector
 // 遍历机器人，统计每个泊位的unreachGoods
 void SimpleTransportStrategy::countGoodInBerth(std::vector<Robot> &robots,std::vector<Berth> &berths,std::vector<Goods> goods)
 {
+    LOGI("开始泊位货物统计");
     for(auto &robot : robots)
     {
-        if(robot.carryingItemId != -1 && robot.targetid != -1)
+        // LOGI("机器人数量",robots.size());
+        // 此时机器人应该拿着货物
+        // if(robot.carryingItemId != -1 && robot.targetid != -1 && robot.carryingItem == 1 &&robot.targetid < 10)
+        if(robot.carryingItemId != -1 && robot.targetid != -1 && robot.carryingItem == 1 )
         {
+            LOGI("机器人ID：",robot.id,",机器人状态：",robot.carryingItem,",货物id:",robot.carryingItemId,",目的泊位id：",robot.targetid);
             berths[robot.targetid].unreached_goods.push_back(goods[robot.carryingItemId]);
         }
     }
+    LOGI("完成了泊位货物的统计");
 }
 
 // 计算泊位的收益，每帧重新计算

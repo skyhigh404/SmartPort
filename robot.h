@@ -34,6 +34,7 @@ public:
         : id(id),
           pos(pos),
           carryingItem(0),
+          carryingItemId(-1),
           state(0),
           status(IDLE),
           targetid(0)
@@ -87,6 +88,14 @@ public:
         // 生成放置指令
         using namespace std::string_literals;
         return "pull "s + std::to_string(id);
+    }
+
+    friend std::ostream& operator<<(std::ostream& os, const Robot& robot) {
+        os << "机器人" << robot.id << ",trargeti：" << robot.targetid <<",携带货物状态："<<robot.carryingItem<<",携带货物id："<<robot.carryingItemId << ",状态："<<robot.state<<"，机器人位置："<<robot.pos<<"，路径情况：";
+        for(auto & item : robot.path){
+            os << item;
+        }
+        return os;
     }
 
     // Point2d getPosition() const;

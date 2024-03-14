@@ -6,6 +6,7 @@
 #include "robot.h"
 #include "ship.h"
 #include "goods.h"
+#include "log.h"
 #include <sstream>
 // 这个类负责收集机器人和船只的指令，并最终统一输出。
 class CommandManager

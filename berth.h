@@ -21,6 +21,8 @@ public:
     Berth(int id, Point2d pos, int time, int velocity)
         : id(id), pos(pos), time(time), velocity(velocity), stockpile(0), stockpileValue(0)
     {
+        reached_goods = std::vector<Goods>();
+        unreached_goods = std::vector<Goods>();
     }
 
     // 打印泊位信息

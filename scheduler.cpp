@@ -339,13 +339,14 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleShips(std:
     calculateBerthIncome(berths);
     // todo:
     // 对泊位进行排序
-    std::sort(berths.begin(), berths.end(), []( Berth& a,  Berth& b) {
+    vector<Berth> berths_copy(berths);
+    std::sort(berths_copy.begin(), berths_copy.end(), []( Berth& a,  Berth& b) {
         return a.totalValue > b.totalValue;
     });
 
     // 第一次调度船只，根据容量和泊位溢出货量最大化利益
     for (auto& ship : freeShips) {
-        for (auto& berth : berths) {
+        for (auto& berth : berths_copy) {
             // 一个泊位最多三只船
             if (ship.now_capacity <= berth.residue_num && shipNumInBerth(berth,ships) <= 2) {
                 // 如果船的容量小于或等于当前泊位的剩余需求，分配船到这个泊位
@@ -358,7 +359,7 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleShips(std:
     }
     // 第二次调度船只，为剩余船只分配泊位,留有两个空闲船只
     for (auto& ship : freeShips) {
-        for (auto& berth : berths) {
+        for (auto& berth : berths_copy) {
             if (ship.berthId == -1 && berth.residue_num > 0 && shipNumInBerth(berth,ships) == 0) {
                 ship.berthId = berth.id;
                 shipActions.push_back(std::make_pair(ship.id, Action{MOVE_TO_BERTH,Point2d(),berth.id}));

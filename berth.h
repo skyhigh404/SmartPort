@@ -39,6 +39,17 @@ public:
             unreach_info += "(" + std::to_string(good.status) + "," + std::to_string(good.value) + "),";
         }
         LOGI(berth_info,reach_info,";",unreach_info);
+        std::vector<std::vector<int>> temp(4,std::vector<int>(4,0));
+        for(int i =0;i < 4;i++){
+            for(int j=0;j<4;j++){
+                if(storageSlots[i][j] != nullptr){
+                    temp[i][j] = 1;
+                }
+            }
+        }
+        for(int i=0;i<4;i++){
+            LOGI(temp[i][0]," ",temp[i][1]," ",temp[i][2]," ",temp[i][3]);
+        }
     }
 
     // 传入卸货数量，按照进货数量进行卸货

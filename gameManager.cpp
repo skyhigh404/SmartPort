@@ -7,6 +7,12 @@
 
 using namespace std;
 int Goods::number = 0;
+int canUnload(Berth& berth, Point2d pos) {
+    int x = pos.x-berth.pos.x, y=pos.y-berth.pos.y;
+    if (x<0 || x>3 || y<0 || y>3) {LOGI("越界",x,' ',y);return 0;}
+    if (berth.storageSlots[x][y]==nullptr) {LOGI("可放貨");return 1;}
+    else return 0;
+}
 
 void GameManager::initializeGame()
 {
@@ -132,7 +138,8 @@ void GameManager::processFrameData()
     for (auto& good : goods){
         // todo 边界条件
         if(good.TTL != INT_MAX && good.TTL >= 0){
-            good.TTL = std::max(good.TTL - (currentFrame - good.initFrame),-1);
+            // LOGI(good.id,",initFrame:",good.initFrame,",currentFrame:",currentFrame,",TTL:",good.TTL);
+            good.TTL = std::max(1000-(currentFrame - good.initFrame),-1);
         }
     }
     // 读取新增货物
@@ -180,6 +187,136 @@ void GameManager::processFrameData()
     // }
 }
 
+void GameManager::RobotControl()
+{
+    bool robotDebugOutput = true;
+    AStarPathfinder pathfinder;
+    for (int i=0;i<robots.size();i++) {
+        Robot& robot = robots[i];
+
+        if (robot.status == DIZZY || robot.state == 0) {
+            // 还在眩晕状态
+            if (robot.state == 0) continue;
+
+            // 从眩晕状态恢复
+            if (robot.carryingItem == 0) {
+                robot.status = IDLE;
+                robot.targetid = -1;
+            }
+            else {
+                robot.status = MOVING_TO_BERTH;
+                robot.targetid = -1;
+            }
+        }
+
+        if (robot.status == IDLE) {
+            Action action = this->scheduler->scheduleRobot(robots[i], gameMap, goods, berths, robotDebugOutput);
+            if (action.type==FAIL) continue;
+            std::variant<Path, PathfindingFailureReason> path = pathfinder.findPath(robots[i].pos, action.desination, gameMap);
+            if (std::holds_alternative<Path>(path)) {
+                if (robotDebugOutput) LOGI(i, "寻路成功");
+                Path temp_path = std::get<Path>(path);
+                robot.path = temp_path;
+                robot.status = MOVING_TO_GOODS;
+                robot.targetid = action.targetId;
+                robot.destination = action.desination;
+                if(robotDebugOutput && i == 1){LOGI("分配路径：");LOGI(robots[i]);LOGI("目的地位置：",action.desination);LOGI("货物位置：",goods[robots[i].targetid].pos);LOGI("货物TTL：",goods[robots[i].targetid].TTL);}
+            }
+            else {
+                if (robotDebugOutput) LOGI(i, "寻路失败");
+                // 重置窗台
+                robots[i].path = Path();
+                robot.status = IDLE;
+                robot.targetid = -1;
+                // robot.destination = Point2d(-1,-1);
+            }
+        }
+
+        if (robot.status == MOVING_TO_GOODS) {
+            if (!robot.path.empty()) {
+                const std::string temp = robot.moveWithPath();
+                if (robotDebugOutput) LOGI(i, "向货物移动中:",temp);
+                commandManager.addRobotCommand(temp);
+                continue; // 将移动和取货分开，防止碰撞导致的取货失败，但是将多消耗一帧
+            }
+            // 到达货物位置
+            Goods& good = goods[robot.targetid];
+            if (robot.pos == good.pos) {
+                // 可以取货
+                if (good.TTL>0) {
+                    commandManager.addRobotCommand(robot.get());
+                    robots[i].carryingItem = 1;
+                    robots[i].carryingItemId = robots[i].targetid;
+                    robot.status = MOVING_TO_BERTH;
+                    robot.targetid = -1;
+
+                    good.TTL = INT_MAX;
+                }
+                // 货物过期
+                else {
+                    robot.status = IDLE;
+                    robot.targetid = -1;
+                    continue;
+                }
+            }
+            continue;
+        }
+
+        if (robot.status == MOVING_TO_BERTH) {
+            // 分配泊位
+            if (robot.targetid == -1) {
+                Action action = this->scheduler->scheduleRobot(robot, gameMap, goods, berths, robotDebugOutput);
+                std::variant<Path, PathfindingFailureReason> path = pathfinder.findPath(robot.pos, action.desination, gameMap);
+                if (std::holds_alternative<Path>(path)) {
+                    Path temp_path = std::get<Path>(path);
+                    robot.path = temp_path;
+                    robot.status = MOVING_TO_BERTH;
+                    robot.targetid = action.targetId;
+                    robot.destination = action.desination;
+                }
+                else {
+                    robot.targetid = -1;
+                }
+            }
+            
+            const std::string temp = robot.moveWithPath();
+            if (robotDebugOutput) LOGI(i, "向泊位移动中:",temp);
+            commandManager.addRobotCommand(temp);
+
+            // 放货
+            Berth& berth = berths[robot.targetid];
+            if (robot.pos == robot.destination) {
+                // 货物可放货 todo
+                LOGI("放貨",robot,"dest",robot.destination);
+                if (canUnload(berth, robot.pos)) {
+                    LOGI("輸出");
+                    commandManager.addRobotCommand(robots[i].pull());
+                    // 货物 泊位 状态更新 todo
+                    int x = robot.pos.x-berth.pos.x, y=robot.pos.y-berth.pos.y;
+                    berth.storageSlots[x][y] = &goods[robot.carryingItemId];
+                    berth.reached_goods.push_back(goods[robot.carryingItemId]);
+
+
+                    goods[robot.carryingItemId].status = 3;
+                    // goods[robot.carryingItemId].TTL = ;
+
+                    robot.status = IDLE;
+                    robot.carryingItem = 0;
+                    robot.carryingItemId = -1;
+                    robot.targetid = -1;
+                }
+                // 不可放货，重新分配放货位置
+                else {
+                    robot.targetid = -1;
+                }
+            }
+        }
+
+    }
+}
+
+
+
 void GameManager::update()
 {   
     LOGI("进入update函数-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
@@ -187,6 +324,8 @@ void GameManager::update()
     
     bool robotDebugOutput = true;
     bool shipDebugOutput = false;
+    RobotControl();
+    /*
     AStarPathfinder pathfinder;
     for (int i=0;i<robots.size();i++) {
         if(i==1 ) LOGI("执行机器人",i,"调度:",robots[i]);
@@ -229,7 +368,7 @@ void GameManager::update()
         if (!robots[i].path.empty() && robots[i].state == 1) {
             // 机器人有路径，继续沿着路径移动
             // if(robotDebugOutput && i == 1 && robots[i].targetid == 16){LOGI("机器人1的路径：");LOGI(robots[i]);}
-            if(robotDebugOutput && i == 1){LOGI(robots[1]);}
+            if(robotDebugOutput && i == 1) {LOGI(robots[1]);}
             const std::string temp = robots[i].moveWithPath();
             if (robotDebugOutput) LOGI(i, "移动中:",temp);
             commandManager.addRobotCommand(temp);
@@ -245,20 +384,12 @@ void GameManager::update()
                 // 放下货物，可能因为已有货物而放下失败
                 else {
                     if (robotDebugOutput) LOGI(i, "放下货物",goods[robots[i].carryingItemId].id,"到泊位", robots[i].targetid,"机器人位置：",robots[i].pos,",泊位位置:",berths[robots[i].targetid].pos);
-                    LOGI("到达货物数量：",berths[robots[i].targetid].reached_goods.size(),"，未到达货物数量：",berths[robots[i].targetid].unreached_goods.size());
+                    if (robotDebugOutput) LOGI("到达货物数量：",berths[robots[i].targetid].reached_goods.size(),"，未到达货物数量：",berths[robots[i].targetid].unreached_goods.size());
                     Berth& targetberth = berths[robots[i].targetid];
                     if (robotDebugOutput) LOGI(targetberth.unreached_goods.size());
-                    // for (int l=0;l<targetberth.unreached_goods.size();l++) {
-                    //     if (robotDebugOutput) LOGI(targetberth.unreached_goods[l].id);
-                    //     if (targetberth.unreached_goods[l].id==goods[robots[i].carryingItemId].id) {
-                    //         if (robotDebugOutput) LOGI(i, "从unreached_goods中移除");
-                    //         targetberth.unreached_goods.erase(targetberth.unreached_goods.begin() + l);
-                    //         // break;
-                    //     }
-                    // }
                     targetberth.reached_goods.push_back(goods[robots[i].carryingItemId]);
                     goods[robots[i].carryingItemId].status = 3;
-                    LOGI("机器人放下货物指令：",robots[i].pull());
+                    if (robotDebugOutput) LOGI("机器人放下货物指令：",robots[i].pull());
                     commandManager.addRobotCommand(robots[i].pull());
                     robots[i].carryingItem = 0;
 
@@ -270,6 +401,7 @@ void GameManager::update()
             }
         }
     }
+    */
 
     auto end = std::chrono::steady_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);

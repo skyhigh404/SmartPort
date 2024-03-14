@@ -28,7 +28,7 @@ public:
 
     // 打印泊位信息
     void info(){
-        std::string berth_info = "泊位" + std::to_string(id) + ",装货速度：" + std::to_string(velocity) + ",送货时间：" + std::to_string(time) + ";"+"剩余容量："+ std::to_string(residue_num)+";";
+        std::string berth_info = "泊位" + std::to_string(id) + "位置" + std::to_string(pos.x) +','+std::to_string(pos.y) + ",装货速度：" + std::to_string(velocity) + ",送货时间：" + std::to_string(time) + ";"+"剩余容量："+ std::to_string(residue_num)+";";
         std::string reach_info = "已到达货物数量:" + std::to_string(reached_goods.size()) + ";";
         for(const auto& good : reached_goods){
             reach_info += "(" + std::to_string(good.status) + "," + std::to_string(good.value) + "),";

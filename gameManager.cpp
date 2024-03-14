@@ -9,7 +9,7 @@ using namespace std;
 int Goods::number = 0;
 int canUnload(Berth& berth, Point2d pos) {
     int x = pos.x-berth.pos.x, y=pos.y-berth.pos.y;
-    if (x<0 || x>3 || y<0 || y>3) {LOGI("越界",x,' ',y);return 0;}
+    if (x<0 || x>3 || y<0 || y>3) {LOGI("越界",pos,' ',berth.pos);return 0;}
     if (berth.storageSlots[x][y]==nullptr) {LOGI("可放貨");return 1;}
     else return 0;
 }
@@ -277,6 +277,7 @@ void GameManager::RobotControl()
                 else {
                     robot.targetid = -1;
                 }
+                continue;
             }
             
             const std::string temp = robot.moveWithPath();
@@ -284,7 +285,12 @@ void GameManager::RobotControl()
             commandManager.addRobotCommand(temp);
 
             // 放货
-            Berth& berth = berths[robot.targetid];
+            LOGI(robot.targetid);
+            for (auto berth:berths) {
+                berth.info();
+            }
+            Berth &berth = berths[robot.targetid];
+            berth.info();
             if (robot.pos == robot.destination) {
                 // 货物可放货 todo
                 LOGI("放貨",robot,"dest",robot.destination);
@@ -307,6 +313,8 @@ void GameManager::RobotControl()
                 }
                 // 不可放货，重新分配放货位置
                 else {
+                    LOGI(robot);
+                    berth.info();
                     robot.targetid = -1;
                 }
             }

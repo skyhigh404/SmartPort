@@ -214,7 +214,7 @@ Action SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std:
     }
     
     if (debug) LOGI("开始衡量收益");
-    // 计算每个机器人将货物送达泊位的耗时
+    // 计算机器人将货物送达泊位的耗时
     std::vector<float> profits(goods.size(), 0);
     for (int j = 0; j < goods.size(); j++) {
         int timeToGoods = cost2goods[j];

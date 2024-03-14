@@ -38,7 +38,7 @@ public:
     }
 
     // 装货,并返回转货的数量
-    int load(int num){
+    int loadGoods(int num){
         // LOGI("now_capacity before",this->now_capacity);
         if(now_capacity == 0){
             // 异常情况，满货船舶停滞在泊位

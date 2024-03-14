@@ -168,6 +168,12 @@ void GameManager::processFrameData()
     string ok;
     cin >> ok;
 
+    // 初始化泊位货物状态
+    for(auto &berth : berths){
+        berth.unreached_goods = std::vector<Goods>();
+        berth.reached_goods = std::vector<Goods>();
+    }
+
     // for (int i = 0; i < ROBOTNUMS; ++i)
     // {
     //     LOGI("Robot: ", this->robots[i].id, " position: ", this->robots[i].pos, " state: ", this->robots[i].state);
@@ -176,12 +182,14 @@ void GameManager::processFrameData()
 
 void GameManager::update()
 {   
+    LOGI("进入update函数-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
     auto start = std::chrono::steady_clock::now();
     
     bool robotDebugOutput = true;
     bool shipDebugOutput = false;
     AStarPathfinder pathfinder;
     for (int i=0;i<robots.size();i++) {
+        if(i==1 ) LOGI("执行机器人",i,"调度:",robots[i]);
         // 机器人寻路路径为空 && 不位于死点
         if (robots[i].path.empty() && robots[i].status != DEATH) {
             // 调用调度器来获取机器人的目的地
@@ -265,13 +273,12 @@ void GameManager::update()
 
     auto end = std::chrono::steady_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-    LOGI("--------------------------------------------------------",duration.count(),"ms");
 
     if(shipDebugOutput){LOGI("船只开始调度");};
     auto ship_start = std::chrono::high_resolution_clock::now();
     std::vector<std::pair<int, Action>> ShipActions = this->scheduler->scheduleShips(ships, berths, goods, robots, shipDebugOutput);
     auto ship_end = std::chrono::high_resolution_clock::now();
-    LOGI("调度船只时长:",std::chrono::duration_cast<std::chrono::milliseconds>(ship_end - ship_start).count(),"ms");
+    if(shipDebugOutput) LOGI("调度船只时长:",std::chrono::duration_cast<std::chrono::milliseconds>(ship_end - ship_start).count(),"ms");
 
     //CommandManager.shipCommands
     for (int i=0;i<ShipActions.size();i++) {

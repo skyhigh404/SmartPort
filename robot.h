@@ -11,10 +11,10 @@ enum RobotStatus
 {
     IDLE,
     MOVING_TO_GOODS,
-    PICKING_UP,
     MOVING_TO_BERTH,
     UNLOADING,
-    DEATH
+    DEATH,
+    DIZZY
 };
 
 class Robot
@@ -28,6 +28,7 @@ public:
     std::vector<Point2d> path; // 机器人即将要走的路径
     RobotStatus status;
     int targetid;
+    Point2d destination; // 机器人当前的目的地
 
 public:
     Robot(int id, Point2d pos)
@@ -91,7 +92,7 @@ public:
     }
 
     friend std::ostream& operator<<(std::ostream& os, const Robot& robot) {
-        os << "机器人" << robot.id << ",trargeti：" << robot.targetid <<",携带货物状态："<<robot.carryingItem<<",携带货物id："<<robot.carryingItemId << ",状态："<<robot.state<<"，机器人位置："<<robot.pos<<"，路径情况：";
+        os << "机器人" << robot.id << ",trargetid：" << robot.targetid <<",携带货物状态："<<robot.carryingItem<<",携带货物id："<<robot.carryingItemId << ",状态："<<robot.state<<"，机器人位置："<<robot.pos<<"，路径情况：";
         for(auto & item : robot.path){
             os << item;
         }

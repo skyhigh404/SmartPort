@@ -10,6 +10,7 @@ cd build && mingw32-make
 ```
 cd build
 ..\judge\PreliminaryJudge.exe -m ..\judge\maps\map1.txt  -d ./output.txt .\main.exe
+..\judge\PreliminaryJudge_win_1.exe -m ..\judge\maps\map1.txt  -d ./output.txt .\main.exe
 ```
 
 ## LOG 函数使用示例

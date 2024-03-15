@@ -7,6 +7,7 @@
 
 using namespace std;
 int Goods::number = 0;
+int CURRENT_FRAME = 0;
 
 void GameManager::initializeGame()
 {
@@ -58,9 +59,9 @@ void GameManager::initializeGame()
         cin >> id >> x >> y >> time >> velocity;
         this->berths.emplace_back(id, Point2d(x, y), time, velocity);
     }
-    // LOGI("print berth init info");
-    // for (const auto &berth : this->berths)
-    //     LOGI("ID: ", berth.id, " POS: ", berth.pos, " time: ", berth.time, " velocity: ", berth.velocity);
+    LOGI("print berth init info");
+    for (const auto &berth : this->berths)
+        LOGI("ID: ", berth.id, " POS: ", berth.pos, " time: ", berth.time, " velocity: ", berth.velocity);
 
     // 初始化船舶
     int capacity;
@@ -74,6 +75,11 @@ void GameManager::initializeGame()
     //     LOGI("Ship ", this->ships[i].id," capacity: ", this->ships[i].capacity);
     // }
     
+    // 初始化数据读取完成
+    // 让地图实时跟踪机器人位置（需要测试是否正常跟踪）
+    for(Robot& robot : this->robots)
+        this->gameMap.robotPosition.push_back(robot.pos);
+
     // 计算地图上每个点到泊位的距离
     for (const auto &berth : this->berths)
     {
@@ -128,6 +134,7 @@ void GameManager::processFrameData()
     }
 
     cin >> this->currentFrame >> this->currentMoney;
+    CURRENT_FRAME = this->currentFrame;
     // 货物生命周期维护
     for (auto& good : goods)
         good.TTL = std::max(good.TTL - (currentFrame - good.initFrame),-1);
@@ -162,35 +169,65 @@ void GameManager::processFrameData()
     // {
     //     LOGI("Robot: ", this->robots[i].id, " position: ", this->robots[i].pos, " state: ", this->robots[i].state);
     // }
+
+    // 测试 D* Lite算法
+    // Point2d pos(47,10);
+    // auto start = std::chrono::high_resolution_clock::now();
+    // robots[0].findPath(pos, gameMap);
+    // auto stop = std::chrono::high_resolution_clock::now();
+    // auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+    // LOGI("D* Lite calculate take time: ",duration.count()," ms");
+    // LOGI("Log D* Lite result from point ", robots[0].pos," to ",pos);
+    // LOGI("path 0 ", robots[0].path[0]," path1 ",robots[0].path[1]);
+    // LOGI(gameMap.drawMap(nullptr,nullptr, &robots[0].path, &robots[0].pos, &pos));
+    // exit(0);
 }
 
 void GameManager::update()
 {   
     auto start = std::chrono::steady_clock::now();
     
-    AStarPathfinder pathfinder;
+    // AStarPathfinder pathfinder;
     for (int i=0;i<robots.size();i++) {
-        // 机器人寻路路径为空 && 不位于死点
+        // 机器人寻路路径为空 && 不位于死点触发寻路
         if (robots[i].path.empty() && robots[i].status != DEATH) {
             // 调用调度器来获取机器人的目的地
             // LOGI(i, "寻路中");
             Action action = this->scheduler->scheduleRobot(robots[i], gameMap, goods, berths, false);
             if (action.type==FAIL) continue;
-            std::variant<Path, PathfindingFailureReason> path = pathfinder.findPath(robots[i].pos, action.desination, gameMap);
-            if (std::holds_alternative<Path>(path)) {
-                // LOGI(i, "寻路成功");
-                robots[i].path = std::get<Path>(path);
-                // LOGI(i,"路径长度：",robots[i].path.size());
+
+            auto start = std::chrono::high_resolution_clock::now();
+            if(!gameMap.passable(action.desination))
+                continue;
+                // LOGE("机器人目标位置不可通行, pos: ", action.desination);
+            // LOGI("开始寻路");
+            if(robots[i].findPath(action.desination, gameMap))
+            {
+                // auto stop = std::chrono::high_resolution_clock::now();
+                // auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+                // LOGI(i, "寻路成功, 路径长度：",robots[i].path.size(), " D* Lite calculate take time: ",duration.count()," ms");
             }
-            else {
+            else{
                 // LOGI(i, "寻路失败");
-                robots[i].path = Path();
                 robots[i].status = IDLE;
             }
-            
         }
         if (!robots[i].path.empty()) {
+            // LOGI("开始移动");
             // 机器人有路径，继续沿着路径移动
+            // 检测机器人运动路径前方是否有潜在的碰撞风险
+            auto start = std::chrono::high_resolution_clock::now();
+            // robots[i].refindPath(gameMap, gameMap.getChangedStates(robots[i].id));
+            // if((i==1 || i==8) && (currentFrame>=474&&currentFrame<480))
+            // {
+            //     LOGI("robots ",i, " status: ", robots[i].state," current pos: ", robots[i].pos," getChangedStates", printVector(gameMap.getChangedStates(robots[i].id)));
+            //     LOGI("robots ",i," status: ", robots[i].state, " current pos: ", robots[i].pos," path", printVector(robots[i].path));
+            // }
+            // exit(0);
+            auto stop = std::chrono::high_resolution_clock::now();
+            auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+            // LOGI(i, "重新寻路, 路径长度：",robots[i].path.size(), " D* Lite calculate take time: ",duration.count()," us");
+
             const std::string temp = robots[i].moveWithPath();
             // LOGI(i, "移动中:",temp);
             commandManager.addRobotCommand(temp);
@@ -219,7 +256,7 @@ void GameManager::update()
     }
     auto end = std::chrono::steady_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-    // LOGI("--------------------------------------------------------",duration.count(),"ms");
+    // LOGI("机器人调度和寻路时间：",duration.count(),"ms");
 
     auto ship_start = std::chrono::high_resolution_clock::now();
     std::vector<std::pair<int, Action>> ShipActions = this->scheduler->scheduleShips(ships, berths, false);

@@ -1,12 +1,11 @@
 #pragma once
-#include "robot.h"
 #include "map.h"
 #include "utils.h"
+#include "priorityQueue.h"
 #include <vector>
-#include <unordered_map>
 #include <variant>
 #include <algorithm>
-#include <queue>
+#include <limits>
 
 using Path = std::vector<Point2d>;
 enum class PathfindingFailureReason
@@ -29,31 +28,6 @@ public:
     virtual std::variant<Path, PathfindingFailureReason> findPath(const Point2d &start, const Point2d &goal, const Map &map) = 0;
 };
 
-
-template <typename T, typename priority_t>
-struct PriorityQueue
-{
-    typedef std::pair<priority_t, T> PQElement;
-    std::priority_queue<PQElement, std::vector<PQElement>, std::greater<PQElement>> elements;
-
-    inline bool empty() const
-    {
-        return elements.empty();
-    }
-
-    inline void put(T item, priority_t priority)
-    {
-        elements.emplace(priority, item);
-    }
-
-    inline T get()
-    {
-        T best_item = elements.top().second;
-        elements.pop();
-        return best_item;
-    }
-};
-
 class AStarPathfinder : public Pathfinder
 {
 public:
@@ -70,10 +44,93 @@ public:
     template <typename Location>
     std::vector<Location> reconstruct_path(
         const Location &start, const Location &goal,
-        const std::unordered_map<Location, Location>& came_from);
+        const std::unordered_map<Location, Location> &came_from);
 
 public:
-    inline int heuristic(Point2d pos1, Point2d pos2){
+    inline int heuristic(Point2d pos1, Point2d pos2)
+    {
         return Point2d::calculateManhattanDistance(pos1, pos2);
     }
+};
+
+// struct Node
+// {
+//     Point2d pos;
+//     float RHS; // 到终点的 cost
+//     float G;   // 到终点的 cost
+//     float H;   // 到起点的启发式 cost
+
+//     using TLimits = std::numeric_limits<float>;
+//     Node(Point2d pos, float rhs = TLimits::max(), float g = TLimits::max()) : pos(pos), RHS(rhs), G(g) {}
+// };
+
+class DStarPathfinder
+{
+
+private:
+    struct Key
+    {
+        Cost first = 0.0;
+        Cost second = 0.0;
+
+        bool operator<(const Key &rhs) const
+        {
+            if (first < rhs.first)
+            {
+                return true;
+            }
+            else if (first == rhs.first)
+            {
+                return second < rhs.second;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        bool operator==(const Key &rhs) const
+        {
+            return first == rhs.first && second == rhs.second;
+        }
+        bool operator>(const Key &rhs) const
+        {
+            return !operator<(rhs) && !operator==(rhs);
+        }
+        bool operator>=(const Key &rhs) const
+        {
+            return operator>(rhs) || operator==(rhs);
+        }
+        bool operator<=(const Key &rhs) const
+        {
+            return operator<(rhs) || operator==(rhs);
+        }
+    };
+
+    Point2d start, goal, last_start;
+
+    PriorityQueueWithRemove<Point2d, Key> pq;
+    HashMap<Point2d, Cost> gscores; // G
+    HashMap<Point2d, Cost> rscores; // RHS
+    Cost k = Cost(0);// 键值修饰器，用于修饰Key，改变Key的值
+
+
+public:
+    Path plan(const Point2d &start, const Point2d &goal, const Map &map);
+    Path replan(const Map &map, const std::vector<Point2d> &changedStates);
+    // 从一个新的起始点规划到原来的终点
+    Path replan(const Point2d &start, const Map &map, const std::vector<Point2d> &changedStates);
+
+private:
+    void initialize();
+    void updateVertex(const Point2d &pos);
+    Key calculate_key(const Point2d &pos);
+    // Node getState(const Node &current);
+    Path computeShortesPath(const Map &map);
+
+    Cost heuristic(const Point2d &from, const Point2d &to)
+    {
+        return Cost(Point2d::calculateManhattanDistance(from, to));
+    }
+    
+    Path backtrack(const Map &map);
 };

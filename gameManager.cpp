@@ -123,8 +123,8 @@ void GameManager::initializeGame()
     // LOGI("单行路数量：",singleLaneList.size());
     // this->gameMap.drawMap(nullptr,nullptr,&singleLaneList,nullptr,nullptr);
 
-    LOGI("Log berth 0 BFS map.");
-    LOGI(Map::drawMap(this->gameMap.berthDistanceMap[0],12));
+    // LOGI("Log berth 0 BFS map.");
+    // LOGI(Map::drawMap(this->gameMap.berthDistanceMap[0],12));
 
     string ok;
     cin >> ok;
@@ -280,7 +280,7 @@ void GameManager::robotControl()
 
 void GameManager::RobotControl()
 {
-    bool robotDebugOutput = true;
+    bool robotDebugOutput = false;
     AStarPathfinder pathfinder;
     for (int i=0;i<robots.size();i++) {
         Robot& robot = robots[i];
@@ -476,8 +476,8 @@ void GameManager::update()
     LOGI("进入update函数-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
     auto start = std::chrono::steady_clock::now();
     
-    bool robotDebugOutput = true;
-    bool shipDebugOutput = false;
+    bool robotDebugOutput = false;
+    bool shipDebugOutput = true;
     RobotControl();
 
     auto end = std::chrono::steady_clock::now();

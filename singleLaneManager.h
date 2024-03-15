@@ -91,7 +91,7 @@ public:
         return singleLanes;
     }
 
-    const std::vector<Point2d>& getSingleLanesVector() const {
+    std::vector<Point2d> getSingleLanesVector() const {
         std::vector<Point2d> res;
         for(auto &singleLane : singleLanes){
             res.push_back(singleLane.start);

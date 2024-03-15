@@ -207,7 +207,7 @@ void GameManager::processFrameData()
     // 初始化泊位货物状态
     for(auto &berth : berths){
         berth.unreached_goods = std::vector<Goods>();
-        berth.reached_goods = std::vector<Goods>();
+        // berth.reached_goods = std::vector<Goods>();
     }
 
     // for (int i = 0; i < ROBOTNUMS; ++i)
@@ -478,8 +478,8 @@ void GameManager::update()
     LOGI("进入update函数-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
     auto start = std::chrono::steady_clock::now();
     
-    bool robotDebugOutput = true;
-    bool shipDebugOutput = false;
+    bool robotDebugOutput = false;
+    bool shipDebugOutput = true;
     RobotControl();
 
     auto end = std::chrono::steady_clock::now();

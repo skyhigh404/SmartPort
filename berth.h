@@ -55,7 +55,7 @@ public:
     // 传入卸货数量，按照进货数量进行卸货
     void unloadGoods(int res){
         for(int index = 0;index < res && index < reached_goods.size();index++){
-            int find_flag = false;
+            bool find_flag = false;
             for(int i =0;i < 4;i++){
                 for(int j = 0;j < 4 ;j++){
                     if(storageSlots[i][j] != nullptr && storageSlots[i][j]->id == reached_goods[index].id){

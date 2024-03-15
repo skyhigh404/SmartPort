@@ -37,6 +37,8 @@ public:
     void update();           // 更新
     void outputCommands();   // 输出每帧的控制指令
 
+    void RobotControl(); // 控制机器人行为
+    void robotControl(); // 控制机器人行为
     void setScheduler(Scheduler *scheduler)
     {
         this->scheduler = scheduler;

@@ -12,10 +12,10 @@ enum RobotStatus
 {
     IDLE,
     MOVING_TO_GOODS,
-    PICKING_UP,
     MOVING_TO_BERTH,
     UNLOADING,
-    DEATH
+    DEATH,
+    DIZZY
 };
 
 class Robot
@@ -30,6 +30,8 @@ public:
     RobotStatus status;
     int carryingItemId; // 携带的物品id
     int targetid;
+    Point2d destination; // 机器人当前的目的地
+    Point2d nextPos;
     std::vector<Point2d> path; // 机器人即将要走的路径
 private:
     DStarPathfinder pathFinder; // 每个机器人都要存储寻路状态
@@ -39,11 +41,26 @@ public:
         : id(id),
           pos(pos),
           carryingItem(0),
+          carryingItemId(-1),
           state(0),
           status(IDLE),
           targetid(0)
     {
     }
+
+    void updatePath()
+    {
+        // 正常移动
+        if(nextPos == pos){
+            if(!path.empty())
+                path.pop_back();
+        }
+        // 没有移动到预定位置
+        else if(nextPos != pos){
+            LOGI(id, " 没有移动到预定位置, current pos: ", pos, " next pos: ", nextPos);
+        }
+    }
+
     std::string move(int direction)
     {
         // 向特定方向移动
@@ -73,8 +90,7 @@ public:
         if (!path.empty())
         {
             // A* 算法输出的路径是逆序存储的，以提高弹出效率
-            Point2d pos = this->path.back();
-            this->path.pop_back();
+            nextPos = this->path.back();
             return move(pos);
         }
         return std::string("");
@@ -92,6 +108,14 @@ public:
         // 生成放置指令
         using namespace std::string_literals;
         return "pull "s + std::to_string(id);
+    }
+
+    friend std::ostream& operator<<(std::ostream& os, const Robot& robot) {
+        os << "机器人" << robot.id << ",trargetid：" << robot.targetid <<",携带货物状态："<<robot.carryingItem<<",携带货物id："<<robot.carryingItemId << ",状态："<<robot.state<<"，机器人位置："<<robot.pos<<"，路径情况：";
+        for(auto & item : robot.path){
+            os << item;
+        }
+        return os;
     }
 
     bool findPath(const Point2d &destination, const Map &map)

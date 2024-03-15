@@ -7,6 +7,7 @@
 
 using namespace std;
 int Goods::number = 0;
+int CURRENT_FRAME = 0;
 int canUnload(Berth& berth, Point2d pos) {
     int x = pos.x-berth.pos.x, y=pos.y-berth.pos.y;
     if (x<0 || x>3 || y<0 || y>3) {LOGI("越界",pos,' ',berth.pos);return 0;}
@@ -45,7 +46,7 @@ void GameManager::initializeGame()
             case 'B':
                 this->gameMap.setCell(i, j, MapItemSpace::MapItem::BERTH);
                 break;
-            default: 
+            default:
                 break;
             }
         }
@@ -64,9 +65,9 @@ void GameManager::initializeGame()
         cin >> id >> x >> y >> time >> velocity;
         this->berths.emplace_back(id, Point2d(x, y), time, velocity);
     }
-    // LOGI("print berth init info");
-    // for (const auto &berth : this->berths)
-    //     LOGI("ID: ", berth.id, " POS: ", berth.pos, " time: ", berth.time, " velocity: ", berth.velocity);
+    LOGI("print berth init info");
+    for (const auto &berth : this->berths)
+        LOGI("ID: ", berth.id, " POS: ", berth.pos, " time: ", berth.time, " velocity: ", berth.velocity);
 
     // 初始化船舶
     int capacity;
@@ -79,7 +80,12 @@ void GameManager::initializeGame()
     // {
     //     LOGI("Ship ", this->ships[i].id," capacity: ", this->ships[i].capacity);
     // }
-    
+
+    // 初始化数据读取完成
+    // 让地图实时跟踪机器人位置（需要测试是否正常跟踪）
+    for (Robot &robot : this->robots)
+        this->gameMap.robotPosition.push_back(robot.pos);
+
     // 计算地图上每个点到泊位的距离
     for (const auto &berth : this->berths)
     {
@@ -88,15 +94,18 @@ void GameManager::initializeGame()
         for (int i = 0; i < 4; ++i)
             for (int j = 0; j < 4; ++j)
                 positions.push_back(berth.pos + Point2d(i, j));
-    
+
         this->gameMap.computeDistancesToBerthViaBFS(berth.id, positions);
     }
 
     // 判断机器人是否位于死点
-    for(auto& robot : this->robots){
+    for (auto &robot : this->robots)
+    {
         bool is_isolated = true;
-        for(const auto& berth : this->berths){
-            if(this->gameMap.isBerthReachable(berth.id,robot.pos)){
+        for (const auto &berth : this->berths)
+        {
+            if (this->gameMap.isBerthReachable(berth.id, robot.pos))
+            {
                 is_isolated = false;
                 break;
             }
@@ -111,11 +120,13 @@ void GameManager::initializeGame()
 
     string ok;
     cin >> ok;
-    if(ok == "OK"){
+    if (ok == "OK")
+    {
         LOGI("Init complete.");
         cout << "OK" << std::endl;
     }
-    else{
+    else
+    {
         LOGE("Init fail!");
     }
 }
@@ -134,6 +145,7 @@ void GameManager::processFrameData()
     }
 
     cin >> this->currentFrame >> this->currentMoney;
+    CURRENT_FRAME = this->currentFrame;
     // 货物生命周期维护
     for (auto& good : goods){
         // todo 边界条件
@@ -157,6 +169,15 @@ void GameManager::processFrameData()
         this->robots[i].pos.x = robotX;
         this->robots[i].pos.y = robotY;
         this->robots[i].state = robotState;
+
+        // 暂时处理程序认为机器人放下了货物并且分配了下一个货物的id，但是判题器认为机器人还拿着上一个货物的情况
+        if (this->robots[i].carryingItem == 0)
+        {
+            // 强行初始化机器人状态
+            this->robots[i].carryingItemId = -1;
+        }
+        // 检查是否要 pop path
+        this->robots[i].updatePath();
 
         // 暂时处理程序认为机器人放下了货物并且分配了下一个货物的id，但是判题器认为机器人还拿着上一个货物的情况
         if(this->robots[i].carryingItem == 0){
@@ -419,7 +440,6 @@ void GameManager::update()
                 goods[robots[i].targetid].status = 0;
                 robots[i].targetid = -1;
             }
-            
         }
         if (!robots[i].path.empty() && robots[i].state == 1) {
             // 机器人有路径，继续沿着路径移动
@@ -469,17 +489,20 @@ void GameManager::update()
     auto ship_end = std::chrono::high_resolution_clock::now();
     if(shipDebugOutput) LOGI("调度船只时长:",std::chrono::duration_cast<std::chrono::milliseconds>(ship_end - ship_start).count(),"ms");
 
-    //CommandManager.shipCommands
-    for (int i=0;i<ShipActions.size();i++) {
+    // CommandManager.shipCommands
+    for (int i = 0; i < ShipActions.size(); i++)
+    {
         int ship_id = ShipActions[i].first;
         Action ship_action = ShipActions[i].second;
         // 去虚拟点
-        if (ship_action.type==DEPART_BERTH) {
+        if (ship_action.type == DEPART_BERTH)
+        {
             // LOGI(ship_id,"前往虚拟点");
             commandManager.addShipCommand(ships[ship_id].go());
         }
         // 去泊位
-        if (ship_action.type==MOVE_TO_BERTH) {
+        if (ship_action.type == MOVE_TO_BERTH)
+        {
             // LOGI(ship_id,"分配去泊位",ship_action.targetId);
             commandManager.addShipCommand(ships[ship_id].moveToBerth(ship_action.targetId));
         }
@@ -488,7 +511,7 @@ void GameManager::update()
 
 void GameManager::outputCommands()
 {
-    
+
     commandManager.outputCommands();
     commandManager.clearCommands();
 }

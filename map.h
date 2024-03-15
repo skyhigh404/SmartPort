@@ -4,6 +4,7 @@
 #include <array>
 #include <string>
 #include <unordered_map>
+#include <functional>
 #include "utils.h"
 namespace MapItemSpace
 {
@@ -25,6 +26,7 @@ public:
     int rows, cols;
     std::vector<std::vector<MapItemSpace::MapItem>> grid;
     std::unordered_map<int, std::vector<std::vector<int>>> berthDistanceMap;
+    std::vector<std::reference_wrapper<Point2d>> robotPosition; // 实时记录机器人位置
 
     static std::array<Point2d, 4> DIRS;
 
@@ -70,18 +72,28 @@ public:
         return Point2d::calculateManhattanDistance(pos1, pos2);
     }
 
-    float costCosin(const Point2d& robotPos,const Point2d& goodPos,const Point2d& berthPos,const int berthID)
+    float costCosin(const Point2d &robotPos, const Point2d &goodPos, const Point2d &berthPos, const int berthID)
     {
         int berth2good = berthDistanceMap.at(berthID)[goodPos.x][goodPos.y];
         int berth2robot = berthDistanceMap.at(berthID)[robotPos.x][robotPos.y];
 
         float cosin = Vec2f::cosineOf2Vec(Vec2f(berthPos, robotPos), Vec2f(berthPos, goodPos));
-        int cost = static_cast<int>(std::sqrt(berth2good*berth2good + berth2robot * berth2robot - 2* berth2good * berth2robot * cosin));
+        int cost = static_cast<int>(std::sqrt(berth2good * berth2good + berth2robot * berth2robot - 2 * berth2good * berth2robot * cosin));
         return cost;
     }
 public:
     std::vector<Point2d> neighbors(Point2d id) const; // 返回当前节点上下左右的四个邻居
-    inline bool passable(Point2d pos) const;
+    inline bool passable(const Point2d &pos) const
+    {
+        MapItemSpace::MapItem item = getCell(pos);
+        return (item != MapItemSpace::MapItem::OBSTACLE &&
+                item != MapItemSpace::MapItem::SEA &&
+                item != MapItemSpace::MapItem::ROBOT);
+    }
+    // 判断是否会被机器人占据，如果是则返回 false
+    inline bool dynamicPassable(const Point2d &pos) const{
+        return false;
+    }
     // This outputs a grid. Pass in a distances map if you want to print
     // the distances, or pass in a point_to map if you want to print
     // arrows that point to the parent location, or pass in a path vector
@@ -95,4 +107,10 @@ public:
     void computeDistancesToBerthViaBFS(BerthID id, const std::vector<Point2d> &positions);
 
     bool isBerthReachable(BerthID id, Point2d position);
+    // 获取当前帧地图的变化，即机器人的位置，将其视为障碍（除自己外）。
+    // 这里考虑了机器人下一帧可能的运动，将机器人的大小假设为 3x3
+    std::vector<Point2d> getChangedStates(int robotID) const;
+
 };
+
+std::string printVector(const std::vector<Point2d> &path);

@@ -57,7 +57,7 @@ public:
         }
         // 没有移动到预定位置
         else if(nextPos != pos){
-            LOGI(id, " 没有移动到预定位置, current pos: ", pos, " next pos: ", nextPos);
+            LOGW(id, " 没有移动到预定位置, current pos: ", pos, " next pos: ", nextPos);
         }
     }
 
@@ -91,7 +91,7 @@ public:
         {
             // A* 算法输出的路径是逆序存储的，以提高弹出效率
             nextPos = this->path.back();
-            return move(pos);
+            return move(nextPos);
         }
         return std::string("");
     }
@@ -118,9 +118,9 @@ public:
         return os;
     }
 
-    bool findPath(const Point2d &destination, const Map &map)
+    bool findPath(const Map &map)
     {
-        path = pathFinder.plan(this->pos, destination, map);
+        path = pathFinder.plan(this->pos, this->destination, map);
         if (!path.empty())
             return true;
         else

@@ -286,9 +286,9 @@ void GameManager::RobotControl()
 
             // 放货
             LOGI(robot.targetid);
-            for (auto berth:berths) {
-                berth.info();
-            }
+            // for (auto berth:berths) {
+            //     berth.info();
+            // }
             Berth &berth = berths[robot.targetid];
             berth.info();
             if (robot.pos == robot.destination) {

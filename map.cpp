@@ -34,8 +34,6 @@ std::vector<Point2d> Map::neighbors(Point2d pos) const
     return results;
 }
 
-
-
 std::string Map::drawMap(std::unordered_map<Point2d, double> *distances,
                          std::unordered_map<Point2d, Point2d> *point_to,
                          std::vector<Point2d> *path,
@@ -152,25 +150,28 @@ bool Map::isBerthReachable(BerthID id, Point2d position)
     return false;
 }
 
-std::vector<Point2d> Map::getChangedStates(int robotID) const
+
+
+std::vector<Point2d> Map::isCollisionRisk(int robotID, int framesAhead) const
 {
     std::vector<Point2d> obstacle;
-    obstacle.reserve(5 * (ROBOTNUMS - 1));
+    obstacle.reserve(5 * framesAhead);
     for (int i = 0; i < robotPosition.size(); ++i)
     {
         if (i == robotID)
             continue; // 不考虑自身
-        for(int j = -1; j <= 1; ++j){
-            for(int k = -1; k <= 1; ++k)
+        if (Point2d::calculateManhattanDistance(robotPosition[robotID], robotPosition[i]) <= 2 * framesAhead)
+        {
+            for (int j = -framesAhead; j <= framesAhead; ++j)
             {
-                Point2d next = Point2d(robotPosition[i].get().x+j, robotPosition[i].get().y+k);
-                if(inBounds(next) && passable(next))
-                    obstacle.push_back(next);
+                for (int k = -framesAhead; k <= framesAhead; ++k)
+                {
+                    Point2d next = Point2d(robotPosition[i].get().x + j, robotPosition[i].get().y + k);
+                    if (inBounds(next) && passable(next))
+                        obstacle.push_back(next);
+                }
             }
         }
-        // obstacle.push_back(robotPosition[i]);
-        // for (const Point2d &pos : neighbors(robotPosition[i]))
-        //     obstacle.push_back(pos);
     }
     return obstacle;
 }
@@ -180,6 +181,5 @@ std::string printVector(const std::vector<Point2d> &path)
     std::ostringstream oss;
     for (const auto &val : path)
         oss << val << " ";
-    oss << "\n";
     return oss.str();
 }

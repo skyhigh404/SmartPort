@@ -11,6 +11,9 @@
 #include "berth.h"
 #include "scheduler.h"
 #include "commandManager.h"
+#include "robotController.h"
+#include <memory>
+
 
 class GameManager
 {
@@ -27,6 +30,7 @@ public:
     int currentFrame;
     int currentMoney;
     CommandManager commandManager;
+    shared_ptr<RobotController> RobotController;
 
 public:
     GameManager() : gameMap(MAPROWS, MAPCOLS)

@@ -108,9 +108,8 @@ public:
 
     bool isBerthReachable(BerthID id, Point2d position);
     // 获取当前帧地图的变化，即机器人的位置，将其视为障碍（除自己外）。
-    // 这里考虑了机器人下一帧可能的运动，将机器人的大小假设为 3x3
-    std::vector<Point2d> getChangedStates(int robotID) const;
-
+    // 预测未来 n 帧是否有碰撞风险
+    std::vector<Point2d> isCollisionRisk(int robotID, int framesAhead) const;
 };
 
 std::string printVector(const std::vector<Point2d> &path);

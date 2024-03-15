@@ -116,15 +116,17 @@ Path DStarPathfinder::plan(const Point2d &start, const Point2d &goal, const Map 
     return path;
 }
 
-Path DStarPathfinder::replan(const Map &map, const std::vector<Point2d> &changedStates)
+Path DStarPathfinder::replan(const Map &map, const std::vector<Point2d> &changedStates, const std::vector<bool> &isObstacle)
 {
-
-    for (const Point2d &u : changedStates)
+    for (int i = 0; i < changedStates.size(); ++i)
     {
+        const Point2d &u = changedStates[i];
         for (const auto &v : map.neighbors(u))
         {
             // 如果是可通行的，说明上一时刻是不可通行的；反之亦然
-            Cost oldCost = map.dynamicPassable(u) ? Cost::max() : heuristic(u, v);
+            // Cost oldCost = map.dynamicPassable(u) ? Cost::max() : heuristic(u, v);
+            // Cost oldCost = isObstacle[i] ? heuristic(u, v) : Cost::max();
+            Cost oldCost = heuristic(u, v);
             // Cost oldCost = map.dynamicPassable(u) ? heuristic(u, v) : Cost::max();
             if (oldCost > heuristic(u, v) && u != goal)
             {
@@ -133,6 +135,7 @@ Path DStarPathfinder::replan(const Map &map, const std::vector<Point2d> &changed
             }
             else if (rscores.at(u) == oldCost + gscores.at(v) && u != goal)
             {
+                LOGI("新增障碍物");
                 // 该位置是新增障碍物，C_old < C(u,v)，仅当旧路径通过当前节点时更新 rhs
                 // min_{s\in pred(u)}(g(s) + c(s, u))
                 Cost minCost = Cost::max();
@@ -151,20 +154,22 @@ Path DStarPathfinder::replan(const Map &map, const std::vector<Point2d> &changed
     return path;
 }
 
-Path DStarPathfinder::replan(const Point2d &start, const Map &map, const std::vector<Point2d> &changedStates)
+Path DStarPathfinder::replan(const Point2d &start, const Map &map, const std::vector<Point2d> &changedStates, const std::vector<bool> &isObstacle)
 {
     if (this->start == start)
     {
-        return replan(map, changedStates);
+        return replan(map, changedStates, isObstacle);
     }
     else
     {
         this->last_start = this->start;
         this->start = start;
         k = k + heuristic(this->last_start, this->start);
-        return replan(map, changedStates);
+        return replan(map, changedStates, isObstacle);
     }
 }
+
+
 
 Path DStarPathfinder::computeShortesPath(const Map &map)
 {
@@ -240,8 +245,8 @@ Path DStarPathfinder::computeShortesPath(const Map &map)
             }
         }
 
-        if(std::chrono::steady_clock::now() - startTime > std::chrono::milliseconds(100)){
-            LOGW("寻路超时 start: ", start, " goal: ", goal);
+        if(std::chrono::steady_clock::now() - startTime > std::chrono::milliseconds(1000)){
+            LOGW("寻路超时 start: ", start, " goal: ", goal, " queue size", pq.size());
             isSuccess = false;
             break;
         }

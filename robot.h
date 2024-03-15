@@ -118,28 +118,57 @@ public:
         return os;
     }
 
+    bool findPath(const Map &map, Point2d dst)
+    {
+        destination = dst;
+        if(pathFinder.sameGoal(destination)){
+            std::vector<Point2d> potentialObstacle = map.isCollisionRisk(id, 1);
+            // 如果有碰撞风险
+            if(potentialObstacle.size() > 0){
+                // 如果目标被占据
+                if(Point2d::isIN(destination, potentialObstacle)){
+                    // 原地等待
+                    LOGI("Robot ", id, " 原地等待"," pos: ", pos, "dst: ", destination, " path: ", printVector(path));
+                    path.push_back(pos);
+                    return true;
+                }
+                // if(path.size()>=3)
+                    // LOGI("Robot ", id, " path: ", path[0],", ", path[1],", ", path[2]);
+                LOGI("Robot ", id, " path: ", printVector(path));
+                LOGI("Robot ", id, " pos: ", pos, "dst: ", destination, " 开始避让，潜在障碍位置: ", printVector(potentialObstacle));
+                path = pathFinder.replan(pos, map, potentialObstacle, std::vector<bool>(potentialObstacle.size(), true));
+                LOGI("Robot ", id, " replan path: ", printVector(path));
+
+            }
+        }
+        else{
+            // 给定了新的终点
+            path = pathFinder.plan(this->pos, this->destination, map);
+        }
+        if (!path.empty())
+            return true;
+        else
+            return false;
+    }
+
     bool findPath(const Map &map)
     {
-        path = pathFinder.plan(this->pos, this->destination, map);
-        if (!path.empty())
-            return true;
-        else
-            return false;
+        return findPath(map, destination);
     }
-
-    /***
-     * @brief 路径被障碍物阻挡时，重新寻路
-     * @param changedStates 移动障碍物的坐标
-    */
-    bool refindPath(const Map &map, const std::vector<Point2d> &changedStates)
+    
+    // 判断优先级，如果优先级更大则返回 true
+    // 认定正常运行的，路径更短的优先级更高，然后是不携带货物的优先级更高，最后比较 ID，更小的优先级更高
+    bool comparePriority(const Robot &rhs)
     {
-        path = pathFinder.replan(this->pos, map, changedStates);
-        if (!path.empty())
-            return true;
+        if(state != rhs.state)
+            return state > rhs.state;
+        else if (path.size() != rhs.path.size())
+            return path.size() < rhs.path.size();
+        else if (carryingItem != rhs.carryingItem)
+            return carryingItem < rhs.carryingItem;
         else
-            return false;
+            return id < rhs.id;
     }
-
     // Point2d getPosition() const;
     // bool isCarryingItem() const;
 };

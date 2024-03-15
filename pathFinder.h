@@ -116,9 +116,12 @@ private:
 
 public:
     Path plan(const Point2d &start, const Point2d &goal, const Map &map);
-    Path replan(const Map &map, const std::vector<Point2d> &changedStates);
+    Path replan(const Map &map, const std::vector<Point2d> &changedStates, const std::vector<bool> &isObstacle);
     // 从一个新的起始点规划到原来的终点
-    Path replan(const Point2d &start, const Map &map, const std::vector<Point2d> &changedStates);
+    Path replan(const Point2d &start, const Map &map, const std::vector<Point2d> &changedStates, const std::vector<bool> &isObstacle);
+    bool sameGoal(const Point2d &dst) const{
+        return dst == goal;
+    }
 
 private:
     void initialize();

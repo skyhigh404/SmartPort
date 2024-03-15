@@ -400,7 +400,7 @@ int SimpleTransportStrategy::shipNumInBerth(const Berth& berth,const std::vector
 // 遍历机器人，统计每个泊位的unreachGoods
 void SimpleTransportStrategy::countGoodInBerth(std::vector<Robot> &robots,std::vector<Berth> &berths,std::vector<Goods> goods)
 {
-    LOGI("开始泊位货物统计");
+    // LOGI("开始泊位货物统计");
     for(auto &robot : robots)
     {
         // LOGI("机器人数量",robots.size());
@@ -409,11 +409,11 @@ void SimpleTransportStrategy::countGoodInBerth(std::vector<Robot> &robots,std::v
         if(robot.carryingItemId != -1 && robot.targetid != -1 && robot.carryingItem == 1 &&robot.targetid < 10)
         // if(robot.carryingItemId != -1 && robot.targetid != -1 && robot.carryingItem == 1 )
         {
-            LOGI("机器人ID：",robot.id,",机器人状态：",robot.carryingItem,",货物id:",robot.carryingItemId,",目的泊位id：",robot.targetid);
+            // LOGI("机器人ID：",robot.id,",机器人状态：",robot.carryingItem,",货物id:",robot.carryingItemId,",目的泊位id：",robot.targetid);
             berths[robot.targetid].unreached_goods.push_back(goods[robot.carryingItemId]);
         }
     }
-    LOGI("完成了泊位货物的统计");
+    // LOGI("完成了泊位货物的统计");
 }
 
 // 计算泊位的收益，每帧重新计算

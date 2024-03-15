@@ -11,6 +11,9 @@
 #include "berth.h"
 #include "scheduler.h"
 #include "commandManager.h"
+#include "robotController.h"
+#include <memory>
+
 
 #include "singleLaneManager.h"
 
@@ -29,6 +32,7 @@ public:
     int currentFrame;
     int currentMoney;
     CommandManager commandManager;
+    std::shared_ptr<RobotController> robotController;
 
 public:
     SingleLaneManager singleLaneManager;

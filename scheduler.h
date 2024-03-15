@@ -5,28 +5,8 @@
 #include "robot.h"
 #include "ship.h"
 #include "berth.h"
+#include "utils.h"
 
-enum ActionType
-{
-    MOVE_TO_POSITION,
-    PICK_UP_GOODS,
-    DROP_OFF_GOODS,
-    MOVE_TO_BERTH,
-    DEPART_BERTH,
-    FIND_PATH,
-    FAIL,
-    CONTINUE
-};
-
-
-struct Action
-{
-    ActionType type;
-    Point2d desination; // 用于移动
-    int targetId;     // 用于标识具体的货物或泊位，根据上下文决定其含义
-    Action(ActionType type, Point2d desination, int targetId) : type(type), desination(desination), targetId(targetId){}
-    Action(ActionType type) : type(type), desination(Point2d(-1,-1)), targetId(-1){}
-};
 
 
 

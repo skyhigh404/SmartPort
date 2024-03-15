@@ -62,6 +62,13 @@ struct Point2d
     {
         return std::sqrt((double)(std::pow(p1.x - p2.x, 2) + std::pow(p1.y - p2.y, 2)));
     }
+    static bool isIN(Point2d pos, std::vector<Point2d> poss)
+    {
+        for(const auto &p : poss)
+            if(p == pos)
+                return true;
+        return false;
+    }
 
     float operator*(const Point2d &other) const
     { // 重载*运算符以实现点积
@@ -270,4 +277,28 @@ public:
 
 private:
     std::unordered_map<KEY, VAL> map;
+};
+
+
+enum ActionType
+{
+    MOVE_TO_POSITION,
+    PICK_UP_GOODS,
+    DROP_OFF_GOODS,
+    MOVE_TO_BERTH,
+    DEPART_BERTH,
+    FIND_PATH,
+    FAIL,
+    CONTINUE
+};
+
+
+struct Action
+{
+    ActionType type;
+    Point2d desination; // 用于移动
+    int targetId;     // 用于标识具体的货物或泊位，根据上下文决定其含义
+    Action(){}
+    Action(ActionType type, Point2d desination, int targetId) : type(type), desination(desination), targetId(targetId){}
+    Action(ActionType type) : type(type), desination(Point2d(-1,-1)), targetId(-1){}
 };

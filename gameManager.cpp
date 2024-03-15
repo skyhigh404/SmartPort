@@ -284,18 +284,25 @@ void GameManager::RobotControl()
     AStarPathfinder pathfinder;
     for (int i=0;i<robots.size();i++) {
         Robot& robot = robots[i];
+        if (robot.status == DEATH) continue;
 
         if (robot.status == DIZZY || robot.state == 0) {
+            robot.status = DIZZY;
             // 还在眩晕状态
             if (robot.state == 0) continue;
 
             // 从眩晕状态恢复
+            if (robotDebugOutput) LOGI("从眩晕状态恢复");
+
             if (robot.carryingItem == 0) {
                 robot.status = IDLE;
+                robot.path = Path();
+                robot.destination = Point2d(0,0);
                 robot.targetid = -1;
             }
             else {
                 robot.status = MOVING_TO_BERTH;
+                robot.path = Path();
                 robot.targetid = -1;
             }
         }
@@ -429,7 +436,7 @@ void GameManager::RobotControl()
             // 放货
             Berth &berth = berths[robot.targetid];
             LOGI(robot);
-            berth.info();
+            // berth.info(); //这个函数有bug，
             if (robot.pos == robot.destination) {
                 // 货物可放货 todo
                 LOGI("放貨",robot,"dest",robot.destination);
@@ -453,7 +460,7 @@ void GameManager::RobotControl()
                 // 不可放货，重新分配放货位置
                 else {
                     LOGI(robot);
-                    berth.info();
+                    // berth.info();
                     robot.targetid = -1;
                 }
             }

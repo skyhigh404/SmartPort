@@ -115,13 +115,13 @@ void GameManager::initializeGame()
             robot.status = DEATH;
     }
 
-    // 初始化单行路
-    this->singleLaneManager.findSingleLanes(this->gameMap);
+    // // 初始化单行路
+    // this->singleLaneManager.findSingleLanes(this->gameMap);
     
-    // 打印单行路
-    std::vector<Point2d> singleLaneList = this->singleLaneManager.getSingleLanesVector();
-    LOGI("单行路数量：",singleLaneList.size());
-    this->gameMap.drawMap(nullptr,nullptr,&singleLaneList,nullptr,nullptr);
+    // // 打印单行路
+    // std::vector<Point2d> singleLaneList = this->singleLaneManager.getSingleLanesVector();
+    // LOGI("单行路数量：",singleLaneList.size());
+    // this->gameMap.drawMap(nullptr,nullptr,&singleLaneList,nullptr,nullptr);
 
     LOGI("Log berth 0 BFS map.");
     LOGI(Map::drawMap(this->gameMap.berthDistanceMap[0],12));
@@ -207,7 +207,7 @@ void GameManager::processFrameData()
     // 初始化泊位货物状态
     for(auto &berth : berths){
         berth.unreached_goods = std::vector<Goods>();
-        berth.reached_goods = std::vector<Goods>();
+        // berth.reached_goods = std::vector<Goods>();
     }
 
     // for (int i = 0; i < ROBOTNUMS; ++i)

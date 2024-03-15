@@ -32,59 +32,75 @@ public:
     }
 
     // 初始化地图中的单行路
-    void findSingleLanes(Map &map) {
+    void findSingleLanes(Map map_temp) {
+        Map map = Map(map_temp);
         singleLanes.clear(); // 清除之前的结果
         
         for (int x = 0; x < map.rows; ++x) {
             for (int y = 0; y < map.cols; ++y) {
                 if (map.grid[x][y] == MapItemSpace::MapItem::SPACE) {
-                    // 检查向右的单行路
+                    // 检查向下的单行路
                     int nextY = y + 1;
-                    while (nextY < map.cols && map.grid[x][nextY] == MapItemSpace::MapItem::SPACE) {
+                    while (nextY < map.cols && map.grid[x][nextY] == MapItemSpace::MapItem::SPACE
+                    && isSinglePos(map,Point2d(x,nextY),3)) {
+                        map.grid[x][nextY] = MapItemSpace::MapItem::OBSTACLE;
                         ++nextY;
                     }
                     if (nextY - y > 1) { // 发现单行路
                         singleLanes.emplace_back(Point2d(x, y), Point2d(x, nextY - 1));
                     }
 
-                    // 检查向下的单行路
+                    // 检查向右的单行路
                     int nextX = x + 1;
-                    while (nextX < map.rows && map.grid[nextX][y] == MapItemSpace::MapItem::SPACE) {
+                    while (nextX < map.rows && map.grid[nextX][y] == MapItemSpace::MapItem::SPACE
+                    && isSinglePos(map,Point2d(nextX,y),0)) {
+                        map.grid[nextX][y] = MapItemSpace::MapItem::OBSTACLE;
                         ++nextX;
                     }
                     if (nextX - x > 1) { // 发现单行路
                         singleLanes.emplace_back(Point2d(x, y), Point2d(nextX - 1, y));
                     }
+                    // 检查本格子 todo
 
-                    // 对于向左和向上的单行路，我们需要先确认当前位置(x, y)是否为潜在的终点
-                    // 然后向左或向上搜索，直到遇到非空地格子或地图边界，以确定起点
-                    
-                    // 检查向左的单行路（向左查找起点）
-                    if (y > 0 && map.grid[x][y - 1] == MapItemSpace::MapItem::SPACE) { // 确保不是最左边
-                        int prevY = y - 1;
-                        while (prevY >= 0 && map.grid[x][prevY] == MapItemSpace::MapItem::SPACE) {
-                            --prevY;
-                        }
-                        // 由于向左搜索，所以使用(y - prevY)来判断长度
-                        if (y - prevY > 1) {
-                            singleLanes.emplace_back(Point2d(x, prevY + 1), Point2d(x, y));
-                        }
-                    }
-
-                    // 检查向上的单行路（向上查找起点）
-                    if (x > 0 && map.grid[x - 1][y] == MapItemSpace::MapItem::SPACE) { // 确保不是最上面
-                        int prevX = x - 1;
-                        while (prevX >= 0 && map.grid[prevX][y] == MapItemSpace::MapItem::SPACE) {
-                            --prevX;
-                        }
-                        // 由于向上搜索，所以使用(x - prevX)来判断长度
-                        if (x - prevX > 1) {
-                            singleLanes.emplace_back(Point2d(prevX + 1, y), Point2d(x, y));
-                        }
-                    }
                 }
             }
         }
+    }
+
+    // 判断是否是单行格子
+    // flag 3 向下；2 向上；0 向右；1 向左
+    bool isSinglePos(Map &map,Point2d pos,int flag){
+        Point2d x,y;
+        switch (flag)
+        {
+        case 3:
+            x = Point2d(pos.x - 1,pos.y);
+            y = Point2d(pos.x + 1,pos.y);
+            break;
+        case 2:
+            x = Point2d(pos.x - 1,pos.y);
+            y = Point2d(pos.x + 1,pos.y);
+            break;
+        case 0:
+            x = Point2d(pos.x,pos.y - 1);
+            y = Point2d(pos.x,pos.y + 1);
+            break;
+
+        case 1:
+            x = Point2d(pos.x,pos.y - 1);
+            y = Point2d(pos.x,pos.y + 1);
+            break;
+
+        default:
+            break;
+        }
+            // 传入位置是空的，其他x y是障碍
+            if(map.grid[pos.x][pos.y] == MapItemSpace::MapItem::SPACE
+            && (map.grid[x.x][x.y] != MapItemSpace::MapItem::SPACE || map.inBounds(x))
+            && (map.grid[y.x][y.y] != MapItemSpace::MapItem::SPACE || !map.inBounds(y))){
+                return true;
+        }
+        return false;
     }
 
     const std::vector<SingleLane>& getSingleLanes() const {

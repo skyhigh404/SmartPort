@@ -5,6 +5,7 @@
 #include <iostream>
 #include <cstring>
 #include <sstream>
+#include <iomanip>
 #include "assert.h"
 
 // 定义日志级别
@@ -27,6 +28,7 @@ enum class LogLevel
     WARNING,
     ERROR
 };
+extern int CURRENT_FRAME;
 
 class Log
 {
@@ -115,16 +117,18 @@ private:
         if (level < m_LogLevel) // 如果日志级别低于当前设置的级别，则不记录
             return;
 
-        auto now = std::chrono::system_clock::now();
-        std::time_t now_time = std::chrono::system_clock::to_time_t(now);
+        // auto now = std::chrono::system_clock::now();
+        // std::time_t now_time = std::chrono::system_clock::to_time_t(now);
 
-        std::string timeStr = std::ctime(&now_time);
-        if (!timeStr.empty() && timeStr[timeStr.length() - 1] == '\n')
-        {
-            timeStr.erase(timeStr.length() - 1); // 去除换行符
-        }
+        // std::string timeStr = std::ctime(&now_time);
+        // if (!timeStr.empty() && timeStr[timeStr.length() - 1] == '\n')
+        // {
+        //     timeStr.erase(timeStr.length() - 1); // 去除换行符
+        // }
 
-        m_OutputStream << "[" << timeStr << "] ";
+        // m_OutputStream << "[" << timeStr << "] ";
+
+        m_OutputStream << "[" << std::setw(5) << CURRENT_FRAME << "] ";
 
         // 根据日志级别添加不同的前缀
         switch (level)

@@ -21,13 +21,17 @@ public:
 class SingleLaneManager {
 private:
     std::vector<SingleLane> singleLanes; // 存储所有单行路的集合
-    std::vector<std::vector<int>> transitMap;
 
 public:
-    SingleLaneManager(Map &map){
-        transitMap = std::vector<std::vector<int>>(map.rows,std::vector<int>(map.cols,0));
+    SingleLaneManager(){
+        
     }
 
+    SingleLaneManager(Map &map){
+        findSingleLanes(map);
+    }
+
+    // 初始化地图中的单行路
     void findSingleLanes(Map &map) {
         singleLanes.clear(); // 清除之前的结果
         
@@ -87,8 +91,18 @@ public:
         return singleLanes;
     }
 
-    // 功能函数：判断机器人是否即将进入单行路，并根据hasRobot判断是否通行
-    bool canRobotEnter(const Point2d& robotPos) {
+    const std::vector<Point2d>& getSingleLanesVector() const {
+        std::vector<Point2d> res;
+        for(auto &singleLane : singleLanes){
+            res.push_back(singleLane.start);
+            res.push_back(singleLane.end);
+        }
+        return res;
+    }
+
+    // 判断机器人是否即将进入单行路，并根据hasRobot判断是否通行
+    bool canRobotEnter(const Robot& robot) {
+        Point2d robotPos = robot.pos;
         for (const auto& lane : singleLanes) {
             // 检查机器人当前位置是否在单行路的一个端点附近
             if (robotPos.x == lane.start.x && robotPos.y == lane.start.y - 1 ||
@@ -102,6 +116,7 @@ public:
         return true; // 如果不是单行路，或单行路没有被占用，返回true
     }
 
+    // 更新地图中单行路的hasRobot
     void updateSingleLanesWithRobots(const std::vector<Robot>& robots) {
         // 首先，假设所有单行路上没有机器人
         for (auto& lane : singleLanes) {

@@ -12,6 +12,8 @@
 #include "scheduler.h"
 #include "commandManager.h"
 
+#include "singleLaneManager.h"
+
 class GameManager
 {
 public:
@@ -29,6 +31,8 @@ public:
     CommandManager commandManager;
 
 public:
+    SingleLaneManager singleLaneManager;
+
     GameManager() : gameMap(MAPROWS, MAPCOLS)
     {
     }
@@ -36,9 +40,9 @@ public:
     void processFrameData(); // 处理每帧的输入
     void update();           // 更新
     void outputCommands();   // 输出每帧的控制指令
+    void RobotControl();
+    void robotControl();
 
-    void RobotControl(); // 控制机器人行为
-    void robotControl(); // 控制机器人行为
     void setScheduler(Scheduler *scheduler)
     {
         this->scheduler = scheduler;

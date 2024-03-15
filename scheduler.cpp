@@ -310,6 +310,7 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleShips(std:
                     int berthId = ships[i].berthId;
                     int shipment = std::min(static_cast<int>(berths[berthId].reached_goods.size()),berths[berthId].velocity);
 
+                    // todo 有bug
                     if(debug){LOGI("装货前------------------");berths[berthId].info();ships[i].info();}
                     int res = ships[i].loadGoods(shipment); // 装货
                     berths[berthId].unloadGoods(res);   // 卸货

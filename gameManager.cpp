@@ -285,6 +285,7 @@ void GameManager::RobotControl()
     for (int i=0;i<robots.size();i++) {
         Robot& robot = robots[i];
         if (robot.status == DEATH) continue;
+        if (robot.carryingItem == 1) robot.status = MOVING_TO_BERTH;
 
         if (robot.status == DIZZY || robot.state == 0) {
             robot.status = DIZZY;
@@ -299,6 +300,7 @@ void GameManager::RobotControl()
                 robot.path = Path();
                 robot.destination = Point2d(0,0);
                 robot.targetid = -1;
+                robot.carryingItemId = -1;
             }
             else {
                 robot.status = MOVING_TO_BERTH;
@@ -362,7 +364,7 @@ void GameManager::RobotControl()
             //     }
             // }
 
-            // 如果为达到目标货物，但货物为空
+            // 如果未达到目标货物，但路径为空
             if (robot.pos != robot.destination && robot.path.empty()) {
                 std::variant<Path, PathfindingFailureReason> path = pathfinder.findPath(robot.pos, robot.destination, gameMap);
                 if (std::holds_alternative<Path>(path)) {

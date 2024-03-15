@@ -81,7 +81,6 @@ public:
         int cost = static_cast<int>(std::sqrt(berth2good * berth2good + berth2robot * berth2robot - 2 * berth2good * berth2robot * cosin));
         return cost;
     }
-
 public:
     std::vector<Point2d> neighbors(Point2d id) const; // 返回当前节点上下左右的四个邻居
     inline bool passable(const Point2d &pos) const

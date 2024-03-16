@@ -154,6 +154,9 @@ void GameManager::processFrameData()
     {
         exit(0);
     }
+    
+    // 清除零时障碍
+    gameMap.clearTemporaryObstacles();
 
     cin >> this->currentFrame >> this->currentMoney;
     CURRENT_FRAME = this->currentFrame;

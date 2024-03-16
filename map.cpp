@@ -176,6 +176,40 @@ std::vector<Point2d> Map::isCollisionRisk(int robotID, int framesAhead) const
     return obstacle;
 }
 
+void Map::addTemporaryObstacle(const Point2d& pos) {
+    if (inBounds(pos)) {
+        MapItemSpace::MapItem item = getCell(pos);
+        if(item == MapItemSpace::MapItem::OBSTACLE || item == MapItemSpace::MapItem::SEA){
+            LOGE("往障碍位置上放置临时障碍, pos: ", pos);
+            return;
+        }
+        grid[pos.x][pos.y] = MapItemSpace::MapItem::ROBOT; // 标记为障碍物
+        temporaryObstacles.push_back(pos); // 添加到临时障碍物列表
+    }
+}
+
+void Map::clearTemporaryObstacles() {
+    for (const Point2d& pos : temporaryObstacles) {
+        // 在清除前检查该位置是否确实是OBSTACLE，以防误清
+        if (grid[pos.x][pos.y] == MapItemSpace::MapItem::ROBOT) {
+            grid[pos.x][pos.y] = MapItemSpace::MapItem::SPACE; // 恢复为空地
+        }
+    }
+    temporaryObstacles.clear(); // 清空临时障碍物列表
+}
+
+std::vector<Point2d> Map::getNearbyTemporaryObstacles(const Point2d& robotPos, int n) const {
+    std::vector<Point2d> nearbyObstacles;
+    for (int j = -n; j <= n; ++j){
+        for (int k = -n; k <= n; ++k){
+            Point2d next(robotPos + Point2d(j,k));
+            if (inBounds(next) && next!=robotPos && getCell(next) == MapItemSpace::MapItem::ROBOT)
+                nearbyObstacles.push_back(next);
+        }
+    }
+    return nearbyObstacles;
+}
+
 std::string printVector(const std::vector<Point2d> &path)
 {
     std::ostringstream oss;

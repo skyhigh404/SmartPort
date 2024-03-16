@@ -21,7 +21,10 @@ public:
         }
     };
 public:
-    RobotController(std::vector<Robot> &robots) : robots(robots) {}
+    RobotController(std::vector<Robot> &robots) : robots(robots) {
+        refindPathFlag = std::vector<bool>(ROBOTNUMS, false);
+        waitFlag = std::vector<bool>(ROBOTNUMS, false);
+    }
     // void clearAction()
     // {
     //     robotAction.clear();
@@ -44,9 +47,13 @@ public:
     // 解决冲突（重新寻路或等待，根据它们的代价来判断）
     // 直至解决冲突
     // 确定下一步所有机器人的行动
-    void runController(const Map &map);
+    void runController(Map &map);
 
 private:
+    void reset(){
+        std::fill(refindPathFlag.begin(), refindPathFlag.end(), false);
+        std::fill(waitFlag.begin(), waitFlag.end(), false);
+    }
     // 根据动作判断是否需要调用寻路算法
     bool needPathfinding(const Robot &robot);
 
@@ -56,8 +63,8 @@ private:
     // 检测机器人之间是否冲突，输出冲突的机器人 ID 对
     std::set<CollisionEvent> detectNextFrameConflict();
 
-    // 解决冲突
-    void resolveConflict(const CollisionEvent &event);
+    // 尝试为所有机器人分配新状态解决冲突
+    void tryResolveConflict(Map &map, const CollisionEvent &event);
 
     // 解决死锁的逻辑
     // 根据机器人的位置和预定路径检测潜在的死锁
@@ -65,11 +72,21 @@ private:
     // 返回值表示是否成功解决了死锁
     bool resolveDeadlocks();
 
+    const Robot & decideWhoWaits(const Robot &robot1, const Robot &robot2);
+    // 设置标志位，让一个机器人等待
+    void makeRobotWait(const Robot &robot);
+    // 设置标志位，让一个机器人重新寻路
+    void makeRobotRefindPath(const Robot &robot);
+    // 让一个机器人等待
+    void stopRobot(Robot &robot);
+
 
 
 private:
     // std::unordered_map<int, Action> robotAction;
     std::vector<Robot> &robots;
+    std::vector<bool> refindPathFlag;
+    std::vector<bool> waitFlag;
     
 
 

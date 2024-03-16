@@ -98,7 +98,7 @@ public:
 
     std::string movetoNextPosition()
     {
-        if(nextPos != Point2d(-1, -1) && Point2d::calculateManhattanDistance(nextPos, pos) == 1)
+        if(nextPos != Point2d(-1, -1) && Point2d::calculateManhattanDistance(nextPos, pos) <= 1)
             return move(nextPos);
         LOGW("robot ",id, " from: ",pos , " to ", nextPos);
         return "";

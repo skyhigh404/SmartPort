@@ -164,6 +164,7 @@ void GameManager::processFrameData()
 
     cin >> this->currentFrame >> this->currentMoney;
     CURRENT_FRAME = this->currentFrame;
+    LOGI("====================================================新的一帧=====================================================");
     // 货物生命周期维护
     for (auto& good : goods){
         // todo 边界条件
@@ -172,7 +173,6 @@ void GameManager::processFrameData()
             good.TTL = std::max(1000-(currentFrame - good.initFrame),-1);
         }
     }
-    LOGI("貨物維護完畢");
     // 读取新增货物
     cin >> newItemCount;
     while (newItemCount--)
@@ -189,8 +189,10 @@ void GameManager::processFrameData()
         this->robots[i].pos.y = robotY;
         this->robots[i].state = robotState;
 
-        if(robotState==0)
+        if(robotState==0){
             LOGE("Robot ", i," 发生碰撞, pos: ", robots[i].pos);
+            // exit(0);
+        }
 
         // 暂时处理程序认为机器人放下了货物并且分配了下一个货物的id，但是判题器认为机器人还拿着上一个货物的情况
         if (this->robots[i].carryingItem == 0)
@@ -207,7 +209,6 @@ void GameManager::processFrameData()
             this->robots[i].carryingItemId = -1;
         }
     }
-    LOGI("讀取機器人狀態完畢");
     // 读取船舶状态
     for (int i = 0; i < SHIPNUMS; ++i)
     {
@@ -215,7 +216,6 @@ void GameManager::processFrameData()
         this->ships[i].state = shipState;
         this->ships[i].berthId = berthId;
     }
-    LOGI("讀取船舶狀態完畢");
     // 确认已接收完本帧的所有数据
     string ok;
     cin >> ok;
@@ -234,7 +234,7 @@ void GameManager::processFrameData()
 
 void GameManager::robotControl()
 {
-    bool robotDebugOutput = true;
+    bool robotDebugOutput = false;
     // 机器人状态更新
     for (Robot& robot:robots) {
         // 机器人眩晕
@@ -334,7 +334,7 @@ void GameManager::robotControl()
         if (robot.status==DEATH) continue;
         if (!robot.path.empty()) {
             string command = robot.movetoNextPosition();
-            if (robotDebugOutput) LOGI(robot.id, "向货物移动中:", command, robot.path.size());
+            if (robotDebugOutput) LOGI(robot.id, "向货物移动中:", command, " 路径长度: ",robot.path.size());
             commandManager.addRobotCommand(command);
         }
     }
@@ -539,11 +539,11 @@ void GameManager::RobotControl()
 
 void GameManager::update()
 {   
-    LOGI("进入update函数-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+    // LOGI("进入update函数-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");s
     auto start = std::chrono::steady_clock::now();
     
-    bool robotDebugOutput = true;
-    bool shipDebugOutput = true;
+    bool robotDebugOutput = false;
+    bool shipDebugOutput = false;
 
     // robots[3].findPath(gameMap,Point2d(133,99));
     // robots[6].findPath(gameMap,Point2d(142,112));

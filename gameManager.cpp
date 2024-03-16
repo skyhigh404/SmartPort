@@ -242,7 +242,7 @@ void GameManager::processFrameData()
 
 void GameManager::robotControl()
 {
-    bool robotDebugOutput = true;
+    bool robotDebugOutput = false;
     // 机器人状态更新
     for (Robot& robot:robots) {
         if (robot.status==DEATH) continue;

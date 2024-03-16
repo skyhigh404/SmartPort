@@ -349,6 +349,7 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleShips(std:
             // ships[i].now_capacity = ships[i].capacity;
             break;
         case 1: // 正常状态
+            // if(ships[i].berthId != -1 && ships[i].now_capacity <= 1){   
             if(ships[i].berthId != -1 && ships[i].now_capacity <= 1){   
                 if(debug){LOGI("装满了，发船");ships[i].info();}
 

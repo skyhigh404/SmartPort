@@ -7,21 +7,35 @@
 class RobotController
 {
 public:
-    RobotController(std::vector<Robot> &robots) : robots(robots) {}
-    void clearAction()
+    struct CollisionEvent 
     {
-        robotAction.clear();
-    }
-
-    void updateRobotAction(int robotId, const Action &action)
-    {
-        if (robotId < 0 || robotId >= ROBOTNUMS)
-        {
-            LOGE("updateRobotAction wrong robotID: ", robotId);
-            return;
+        int robotId1; // 第一个机器人的ID
+        int robotId2; // 第二个机器人的ID
+        enum CollisionType { TargetOverlap, SwapPositions } type; // 碰撞类型
+        
+        CollisionEvent(int id1, int id2, CollisionType t, Point2d pos)
+            : robotId1(std::min(id1, id2)), robotId2(std::max(id1, id2)), type(t) {}
+        bool operator<(const CollisionEvent &rhs) const {
+            // 防止重复机器人对
+            return robotId1 < rhs.robotId1 || (robotId1 == rhs.robotId1 && robotId2 < rhs.robotId2);
         }
-        robotAction[robotId] = action;
-    }
+    };
+public:
+    RobotController(std::vector<Robot> &robots) : robots(robots) {}
+    // void clearAction()
+    // {
+    //     robotAction.clear();
+    // }
+
+    // void updateRobotAction(int robotId, const Action &action)
+    // {
+    //     if (robotId < 0 || robotId >= ROBOTNUMS)
+    //     {
+    //         LOGE("updateRobotAction wrong robotID: ", robotId);
+    //         return;
+    //     }
+    //     robotAction[robotId] = action;
+    // }
 
     // 为所有需要寻路算法的机器人调用寻路算法
     // 更新所有机器人下一步位置
@@ -34,13 +48,13 @@ public:
 
 private:
     // 根据动作判断是否需要调用寻路算法
-    bool needPathfinding(const Action &action);
+    bool needPathfinding();
 
     // 调用寻路算法
     void runPathfinding(const Map &map, Robot &robot);
 
     // 检测机器人之间是否冲突，输出冲突的机器人 ID 对
-    std::set<std::pair<int, int>> detectNextFrameConflict();
+    std::set<CollisionEvent> detectNextFrameConflict();
 
     // 解决冲突
     void resolveConflict(Robot &robot1, Robot &robot2);
@@ -54,22 +68,9 @@ private:
 
 
 private:
-    std::unordered_map<int, Action> robotAction;
+    // std::unordered_map<int, Action> robotAction;
     std::vector<Robot> &robots;
     
-    struct CollisionEvent 
-    {
-        int robotId1; // 第一个机器人的ID
-        int robotId2; // 第二个机器人的ID
-        enum CollisionType { TargetOverlap, SwapPositions } type; // 碰撞类型
-        Point2d position; // 发生碰撞的位置（如果是TargetOverlap，这是重叠的目标位置；如果是SwapPositions，这是机器人之一的当前位置）
-        
-        CollisionEvent(int id1, int id2, CollisionType t, Point2d pos)
-            : robotId1(std::min(id1, id2)), robotId2(std::max(id1, id2)), type(t), position(pos) {}
-        bool operator<(const CollisionEvent &rhs) const {
-            // 防止重复机器人对
-            return robotId1 < rhs.robotId1 || (robotId1 == rhs.robotId1 && robotId2 < rhs.robotId2);
-        }
-    };
+
 
 };

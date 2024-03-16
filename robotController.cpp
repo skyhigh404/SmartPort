@@ -28,7 +28,7 @@ void RobotController::runController(const Map &map)
     // 返回给 gameManager 以输出所有机器人的行动指令
 }
 
-std::set<std::pair<int, int>> RobotController::detectNextFrameConflict()
+std::set<RobotController::CollisionEvent> RobotController::detectNextFrameConflict()
 {
     std::set<std::pair<int, int>> conflicts; // 使用 set 保证输出的点对不重复
     for(const Robot &robot1 : robots){
@@ -85,7 +85,7 @@ void RobotController::runPathfinding(const Map &map, Robot &robot)
     }
 }
 
-bool RobotController::needPathfinding(const Action &action)
+bool RobotController::needPathfinding()
 {
     // 重新寻路到新终点
 }

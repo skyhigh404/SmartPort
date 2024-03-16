@@ -115,7 +115,7 @@ void GameManager::initializeGame()
             robot.status = DEATH;
     }
 
-    // 初始化 RobotControl
+    // 初始化 RobotController
     this->robotController = std::make_shared<RobotController>(this->robots);
 
     // // 初始化单行路
@@ -224,11 +224,48 @@ void GameManager::processFrameData()
 
 void GameManager::robotControl()
 {
+    // 初始化
+    robotController->clearAction();
     // bool robotDebugOutput = true;
     // using std::vector;
     // vector<Action> robotsAction;
 
     // 对所有可能的机器人执行取货或放货指令，更新状态
+    for (Robot& robot : robots){
+        if(robot.pos == goods[robot.targetid].pos){
+            if (goods[robot.targetid].TTL>0) {
+                commandManager.addRobotCommand(robot.get());
+                robot.carryingItem = 1;
+                robot.carryingItemId = robot.targetid;
+                robot.targetid = -1;
+                robot.status = MOVING_TO_BERTH;
+                goods[robot.targetid].TTL = INT_MAX;
+            }
+            // 货物过期
+            else {
+                robot.status = IDLE;
+                robot.targetid = -1;
+                continue;
+            }
+        }
+        else if(robot.pos == robot.destination){
+            Berth &berth = berths[robot.targetid];
+            if (canUnload(berth, robot.pos)) {
+                commandManager.addRobotCommand(robot.pull());
+                int x = robot.pos.x-berth.pos.x, y=robot.pos.y-berth.pos.y;
+                berth.storageSlots[x][y] = &goods[robot.carryingItemId];
+                berth.reached_goods.push_back(goods[robot.carryingItemId]);
+                goods[robot.carryingItemId].status = 3;
+                robot.status = IDLE;
+                robot.carryingItem = 0;
+                robot.carryingItemId = -1;
+                robot.targetid = -1;
+            }
+            else {
+                robot.targetid = -1;
+            }
+        }
+    }
 
 
 
@@ -267,6 +304,7 @@ void GameManager::robotControl()
     // }
 
     // // 执行动作
+    robotController->runController(gameMap);
     // for (int i =0 ; i < robots.size(); ++i)
     // {
     //     if(robotsAction[i].type == ActionType::MOVE_TO_BERTH || robotsAction[i].type == ActionType::MOVE_TO_POSITION){

@@ -166,7 +166,7 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleRobots(std
 
 void SimpleTransportStrategy::calCostAndBestBerthIndes(const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths)
 {
-    LOGI("cal begin:", bestBerthIndex.size(),' ',cost2berths.size(),' ',goods.size());
+    // LOGI("cal begin:", bestBerthIndex.size(),' ',cost2berths.size(),' ',goods.size());
     for (int i=bestBerthIndex.size(); i<goods.size(); i++) {
         // LOGI(i);
         vector<int> index(berths.size(), -1);
@@ -182,7 +182,7 @@ void SimpleTransportStrategy::calCostAndBestBerthIndes(const Map &map, std::vect
         bestBerthIndex.push_back(index);
         LOGI(bestBerthIndex.size(),' ',cost2berths.size());
     }
-    LOGI("cal end:",bestBerthIndex.size(),' ',cost2berths.size());
+    // LOGI("cal end:",bestBerthIndex.size(),' ',cost2berths.size());
 }
 
 Action SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths, bool debug)

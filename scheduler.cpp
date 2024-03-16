@@ -312,8 +312,10 @@ Action SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std:
         int goodsIndex = indices[j];
         // int berthsIndex = bestBerthIndex[goodsIndex];
         int berthsIndex = bestBerthIndex[goodsIndex][0];
+        int timeToGoods = cost2goods[j];
+        int timeToBerths = cost2berths[j][bestBerthIndex[goods[j].id][0]];
         // LOGI("货物id：",goods[goodsIndex].id,"货物状态：",goods[goodsIndex].status,"货物收益：",profits[j]);
-        if (goods[goodsIndex].status==0 && profits[j]>0) {
+        if (goods[goodsIndex].status==0 && profits[j]>0 && goods[goodsIndex].TTL+10>=timeToGoods+timeToBerths) {
             LOGI("分配货物",goods[goodsIndex].id,",给机器人：",robot.id,"机器人状态：",robot.state);
             robot.targetid = goods[goodsIndex].id;
             goods[goodsIndex].status = 1;

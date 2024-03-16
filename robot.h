@@ -129,14 +129,6 @@ public:
         return "pull "s + std::to_string(id);
     }
 
-    friend std::ostream& operator<<(std::ostream& os, const Robot& robot) {
-        os << "机器人" << robot.id << ",trargetid：" << robot.targetid <<",携带货物状态："<<robot.carryingItem<<",携带货物id："<<robot.carryingItemId << ",状态："<<robot.state<<"，机器人位置："<<robot.pos<<"，路径情况：";
-        for(auto & item : robot.path){
-            os << item;
-        }
-        return os;
-    }
-
     bool findPath(const Map &map, Point2d dst)
     {
         destination = dst;
@@ -207,7 +199,10 @@ public:
     }
     
     friend std::ostream &operator<<(std::ostream &os, const Robot &robot) {
-        os << "id: " << robot.id << " pos: " << robot.pos << " nextPos: " << robot.nextPos;
+        os << "id: " << robot.id << " pos: " << robot.pos << " nextPos: " << robot.nextPos << " path: ";
+        for(auto & item : robot.path){
+            os << item;
+        }
         return os;
     }
 };

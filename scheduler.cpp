@@ -257,10 +257,14 @@ Action SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std:
 }
 
 // 根据时间排序unreachedGood
-std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleShips(std::vector<Ship>& ships, std::vector<Berth>& berths,std::vector<Goods>& goods,std::vector<Robot> &robots,bool debug)
+std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleShips(std::vector<Ship>& ships, std::vector<Berth>& berths,std::vector<Goods>& goods,std::vector<Robot> &robots,int currentFrame,bool debug)
 {
     // todo 根据路径代价计算未到达货物的收益 + 船只在装货时也可以进行抉择
     countGoodInBerth(robots,berths,goods);
+
+    // 当前剩余操作时间 = 游戏时间 - 当前时间( - 船去虚拟点时间)
+    int remainder = 15000 - currentFrame;
+
     
     // 初始化泊位的货物数量
      for (auto& berth : berths) {
@@ -290,12 +294,14 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleShips(std:
                 // 泊位货物为空，进行船只调度
                 if (berths[ships[i].berthId].reached_goods.size() == 0){
                     ActionType action = scheudleNormalShip(ships[i],berths[ships[i].berthId],robots);
-                    if(action == MOVE_TO_BERTH){
+                    if(action == MOVE_TO_BERTH && berths[ships[i].berthId].canMoveBerth(remainder)){
                         // 加入船只调度队列
+                        LOGI("剩余时间：",remainder,",还可以移动：",berths[ships[i].berthId].canMoveBerth(remainder));
+                        ships[i].info();
                         freeShips.push_back(ships[i]);
                     }
-                    else if(action == DEPART_BERTH){
-                        if(debug){LOGI("没货，船载到货，发船");ships[i].info();berths[ships[i].berthId].info();}
+                    else if(action == DEPART_BERTH || berths[ships[i].berthId].mustGo(remainder)){
+                        if(debug){LOGI("没货，船载到货，发船");ships[i].info();berths[ships[i].berthId].info();LOGI("剩余时间：",remainder,",必须走了：",berths[ships[i].berthId].mustGo(remainder));}
 
                         shipActions.push_back(std::make_pair(i, Action{DEPART_BERTH,Point2d(),-1}));
                         // 重置船的容量和状态
@@ -311,11 +317,11 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleShips(std:
                     int shipment = std::min(static_cast<int>(berths[berthId].reached_goods.size()),berths[berthId].velocity);
 
                     // todo 有bug
-                    // if(debug){LOGI("装货前------------------");berths[berthId].info();ships[i].info();}
+                    if(debug){LOGI("装货前------------------");ships[i].info();}
                     int res = ships[i].loadGoods(shipment); // 装货
                     berths[berthId].unloadGoods(res);   // 卸货
                     berths[berthId].reached_goods.erase(berths[berthId].reached_goods.begin(),berths[berthId].reached_goods.begin() + res);
-                    // if(debug){LOGI("装货后------------------");berths[berthId].info();ships[i].info();}
+                    if(debug){LOGI("装货后------------------");ships[i].info();}
                 }
 
             }
@@ -345,7 +351,8 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleShips(std:
         return a.totalValue > b.totalValue;
     });
 
-    // 第一次调度船只，根据容量和泊位溢出货量最大化利益
+    // 第一次调度船只，根据容量和泊位溢出货量最大化利益;
+    // todo 考虑运输完成船只从虚拟点返回泊位的时间
     for (auto& ship : freeShips) {
         for (auto& berth : berths_copy) {
             // 一个泊位最多三只船
@@ -359,10 +366,12 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleShips(std:
         }
     }
     // 第二次调度船只，为剩余船只分配泊位,留有两个空闲船只
+    // todo 考虑运输完成船只从虚拟点返回泊位的时间
     for (auto& ship : freeShips) {
         for (auto& berth : berths_copy) {
-            if (ship.berthId == -1 && berth.residue_num > 0 && shipNumInBerth(berth,ships) == 0) {
-                ship.berthId = berth.id;
+            // if (ship.berthId == -1 && berth.residue_num > 0 && shipNumInBerth(berth,ships) == 0) {
+            if (berth.residue_num > 0 && shipNumInBerth(berth,ships) == 0) {  
+                ship.berthId = berth.id; 
                 shipActions.push_back(std::make_pair(ship.id, Action{MOVE_TO_BERTH,Point2d(),berth.id}));
                 berth.residue_num -= ship.now_capacity; // 更新泊位的剩余需求
                 continue; // 跳出循环，继续为下一艘船分配泊位
@@ -437,10 +446,21 @@ void SimpleTransportStrategy::calculateBerthIncome(std::vector<Berth> &berths)
 // 调度state为1的船只
 ActionType SimpleTransportStrategy::scheudleNormalShip(Ship &ship,Berth &berth,std::vector<Robot> robots)
 {
-    int GO_TIME = berth.time * 2 + 10;   //  前往虚拟点时间
-    int MOVE_TIME = 500 * 2 + 10;    // 500帧
+    int GO_TIME = berth.time * 2 + 2;   //  前往虚拟点时间
+    int MOVE_TIME = 500 * 2 + 2;    // 500帧
     int can_go_num = 0; 
     int can_move_num = 0;
+
+    // 如果船剩余容量 <= 20%，直接去虚拟点
+    // todo 调参
+    float now_proportion = ship.now_capacity * 1.0 /ship.capacity;
+    LOGI("剩余货物比例：",now_proportion);
+    if(now_proportion <= berth.canGoScale){
+        LOGI("船剩余货量比例：",now_proportion);
+        return DEPART_BERTH;
+    }
+
+    // 计算货物是否离太远
     for(auto &good : berth.unreached_goods){
         // 找到携带该货物的机器人
         for(auto &robot : robots){
@@ -458,24 +478,25 @@ ActionType SimpleTransportStrategy::scheudleNormalShip(Ship &ship,Berth &berth,s
         }
     }
 
-    // 如果船剩余容量 <= 20%，直接去虚拟点
-    if(ship.now_capacity/ship.capacity <= 0.2){
-        LOGI("船剩余货量比例：",ship.now_capacity/ship.capacity);
-        return DEPART_BERTH;
+    // 优先考虑调度船只去其他泊位
+    // todo 调参
+    // 剩余容量小于0.2
+    if(can_move_num == 0 && now_proportion >= berth.canMoveScale){
+        return MOVE_TO_BERTH;
     }
 
-    if(GO_TIME < MOVE_TIME){
-        // 优先考虑调度船只去其他泊位
-        // todo 调参
-        // 剩余容量小于0.2
-        if(can_go_num == 0 && (ship.now_capacity / ship.capacity) <= 0.4){
-            LOGI("期间没有到达货物，船剩余货量比例：",ship.now_capacity/ship.capacity);
-            return DEPART_BERTH;
-        }
-        else if(can_move_num == 0 && (ship.now_capacity / ship.capacity) <= 0.4){
-            return MOVE_TO_BERTH;
-        }
-    }
+    // if(GO_TIME < MOVE_TIME){
+    //     // 优先考虑调度船只去其他泊位
+    //     // todo 调参
+    //     // 剩余容量小于0.2
+    //     if(can_go_num == 0 && now_proportion<= 0.95){
+    //         LOGI("期间没有到达货物，船剩余货量比例：",ship.now_capacity/ship.capacity);
+    //         return DEPART_BERTH;
+    //     }
+    //     else if(can_move_num == 0 && now_proportion <= 0.95){
+    //         return MOVE_TO_BERTH;
+    //     }
+    // }
     
     // if(GO_TIME > MOVE_TIME){
     //     // 优先考虑调度船只去其他泊位

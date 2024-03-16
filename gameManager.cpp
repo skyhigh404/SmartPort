@@ -7,6 +7,8 @@
 
 using namespace std;
 int Goods::number = 0;
+int Berth::totalLoadGoodnum = 0;
+int Berth::maxLoadGoodNum = 0;
 int CURRENT_FRAME = 0;
 int canUnload(Berth& berth, Point2d pos) {
     int x = pos.x-berth.pos.x, y=pos.y-berth.pos.y;
@@ -124,7 +126,9 @@ void GameManager::initializeGame()
     // // 打印单行路
     // std::vector<Point2d> singleLaneList = this->singleLaneManager.getSingleLanesVector();
     // LOGI("单行路数量：",singleLaneList.size());
-    // this->gameMap.drawMap(nullptr,nullptr,&singleLaneList,nullptr,nullptr);
+    // LOGI(this->gameMap.drawMap(nullptr,nullptr,nullptr,nullptr,nullptr));
+    // LOGI(this->gameMap.drawMap(nullptr,nullptr,&singleLaneList,nullptr,nullptr));
+    // exit(0);
 
     // LOGI("Log berth 0 BFS map.");
     // LOGI(Map::drawMap(this->gameMap.berthDistanceMap[0],12));
@@ -228,9 +232,35 @@ void GameManager::processFrameData()
 void GameManager::robotControl()
 {
     bool robotDebugOutput = true;
-    for (Robot& robot:robots)
+    // 机器人状态更新
+    for (Robot& robot:robots) {
+        // 机器人眩晕
+        if (robot.status == DIZZY || robot.state == 0) {
+            // 还在眩晕状态
+            robot.status = DIZZY;
+            if (robot.state == 0) continue;
+
+            // 从眩晕状态恢复
+            if (robotDebugOutput) LOGI("从眩晕状态恢复");
+            if (robot.carryingItem == 0) {
+                robot.status = MOVING_TO_GOODS;
+                robot.path = Path();
+                robot.targetid = -1;
+                robot.destination = Point2d(-1,-1);
+                robot.carryingItemId = -1;
+            }
+            else {
+                robot.status = MOVING_TO_BERTH;
+                robot.path = Path();
+                robot.targetid = -1;
+                robot.destination = Point2d(-1,-1);
+            }
+        }
+
+        // 机器人状态更新
         if (robot.carryingItem==0) robot.status = MOVING_TO_GOODS;
         else robot.status = MOVING_TO_BERTH;
+    }
 
     // 对所有可能的机器人执行取货或放货指令，更新状态
     for (Robot& robot : robots) {
@@ -242,6 +272,7 @@ void GameManager::robotControl()
                 robot.targetid = -1;
                 robot.status = MOVING_TO_BERTH;
                 goods[robot.targetid].TTL = INT_MAX;
+                // Berth::maxLoadGoodNum += 1;
             }
             // 货物过期
             else {
@@ -262,6 +293,8 @@ void GameManager::robotControl()
                 robot.carryingItem = 0;
                 robot.carryingItemId = -1;
                 robot.targetid = -1;
+                // LOGI("测试。。。");
+                Berth::maxLoadGoodNum += 1;
             }
             else {
                 robot.targetid = -1;
@@ -286,6 +319,14 @@ void GameManager::robotControl()
     // // 执行动作
     robotController->runController(gameMap);
     
+    // 输出指令
+    for (Robot& robot : robots) {
+        if (!robot.path.empty()) {
+            string command = robot.movetoNextPosition();
+            if (robotDebugOutput) LOGI(robot.id, "向货物移动中:", command, robot.path.size());
+            commandManager.addRobotCommand(command);
+        }
+    }
 }
 
 
@@ -469,6 +510,7 @@ void GameManager::RobotControl()
                     robot.carryingItem = 0;
                     robot.carryingItemId = -1;
                     robot.targetid = -1;
+                    Berth::maxLoadGoodNum += 1;
                 }
                 // 不可放货，重新分配放货位置
                 else {
@@ -504,7 +546,7 @@ void GameManager::update()
 
     if(shipDebugOutput){LOGI("船只开始调度");};
     auto ship_start = std::chrono::high_resolution_clock::now();
-    std::vector<std::pair<int, Action>> ShipActions = this->scheduler->scheduleShips(ships, berths, goods, robots, shipDebugOutput);
+    std::vector<std::pair<int, Action>> ShipActions = this->scheduler->scheduleShips(ships, berths, goods, robots,this->currentFrame, shipDebugOutput);
     auto ship_end = std::chrono::high_resolution_clock::now();
     if(shipDebugOutput) LOGI("调度船只时长:",std::chrono::duration_cast<std::chrono::milliseconds>(ship_end - ship_start).count(),"ms");
 

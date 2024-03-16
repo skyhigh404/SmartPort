@@ -57,7 +57,7 @@ public:
             path.pop_back();
         }
         // 没有移动到预定位置
-        else if(nextPos != Point2d(-1,-1) &&nextPos != pos){
+        else if(nextPos != Point2d(-1,-1) && nextPos != pos){
             LOGW(id, " 没有移动到预定位置, current pos: ", pos, " next pos: ", nextPos);
         }
     }
@@ -199,9 +199,9 @@ public:
     }
     
     friend std::ostream &operator<<(std::ostream &os, const Robot &robot) {
-        os << "id: " << robot.id << " pos: " << robot.pos << " nextPos: " << robot.nextPos << " path: ";
-        for(auto & item : robot.path){
-            os << item;
+        os << "id: " << robot.id << " pos: " << robot.pos << " nextPos: " << robot.nextPos << " dst: " << robot.destination << " path: ";
+        for(int i = std::min(2, (int)robot.path.size()-1); i >= 0; --i){
+            os << robot.path[i];
         }
         return os;
     }

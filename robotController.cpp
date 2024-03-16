@@ -53,10 +53,10 @@ void RobotController::runController(Map &map)
         break;
     }
 
-    // for(const auto &robot : robots)
-    //     LOGI(robot);
-    // auto end = std::chrono::steady_clock::now();
-    // LOGI("robotController 循环处理时间: ",std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()," ms, i: ", i);
+    for(const auto &robot : robots)
+        LOGI(robot);
+    end = std::chrono::steady_clock::now();
+    LOGI("robotController 循环处理时间: ",std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()," ms, i: ", i);
 
     // 返回给 gameManager 以输出所有机器人的行动指令
 }

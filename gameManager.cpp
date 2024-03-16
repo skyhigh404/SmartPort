@@ -184,6 +184,7 @@ void GameManager::processFrameData()
         this->goods.emplace_back(Point2d(goodsX, goodsY), value, currentFrame);
     }
     // 读取机器人状态
+    bool flag = false;
     for (int i = 0; i < ROBOTNUMS; ++i)
     {
         cin >> carrying >> robotX >> robotY >> robotState;
@@ -194,7 +195,7 @@ void GameManager::processFrameData()
 
         if(robotState==0){
             LOGE("Robot ", i," 发生碰撞, pos: ", robots[i].pos);
-            // exit(0);
+            flag = true;
         }
 
         // 暂时处理程序认为机器人放下了货物并且分配了下一个货物的id，但是判题器认为机器人还拿着上一个货物的情况
@@ -212,6 +213,9 @@ void GameManager::processFrameData()
             this->robots[i].carryingItemId = -1;
         }
     }
+    // if(flag)
+        // exit(0);
+
     // 读取船舶状态
     for (int i = 0; i < SHIPNUMS; ++i)
     {

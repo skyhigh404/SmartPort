@@ -5,6 +5,7 @@ void RobotController::runController(Map &map)
     auto start = std::chrono::steady_clock::now();
     // 为所有需要寻路算法的机器人调用寻路算法，给定新目标位置
     for (Robot &robot : robots){
+        if (robot.status==DEATH) continue;
         if (needPathfinding(robot)){
             // LOGI("機器人",robot.id,"需要尋路");
             runPathfinding(map, robot);

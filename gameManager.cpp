@@ -118,7 +118,7 @@ void GameManager::initializeGame()
         }
         // 孤立机器人
         if (is_isolated)
-            robot.status = DEATH;
+            {robot.status = DEATH;LOGI("死機器人:",robot.id);}
     }
 
     // 初始化 RobotController
@@ -241,9 +241,10 @@ void GameManager::processFrameData()
 
 void GameManager::robotControl()
 {
-    bool robotDebugOutput = false;
+    bool robotDebugOutput = true;
     // 机器人状态更新
     for (Robot& robot:robots) {
+        if (robot.status==DEATH) continue;
         // 机器人眩晕
         if (robot.status == DIZZY || robot.state == 0) {
             // 还在眩晕状态
@@ -287,7 +288,7 @@ void GameManager::robotControl()
             }
             // 货物过期
             else {
-                robot.status = IDLE;
+                robot.status = MOVING_TO_GOODS;
                 robot.targetid = -1;
                 continue;
             }
@@ -296,13 +297,13 @@ void GameManager::robotControl()
             Berth &berth = berths[robot.targetid];
             // LOGI(robot);
             if (canUnload(berth, robot.pos)) {
-                // LOGI("機器人",robot.id,"放貨 ");
+                LOGI("機器人",robot.id,"放貨 ");
                 commandManager.addRobotCommand(robot.pull());
                 int x = robot.pos.x-berth.pos.x, y=robot.pos.y-berth.pos.y;
                 berth.storageSlots[x][y] = goods[robot.carryingItemId].id;
                 berth.reached_goods.push_back(goods[robot.carryingItemId]);
                 goods[robot.carryingItemId].status = 3;
-                robot.status = IDLE;
+                robot.status = MOVING_TO_GOODS;
                 robot.carryingItem = 0;
                 robot.carryingItemId = -1;
                 robot.targetid = -1;
@@ -314,7 +315,7 @@ void GameManager::robotControl()
             }
         }
     }
-    LOGI("機器人取放貨完畢");
+    // LOGI("機器人取放貨完畢");
 
     // 对所有需要调度的机器人进行调度
     for (Robot& robot : robots) {
@@ -322,6 +323,7 @@ void GameManager::robotControl()
         if ((robot.status==MOVING_TO_GOODS && robot.targetid==-1) || (robot.status==MOVING_TO_BERTH && robot.targetid==-1)) {
             Action action = this->scheduler->scheduleRobot(robot, gameMap, goods, berths, robotDebugOutput);
             if (action.type==FAIL) {
+                LOGI("機器人",robot.id,"調度失敗");
                 robot.targetid = -1;
                 robot.destination = Point2d(-1,-1);
                 continue;

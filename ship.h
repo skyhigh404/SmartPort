@@ -47,7 +47,7 @@ public:
         }
         else if(now_capacity >= num){
             now_capacity -= num;
-            LOGI("搬运货物：",num);
+            // LOGI("搬运货物：",num);
             return num;
             // LOGI("now_capacity after：",this->now_capacity);
         }else {

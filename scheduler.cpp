@@ -327,7 +327,7 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleShips(std:
         switch (ships[i].state)
         {
         case 0: // 运输中
-            ships[i].now_capacity = ships[i].capacity;
+            // ships[i].now_capacity = ships[i].capacity;
             break;
         case 1: // 正常状态
             if(ships[i].now_capacity == 0){   

@@ -147,7 +147,7 @@ void GameManager::initializeGame()
 
     // LOGI("Log berth 0 BFS map.");
     // LOGI(Map::drawMap(this->gameMap.berthDistanceMap[0],12));
-    exit(0);
+    // exit(0);
 }
 
 void GameManager::processFrameData()
@@ -551,7 +551,7 @@ void GameManager::update()
     auto start = std::chrono::steady_clock::now();
     
     bool robotDebugOutput = false;
-    bool shipDebugOutput = false;
+    bool shipDebugOutput = true;
 
     // robots[3].findPath(gameMap,Point2d(133,99));
     // robots[6].findPath(gameMap,Point2d(142,112));

@@ -41,24 +41,34 @@ public:
         : id(id),
           pos(pos),
           carryingItem(0),
-          carryingItemId(-1),
           state(0),
           status(IDLE),
-          targetid(0)
+          carryingItemId(-1),
+          targetid(0),
+          nextPos(-1,-1)
     {
     }
 
     void updatePath()
     {
         // 正常移动
-        if(nextPos == pos){
-            if(!path.empty())
-                path.pop_back();
+        if(nextPos == pos && !path.empty() && nextPos==path.back()){
+            path.pop_back();
         }
         // 没有移动到预定位置
-        else if(nextPos != pos){
+        else if(nextPos != Point2d(-1,-1) &&nextPos != pos){
             LOGW(id, " 没有移动到预定位置, current pos: ", pos, " next pos: ", nextPos);
         }
+    }
+
+    void updateNextPos()
+    {
+        if (!path.empty() && status != DIZZY)
+            // 寻路算法输出的路径是逆序存储的，以提高弹出效率
+            nextPos = this->path.back();
+        // 如果路径为空，则机器人下一帧不移动
+        else
+            nextPos = pos;
     }
 
     std::string move(int direction)
@@ -83,6 +93,14 @@ public:
         else if (nextPos.y < pos.y)
             instruction = move(1); // 向左
         return instruction;
+    }
+
+    std::string movetoNextPosition()
+    {
+        if(nextPos != Point2d(-1, -1) && Point2d::calculateManhattanDistance(nextPos, pos) == 1)
+            return move(nextPos);
+        LOGW("robot ",id, " from: ",pos , " to ", nextPos);
+        return "";
     }
 
     std::string moveWithPath()

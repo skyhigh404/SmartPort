@@ -3,6 +3,7 @@
 #include <cmath>
 #include <tuple>
 #include <unordered_map>
+#include <vector>
 
 #define DEBUG
 

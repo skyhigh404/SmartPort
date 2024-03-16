@@ -184,6 +184,13 @@ void SimpleTransportStrategy::calCostAndBestBerthIndes(const Map &map, std::vect
     }
     // LOGI("cal end:",bestBerthIndex.size(),' ',cost2berths.size());
 }
+int SimpleTransportStrategy::WhereIsRobot(Robot& robot, std::vector<Berth> &berths, const Map &map)
+{
+    for (Berth& berth : berths) {
+        if (map.cost(robot.pos, berth.pos)<=6) return berth.id;
+    }
+    return -1;
+}
 
 Action SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths, bool debug)
 {
@@ -259,7 +266,9 @@ Action SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std:
             cost2goods[j] = INT_MAX;
             continue;
         }
-        cost2goods[j] = map.cost(robot.pos, goods[j].pos);
+        int berthid = WhereIsRobot(robot, berths, map);
+        if (berthid==-1) cost2goods[j] = map.cost(robot.pos, goods[j].pos);
+        else cost2goods[j] = map.berthDistanceMap.at(berthid)[goods[j].pos.x][goods[j].pos.y];
     }
     
     if (debug) LOGI("开始衡量收益");

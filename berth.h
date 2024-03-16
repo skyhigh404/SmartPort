@@ -35,14 +35,14 @@ public:
     void info(){
         std::string berth_info = "泊位" + std::to_string(id) + "位置" + std::to_string(pos.x) +','+std::to_string(pos.y) + ",装货速度：" + std::to_string(velocity) + ",送货时间：" + std::to_string(time) + ";"+"剩余容量："+ std::to_string(residue_num)+";";
         std::string reach_info = "已到达货物数量:" + std::to_string(reached_goods.size()) + ";";
-        for(const auto& good : reached_goods){
-            reach_info += "(" + std::to_string(good.id) + "," + std::to_string(good.value) + "),";
-        }
+        // for(const auto& good : reached_goods){
+        //     reach_info += "(" + std::to_string(good.id) + "," + std::to_string(good.value) + "),";
+        // }
 
         std::string unreach_info = "未到达货物数量:" + std::to_string(unreached_goods.size()) + ";";
-        for(const auto& good : unreached_goods){
-            unreach_info += "(" + std::to_string(good.id) + "," + std::to_string(good.value) + "),";
-        }
+        // for(const auto& good : unreached_goods){
+        //     unreach_info += "(" + std::to_string(good.id) + "," + std::to_string(good.value) + "),";
+        // }
         LOGI(berth_info,reach_info,";",unreach_info);
         LOGI("总装货量：",totalLoadGoodnum,",理论最大装货量：",maxLoadGoodNum,", 成功装载比例：",totalLoadGoodnum * 1.0 /maxLoadGoodNum);
         // std::vector<std::vector<int>> temp(4,std::vector<int>(4,-1));
@@ -53,9 +53,9 @@ public:
         //         }
         //     }
         // }
-        for(int i=0;i<4;i++){
-            LOGI(storageSlots[i][0]," ",storageSlots[i][1]," ",storageSlots[i][2]," ",storageSlots[i][3]);
-        }
+        // for(int i=0;i<4;i++){
+        //     LOGI(storageSlots[i][0]," ",storageSlots[i][1]," ",storageSlots[i][2]," ",storageSlots[i][3]);
+        // }
         LOGI("-----------------------------------------------------------------------------------------------------------------------------------------------");
     }
 

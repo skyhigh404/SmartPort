@@ -89,6 +89,7 @@ void GameManager::initializeGame()
         this->gameMap.robotPosition.push_back(robot.pos);
 
     // 计算地图上每个点到泊位的距离
+    auto bfs_start = std::chrono::high_resolution_clock::now();
     for (const auto &berth : this->berths)
     {
         vector<Point2d> positions;
@@ -99,6 +100,9 @@ void GameManager::initializeGame()
 
         this->gameMap.computeDistancesToBerthViaBFS(berth.id, positions);
     }
+    auto bfs_end = std::chrono::high_resolution_clock::now();
+    LOGI("bfs初始化时长:",std::chrono::duration_cast<std::chrono::milliseconds>(bfs_end - bfs_start).count(),"ms");
+
 
     // 判断机器人是否位于死点
     for (auto &robot : this->robots)
@@ -120,19 +124,6 @@ void GameManager::initializeGame()
     // 初始化 RobotController
     this->robotController = std::make_shared<RobotController>(this->robots);
 
-    // // 初始化单行路
-    // this->singleLaneManager.findSingleLanes(this->gameMap);
-    
-    // // 打印单行路
-    // std::vector<Point2d> singleLaneList = this->singleLaneManager.getSingleLanesVector();
-    // LOGI("单行路数量：",singleLaneList.size());
-    // LOGI(this->gameMap.drawMap(nullptr,nullptr,nullptr,nullptr,nullptr));
-    // LOGI(this->gameMap.drawMap(nullptr,nullptr,&singleLaneList,nullptr,nullptr));
-    // exit(0);
-
-    // LOGI("Log berth 0 BFS map.");
-    // LOGI(Map::drawMap(this->gameMap.berthDistanceMap[0],12));
-
     string ok;
     cin >> ok;
     if (ok == "OK")
@@ -144,6 +135,18 @@ void GameManager::initializeGame()
     {
         LOGE("Init fail!");
     }
+    //     // 初始化单行路
+    // this->singleLaneManager.findSingleLanes(this->gameMap);
+    // // 打印单行路
+    // std::vector<Point2d> singleLaneList = this->singleLaneManager.getSingleLanesVector();
+    // LOGI(this->gameMap.drawMap(nullptr,nullptr,&singleLaneList,nullptr,nullptr));
+    // LOGI("单行路数量：",singleLaneList.size());
+    
+    // LOGI(this->gameMap.drawMap(nullptr,nullptr,nullptr,nullptr,nullptr));
+
+    // LOGI("Log berth 0 BFS map.");
+    // LOGI(Map::drawMap(this->gameMap.berthDistanceMap[0],12));
+    // exit(0);
 }
 
 void GameManager::processFrameData()

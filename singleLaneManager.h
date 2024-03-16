@@ -32,63 +32,63 @@ public:
     }
 
     // 初始化地图中的单行路
-    void findSingleLanes(Map map_temp) {
+    void findSingleLanes( Map& map_temp) {
         Map map = Map(map_temp);
+        std::vector<std::vector<int>> flagMap(map.rows,std::vector<int>(map.cols,0));   //标记是否访问过
         singleLanes.clear(); // 清除之前的结果
-        
-        for (int x = 0; x < map.rows; ++x) {
-            for (int y = 0; y < map.cols; ++y) {
-                if (map.grid[x][y] == MapItemSpace::MapItem::SPACE) {
+        auto ship_start = std::chrono::high_resolution_clock::now();
+        LOGI("开始寻找单行路");
+        for (int x = 0; x < map.rows; x++) {
+            for (int y = 0; y < map.cols; y++) {
+                // LOGI("当前坐标：",x,",",y);
+                // LOGI("数量：",singleLanes.size());
+                
+                // if (flagMap[x][y] == 0 && map_temp.grid[x][y] == MapItemSpace::MapItem::SPACE) {
+                if (flagMap[x][y] == 0 && (isSinglePos(map,Point2d(x,y),0)) ) {
+                    // 检查向右的单行路
+                    int nextX = x + 1;
+                    while (nextX < map.rows && isSinglePos(map,Point2d(nextX,y),0) && flagMap[nextX][y] == 0) {
+                        flagMap[nextX][y] = 1;
+                        nextX++;
+                    }
+                    if (nextX - x > 1) { // 发现单行路
+                        // singleLanes.push_back(SingleLane(Point2d(x, y), Point2d(std::min(nextX,map.rows -1), y)));
+                        singleLanes.push_back(SingleLane(Point2d(std::max(x - 1,0), y), Point2d(std::min(nextX,map.rows -1), y)));
+                    }
+                }
+                if (flagMap[x][y] == 0 && (isSinglePos(map,Point2d(x,y),0)) || (isSinglePos(map,Point2d(x,y),1))) {
                     // 检查向下的单行路
                     int nextY = y + 1;
-                    while (nextY < map.cols && map.grid[x][nextY] == MapItemSpace::MapItem::SPACE
-                    && isSinglePos(map,Point2d(x,nextY),3)) {
-                        map.grid[x][nextY] = MapItemSpace::MapItem::OBSTACLE;
+                    while (nextY < map.cols &&map.grid[x][nextY] == MapItemSpace::MapItem::SPACE
+                    && isSinglePos(map,Point2d(x,nextY),1) && flagMap[x][nextY] == 0) {
+                        flagMap[x][nextY] = 1;
                         ++nextY;
                     }
                     if (nextY - y > 1) { // 发现单行路
-                        singleLanes.emplace_back(Point2d(x, y), Point2d(x, nextY - 1));
+                        singleLanes.push_back(SingleLane(Point2d(x, std::max(y - 1,0)), Point2d(x, std::min(nextY,map.cols - 1))));
                     }
-
-                    // 检查向右的单行路
-                    int nextX = x + 1;
-                    while (nextX < map.rows && map.grid[nextX][y] == MapItemSpace::MapItem::SPACE
-                    && isSinglePos(map,Point2d(nextX,y),0)) {
-                        map.grid[nextX][y] = MapItemSpace::MapItem::OBSTACLE;
-                        ++nextX;
-                    }
-                    if (nextX - x > 1) { // 发现单行路
-                        singleLanes.emplace_back(Point2d(x, y), Point2d(nextX - 1, y));
-                    }
-                    // 检查本格子 todo
-
                 }
             }
         }
+        auto ship_end = std::chrono::high_resolution_clock::now();
+        LOGI("寻路时长:",std::chrono::duration_cast<std::chrono::milliseconds>(ship_end - ship_start).count(),"ms");
+        LOGI("寻找完毕！！");
     }
 
     // 判断是否是单行格子
-    // flag 3 向下；2 向上；0 向右；1 向左
+    // flag 0 横向;1 纵向
     bool isSinglePos(Map &map,Point2d pos,int flag){
-        Point2d x,y;
+        Point2d left,right;
         switch (flag)
         {
-        case 3:
-            x = Point2d(pos.x - 1,pos.y);
-            y = Point2d(pos.x + 1,pos.y);
-            break;
-        case 2:
-            x = Point2d(pos.x - 1,pos.y);
-            y = Point2d(pos.x + 1,pos.y);
-            break;
         case 0:
-            x = Point2d(pos.x,pos.y - 1);
-            y = Point2d(pos.x,pos.y + 1);
+            left = Point2d(pos.x,pos.y - 1);
+            right = Point2d(pos.x,pos.y + 1);
             break;
 
         case 1:
-            x = Point2d(pos.x,pos.y - 1);
-            y = Point2d(pos.x,pos.y + 1);
+            left = Point2d(pos.x - 1,pos.y);
+            right = Point2d(pos.x + 1,pos.y);
             break;
 
         default:
@@ -96,8 +96,9 @@ public:
         }
             // 传入位置是空的，其他x y是障碍
             if(map.grid[pos.x][pos.y] == MapItemSpace::MapItem::SPACE
-            && (map.grid[x.x][x.y] != MapItemSpace::MapItem::SPACE || map.inBounds(x))
-            && (map.grid[y.x][y.y] != MapItemSpace::MapItem::SPACE || !map.inBounds(y))){
+            && (!map.inBounds(left) || (map.grid[left.x][left.y] != MapItemSpace::MapItem::SPACE && map.grid[left.x][left.y] != MapItemSpace::MapItem::BERTH))
+            && (!map.inBounds(right) || map.grid[right.x][right.y] != MapItemSpace::MapItem::SPACE && map.grid[left.x][left.y] != MapItemSpace::MapItem::BERTH)){
+                // LOGI("left:",left,",right:",right);
                 return true;
         }
         return false;

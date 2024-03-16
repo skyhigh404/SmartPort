@@ -224,15 +224,14 @@ void GameManager::processFrameData()
 
 void GameManager::robotControl()
 {
-    // 初始化
-    robotController->clearAction();
-    // bool robotDebugOutput = true;
-    // using std::vector;
-    // vector<Action> robotsAction;
+    bool robotDebugOutput = true;
+    for (Robot& robot:robots)
+        if (robot.carryingItem==0) robot.status = MOVING_TO_GOODS;
+        else robot.status = MOVING_TO_BERTH;
 
     // 对所有可能的机器人执行取货或放货指令，更新状态
-    for (Robot& robot : robots){
-        if(robot.pos == goods[robot.targetid].pos){
+    for (Robot& robot : robots) {
+        if(robot.status==MOVING_TO_GOODS && robot.targetid!=-1 && robot.pos == goods[robot.targetid].pos){
             if (goods[robot.targetid].TTL>0) {
                 commandManager.addRobotCommand(robot.get());
                 robot.carryingItem = 1;
@@ -248,12 +247,12 @@ void GameManager::robotControl()
                 continue;
             }
         }
-        else if(robot.pos == robot.destination){
+        else if(robot.status==MOVING_TO_BERTH && robot.targetid!=-1 && robot.pos == robot.destination){
             Berth &berth = berths[robot.targetid];
             if (canUnload(berth, robot.pos)) {
                 commandManager.addRobotCommand(robot.pull());
                 int x = robot.pos.x-berth.pos.x, y=robot.pos.y-berth.pos.y;
-                berth.storageSlots[x][y] = &goods[robot.carryingItemId];
+                berth.storageSlots[x][y] = goods[robot.carryingItemId].id;
                 berth.reached_goods.push_back(goods[robot.carryingItemId]);
                 goods[robot.carryingItemId].status = 3;
                 robot.status = IDLE;
@@ -267,62 +266,22 @@ void GameManager::robotControl()
         }
     }
 
-
-
-    // // 调度算法
-    // for (int i =0 ; i < robots.size(); ++i) {
-    //     Robot& robot = robots[i];
-    //     if (robot.state == 0)
-    //         robot.status = DIZZY;
-        
-    //     if(robot.status == DIZZY){
-    //         // robotsAction.push_back(Action(ActionType::FAIL));
-    //     }
-    //     else if(robot.status == DEATH){
-    //         // robotsAction.push_back(Action(ActionType::FAIL));
-    //     }
-    //     else if(robot.status == UNLOADING){
-    //         LOGE("UNLOADING 状态未被处理");
-    //         // robotsAction.push_back(Action(ActionType::FAIL));
-    //     }
-    //     else if(robot.status == IDLE){
-    //         robotsAction.push_back(scheduler->scheduleRobot(robot, gameMap, goods, berths, robotDebugOutput));
-    //     }
-    //     else if (robot.status == MOVING_TO_GOODS){
-    //         robotsAction.push_back(Action(ActionType::CONTINUE));
-    //     }
-    //     else if (robot.status == MOVING_TO_BERTH){
-    //         // 分配泊位
-    //         if (robot.targetid == -1)
-    //             robotsAction.push_back(scheduler->scheduleRobot(robot, gameMap, goods, berths, robotDebugOutput));
-    //         else
-    //             robotsAction.push_back(Action(ActionType::CONTINUE));
-    //     }
-    //     else{
-    //         LOGE("未被处理的状态");
-    //     }
-    // }
+    // 对所有需要调度的机器人进行调度
+    for (Robot& robot : robots) {
+        if ((robot.status==MOVING_TO_GOODS && robot.targetid==-1) || (robot.status==MOVING_TO_BERTH && robot.targetid==-1)) {
+            Action action = this->scheduler->scheduleRobot(robot, gameMap, goods, berths, robotDebugOutput);
+            if (action.type==FAIL) {
+                robot.targetid = -1;
+                robot.destination = Point2d(-1,-1);
+                continue;
+            }
+            robot.targetid = action.targetId;
+            robot.destination = action.desination;
+        }
+    }
 
     // // 执行动作
     robotController->runController(gameMap);
-    // for (int i =0 ; i < robots.size(); ++i)
-    // {
-    //     if(robotsAction[i].type == ActionType::MOVE_TO_BERTH || robotsAction[i].type == ActionType::MOVE_TO_POSITION){
-    //         if(robots[i].findPath(gameMap))
-    //         {
-
-    //         }
-    //         else{
-
-    //         }
-    //     }
-    //     else if (robotsAction[i].type == ActionType::CONTINUE)
-    //     {
-    //     }
-        
-    // }
-
-
     
 }
 

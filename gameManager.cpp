@@ -135,7 +135,8 @@ void GameManager::initializeGame()
     {
         LOGE("Init fail!");
     }
-    //     // 初始化单行路
+    
+    // // 初始化单行路
     // this->singleLaneManager.findSingleLanes(this->gameMap);
     // // 打印单行路
     // std::vector<Point2d> singleLaneList = this->singleLaneManager.getSingleLanesVector();
@@ -146,7 +147,7 @@ void GameManager::initializeGame()
 
     // LOGI("Log berth 0 BFS map.");
     // LOGI(Map::drawMap(this->gameMap.berthDistanceMap[0],12));
-    // exit(0);
+    exit(0);
 }
 
 void GameManager::processFrameData()

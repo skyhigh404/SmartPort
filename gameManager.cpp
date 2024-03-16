@@ -9,6 +9,7 @@ using namespace std;
 int Goods::number = 0;
 int Berth::totalLoadGoodnum = 0;
 int Berth::maxLoadGoodNum = 0;
+int Berth::deliverGoodNum = 0;
 int CURRENT_FRAME = 0;
 int canUnload(Berth& berth, Point2d pos) {
     int x = pos.x-berth.pos.x, y=pos.y-berth.pos.y;

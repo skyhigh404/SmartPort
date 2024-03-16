@@ -22,6 +22,7 @@ public:
 public:
     static int totalLoadGoodnum;    // 总装货的数量
     static int maxLoadGoodNum;  //理论最大装货数量
+    static int deliverGoodNum;  //送达货物数量
     float canGoScale = 0.1; // < 可以去虚拟点的剩余容量比例
     float canMoveScale = 0.2;   // > 可以移动泊位的剩余容量比例
 
@@ -44,7 +45,7 @@ public:
         //     unreach_info += "(" + std::to_string(good.id) + "," + std::to_string(good.value) + "),";
         // }
         LOGI(berth_info,reach_info,";",unreach_info);
-        LOGI("总装货量：",totalLoadGoodnum,",理论最大装货量：",maxLoadGoodNum,", 成功装载比例：",totalLoadGoodnum * 1.0 /maxLoadGoodNum);
+        LOGI("总装货量：",totalLoadGoodnum,",送达货物量：",deliverGoodNum,",理论最大装货量：",maxLoadGoodNum,", 成功装载比例：",totalLoadGoodnum * 1.0 /maxLoadGoodNum,",成功送达比例：",deliverGoodNum * 1.0/maxLoadGoodNum);
         // std::vector<std::vector<int>> temp(4,std::vector<int>(4,-1));
         // for(int i =0;i < 4;i++){
         //     for(int j=0;j<4;j++){

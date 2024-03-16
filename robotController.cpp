@@ -1,17 +1,23 @@
 #include "robotController.h"
-
+#include <chrono>
 void RobotController::runController(Map &map)
 {
     // 为所有需要寻路算法的机器人调用寻路算法，给定新目标位置
-    for (Robot &robot : robots)
-        if (needPathfinding(robot))
+    for (Robot &robot : robots){
+        if (needPathfinding(robot)){
             runPathfinding(map, robot);
+            LOGI(robot);
+        }
+    }
 
     // 更新所有机器人下一步位置
     for (Robot &robot : robots)
         robot.updateNextPos();
 
+    auto start = std::chrono::steady_clock::now();
+    int i = 0;
     while(1){
+        ++i;
         reset();
         // 考虑下一步机器人的行动是否会冲突
         std::set<RobotController::CollisionEvent> collisions = detectNextFrameConflict();
@@ -41,6 +47,9 @@ void RobotController::runController(Map &map)
         }
         // 直至解决冲突
     }
+    auto end = std::chrono::steady_clock::now();
+    // LOGI("robotController 循环处理时间: ",std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()," ms, i: ", i);
+    // LOGI("robotController 结束");
 
     // 返回给 gameManager 以输出所有机器人的行动指令
 }
@@ -190,6 +199,7 @@ void RobotController::runPathfinding(const Map &map, Robot &robot)
     }
     // 寻路成功，设置机器人状态
     else{
+        // LOGI("寻路成功",robot);
         ;
     }
 }

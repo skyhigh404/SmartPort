@@ -20,7 +20,7 @@ void RobotController::runController(Map &map)
 
     start = std::chrono::steady_clock::now();
     int i = 0;
-    while(1){
+    while(i<=2){
         ++i;
         reset();
         // 考虑下一步机器人的行动是否会冲突
@@ -50,7 +50,7 @@ void RobotController::runController(Map &map)
             }
         }
         // 直至解决冲突
-        break;
+        // break;
     }
 
     for(const auto &robot : robots)
@@ -94,8 +94,33 @@ void RobotController::tryResolveConflict(Map &map, const CollisionEvent &event)
 
     // 下一帧前往位置相同
     if(event.type == CollisionEvent::CollisionType::TargetOverlap){
+        // 检查是否有机器人是静止状态，这代表会直接撞过去
+        if (robot1.nextPos == robot1.pos || robot2.nextPos == robot2.pos){
+            // robot1 静止, robot1 占据了 robot2 的终点, robot2 停止
+            if (robot1.nextPos == robot1.pos && robot1.nextPos == robot2.destination){
+                LOGI("robot1.nextPos == robot1.pos && robot1.nextPos == robot2.destination ",robot1," ",robot2);
+                makeRobotWait(robot2);
+            }
+            // robot2 静止, robot2 占据了 robot1 的终点, robot1 停止
+            else if (robot2.nextPos == robot2.pos && robot2.nextPos == robot1.destination){
+                LOGI("robot2.nextPos == robot2.pos && robot2.nextPos == robot1.destination ",robot1," ",robot2);
+                makeRobotWait(robot1);
+            }
+            // robot1 静止，robot2 重新寻路
+            else if (robot1.nextPos == robot1.pos){
+                LOGI("robot1.nextPos == robot1.pos ",robot1," ",robot2);
+                map.addTemporaryObstacle(robot1.pos);
+                makeRobotRefindPath(robot2);
+            }
+            // robot2 静止，robot1 重新寻路
+            else if (robot2.nextPos == robot2.pos){
+                LOGI("robot2.nextPos == robot2.pos ",robot1," ",robot2);
+                map.addTemporaryObstacle(robot2.pos);
+                makeRobotRefindPath(robot1);
+            }
+        }
         // 检查机器人是否处于DIZZY状态
-        if (robot1.status == RobotStatus::DIZZY || robot2.status == RobotStatus::DIZZY) {
+        else if (robot1.status == RobotStatus::DIZZY || robot2.status == RobotStatus::DIZZY) {
             // 如果任一机器人处于DIZZY状态，则另一机器人重新寻路
             if (robot1.status != RobotStatus::DIZZY) {
                 LOGI("DIZZY ",robot2, " 重新寻路", robot1);
@@ -128,14 +153,14 @@ void RobotController::tryResolveConflict(Map &map, const CollisionEvent &event)
                 LOGI("robot1.nextPos == robot2.destination && robot2.nextPos == robot1.destination ",robot1," ",robot2);
                 makeRobotWait(decideWhoWaits(robot1, robot2)); // 基于某种逻辑决定谁等待
             }
-            // 下一帧是 robot1 的 destination，让 robot2 等待，robot 1 继续向前（不能撞到robot1，考虑到路径为空的情况）   //或重新寻路
-            else if (robot2.nextPos == robot1.destination && robot2.pos != robot1.nextPos) {
-                LOGI("robot2.nextPos == robot1.destination && robot2.pos != robot1.nextPos ",robot1," ",robot2);
+            // 下一帧是 robot1 的 destination，让 robot2 等待，robot 1 继续向前   //或重新寻路
+            else if (robot2.nextPos == robot1.destination) {
+                LOGI("robot2.nextPos == robot1.destination ",robot1," ",robot2);
                 makeRobotWait(robot2);
             } 
-            // 下一帧是 robot2 的 destination，让 robot1 等待，robot 2 继续向前（不能撞到robot1，考虑到路径为空的情况）   //或重新寻路
-            else if (robot1.nextPos == robot2.destination && robot2.nextPos != robot1.pos) {
-                LOGI("robot1.nextPos == robot2.destination && robot2.nextPos != robot1.pos",robot1," ",robot2);
+            // 下一帧是 robot2 的 destination，让 robot1 等待，robot 2 继续向前   //或重新寻路
+            else if (robot1.nextPos == robot2.destination) {
+                LOGI("robot1.nextPos == robot2.destination ",robot1," ",robot2);
                 makeRobotWait(robot1);
             }
             // robot1 和 robot2 处在单行道上要怎么解决

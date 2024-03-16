@@ -88,15 +88,24 @@ void RobotController::runPathfinding(const Map &map, Robot &robot)
 {
     // 寻路不成功，设置机器人状态
     if (!robot.findPath(map)){
-        // 
+        robot.path = Path();
+        robot.targetid = -1;
+        robot.destination = Point2d(-1,-1);
     }
     // 寻路成功，设置机器人状态
     else{
-
+        ;
     }
 }
 
+
 bool RobotController::needPathfinding(const Robot &robot)
 {
-    // 重新寻路到新终点
+    if (robot.status==MOVING_TO_GOODS && robot.targetid!=-1 && robot.path.empty()) {
+        return true;
+    }
+    if (robot.status==MOVING_TO_BERTH && robot.targetid!=-1 && robot.path.empty()) {
+        return true;
+    }
+    return false;
 }

@@ -9,7 +9,7 @@
 
 
 
-
+using std::vector;
 
 class Scheduler
 {
@@ -27,14 +27,22 @@ public:
 
 class SimpleTransportStrategy : public Scheduler
 {
+private:
+    vector<vector<int>> cost2berths; // (gs,bs)
+    vector<vector<int>> bestBerthIndex; // (gs,bs)
 public:
+
     Action scheduleRobot(Robot &robot, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths, bool debug=false) override;
     std::vector<std::pair<int, Action>>  scheduleRobots(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths) override;
+    void calCostAndBestBerthIndes(const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths);
+
     std::vector<std::pair<int, Action>>  scheduleShips(std::vector<Ship> &ships, std::vector<Berth> &berths,std::vector<Goods>& goods,std::vector<Robot> &robots,int currentFrame,bool debug=false) override;
     int shipNumInBerth(const Berth& berth,const std::vector<Ship>& ships) override;
     void countGoodInBerth(std::vector<Robot> &robots,std::vector<Berth> &berths,std::vector<Goods> goods)override;
     void calculateBerthIncome(std::vector<Berth> &berths) override;
     ActionType scheudleNormalShip(Ship &ship,Berth &berth,std::vector<Robot> robots) override;
+
+    SimpleTransportStrategy(): cost2berths(),bestBerthIndex() {}
 };
 
 // class EfficientTransportStrategy : public Scheduler {

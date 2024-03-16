@@ -34,7 +34,8 @@ public:
     Point2d nextPos;
     std::vector<Point2d> path; // 机器人即将要走的路径
 private:
-    DStarPathfinder pathFinder; // 每个机器人都要存储寻路状态
+    // DStarPathfinder pathFinder; // 每个机器人都要存储寻路状态
+    AStarPathfinder pathFinder;
 
 public:
     Robot(int id, Point2d pos)
@@ -128,55 +129,64 @@ public:
         return "pull "s + std::to_string(id);
     }
 
-    friend std::ostream& operator<<(std::ostream& os, const Robot& robot) {
-        os << "机器人" << robot.id << ",trargetid：" << robot.targetid <<",携带货物状态："<<robot.carryingItem<<",携带货物id："<<robot.carryingItemId << ",状态："<<robot.state<<"，机器人位置："<<robot.pos<<"，路径情况：";
-        for(auto & item : robot.path){
-            os << item;
-        }
-        return os;
-    }
-
     bool findPath(const Map &map, Point2d dst)
     {
         destination = dst;
-        if(pathFinder.sameGoal(destination)){
-            std::vector<Point2d> potentialObstacle = map.isCollisionRisk(id, 1);
-            // 如果有碰撞风险
-            if(potentialObstacle.size() > 0){
-                // 如果目标被占据
-                if(Point2d::isIN(destination, potentialObstacle)){
-                    // 原地等待
-                    LOGI("Robot ", id, " 原地等待"," pos: ", pos, "dst: ", destination, " path: ", printVector(path));
-                    path.push_back(pos);
-                    return true;
-                }
-                // if(path.size()>=3)
-                    // LOGI("Robot ", id, " path: ", path[0],", ", path[1],", ", path[2]);
-                LOGI("Robot ", id, " path: ", printVector(path));
-                LOGI("Robot ", id, " pos: ", pos, "dst: ", destination, " 开始避让，潜在障碍位置: ", printVector(potentialObstacle));
-                path = pathFinder.replan(pos, map, potentialObstacle, std::vector<bool>(potentialObstacle.size(), true));
-                LOGI("Robot ", id, " replan path: ", printVector(path));
-
-            }
-        }
-        else{
-            // 给定了新的终点
-            path = pathFinder.plan(this->pos, this->destination, map);
-        }
-        if (!path.empty())
+        std::variant<Path, PathfindingFailureReason> path = pathFinder.findPath(pos, destination, map);
+        if (std::holds_alternative<Path>(path)){
+            this->path = std::get<Path>(path);
             return true;
-        else
+        }
+        else {
             return false;
+        }
+        // if(pathFinder.sameGoal(destination)){
+        //     // std::vector<Point2d> potentialObstacle = map.isCollisionRisk(id, 1);
+        //     // // 如果有碰撞风险
+        //     // if(potentialObstacle.size() > 0){
+        //     //     // 如果目标被占据
+        //     //     if(Point2d::isIN(destination, potentialObstacle)){
+        //     //         // 原地等待
+        //     //         LOGI("Robot ", id, " 原地等待"," pos: ", pos, "dst: ", destination, " path: ", printVector(path));
+        //     //         path.push_back(pos);
+        //     //         return true;
+        //     //     }
+        //     //     LOGI("Robot ", id, " path: ", printVector(path));
+        //     //     LOGI("Robot ", id, " pos: ", pos, "dst: ", destination, " 开始避让，潜在障碍位置: ", printVector(potentialObstacle));
+        //     //     path = pathFinder.replan(pos, map, potentialObstacle, std::vector<bool>(potentialObstacle.size(), true));
+        //     //     LOGI("Robot ", id, " replan path: ", printVector(path));
+
+        //     refindPath(map);
+        //     // }
+        // }
+        // else{
+        //     // 给定了新的终点
+        //     path = pathFinder.plan(this->pos, this->destination, map);
+        // }
+        // if (!path.empty())
+        //     return true;
+        // else
+        //     return false;
     }
 
     bool findPath(const Map &map)
     {
         return findPath(map, destination);
     }
+
+    bool refindPath(const Map &map)
+    {
+        std::vector<Point2d> potentialObstacle = map.getNearbyTemporaryObstacles(pos, 2);
+        // path = pathFinder.replan(pos, map, potentialObstacle, std::vector<bool>(potentialObstacle.size(), true));
+        if (!path.empty())
+            return true;
+        else
+            return false;
+    }
     
     // 判断优先级，如果优先级更大则返回 true
     // 认定正常运行的，路径更短的优先级更高，然后是不携带货物的优先级更高，最后比较 ID，更小的优先级更高
-    bool comparePriority(const Robot &rhs)
+    bool comparePriority(const Robot &rhs) const
     {
         if(state != rhs.state)
             return state > rhs.state;
@@ -187,6 +197,12 @@ public:
         else
             return id < rhs.id;
     }
-    // Point2d getPosition() const;
-    // bool isCarryingItem() const;
+    
+    friend std::ostream &operator<<(std::ostream &os, const Robot &robot) {
+        os << "id: " << robot.id << " pos: " << robot.pos << " nextPos: " << robot.nextPos << " path: ";
+        for(auto & item : robot.path){
+            os << item;
+        }
+        return os;
+    }
 };

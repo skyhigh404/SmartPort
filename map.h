@@ -27,6 +27,7 @@ public:
     std::vector<std::vector<MapItemSpace::MapItem>> grid;
     std::unordered_map<int, std::vector<std::vector<int>>> berthDistanceMap;
     std::vector<std::reference_wrapper<Point2d>> robotPosition; // 实时记录机器人位置
+    std::vector<Point2d> temporaryObstacles; // 临时障碍物的位置
 
     static std::array<Point2d, 4> DIRS;
 
@@ -110,6 +111,10 @@ public:
     // 获取当前帧地图的变化，即机器人的位置，将其视为障碍（除自己外）。
     // 预测未来 n 帧是否有碰撞风险
     std::vector<Point2d> isCollisionRisk(int robotID, int framesAhead) const;
+    // 添加临时障碍物，即机器人
+    void addTemporaryObstacle(const Point2d& pos);
+    void clearTemporaryObstacles();
+    std::vector<Point2d> getNearbyTemporaryObstacles(const Point2d& robotPos, int n) const;
 };
 
 std::string printVector(const std::vector<Point2d> &path);

@@ -11,7 +11,8 @@ void RobotController::runController(const Map &map)
     for (Robot &robot : robots)
         robot.updateNextPos();
 
-    while(1){
+    // 冲突解决还没写好
+    while(0){ 
         // 考虑下一步机器人的行动是否会冲突
         std::set<RobotController::CollisionEvent> collisions = detectNextFrameConflict();
         if(collisions.empty())

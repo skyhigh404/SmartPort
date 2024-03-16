@@ -228,9 +228,35 @@ void GameManager::processFrameData()
 void GameManager::robotControl()
 {
     bool robotDebugOutput = true;
-    for (Robot& robot:robots)
+    // 机器人状态更新
+    for (Robot& robot:robots) {
+        // 机器人眩晕
+        if (robot.status == DIZZY || robot.state == 0) {
+            // 还在眩晕状态
+            robot.status = DIZZY;
+            if (robot.state == 0) continue;
+
+            // 从眩晕状态恢复
+            if (robotDebugOutput) LOGI("从眩晕状态恢复");
+            if (robot.carryingItem == 0) {
+                robot.status = MOVING_TO_GOODS;
+                robot.path = Path();
+                robot.targetid = -1;
+                robot.destination = Point2d(-1,-1);
+                robot.carryingItemId = -1;
+            }
+            else {
+                robot.status = MOVING_TO_BERTH;
+                robot.path = Path();
+                robot.targetid = -1;
+                robot.destination = Point2d(-1,-1);
+            }
+        }
+
+        // 机器人状态更新
         if (robot.carryingItem==0) robot.status = MOVING_TO_GOODS;
         else robot.status = MOVING_TO_BERTH;
+    }
 
     // 对所有可能的机器人执行取货或放货指令，更新状态
     for (Robot& robot : robots) {
@@ -286,6 +312,14 @@ void GameManager::robotControl()
     // // 执行动作
     robotController->runController(gameMap);
     
+    // 输出指令
+    for (Robot& robot : robots) {
+        if (!robot.path.empty()) {
+            string command = robot.movetoNextPosition();
+            if (robotDebugOutput) LOGI(robot.id, "向货物移动中:", command, robot.path.size());
+            commandManager.addRobotCommand(command);
+        }
+    }
 }
 
 

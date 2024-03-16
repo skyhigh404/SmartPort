@@ -27,14 +27,17 @@ void RobotController::runController(Map &map)
         // 为需要重新寻路的机器人重新寻路，并设置新的下一帧位置
         for (int i = 0; i < refindPathFlag.size(); ++i) {
             if (refindPathFlag[i]){
+                LOGI("重新寻路", robots.at(i));
                 runPathfinding(map, robots.at(i));
                 robots.at(i).updateNextPos();
             }
         }
         // 为停止一帧的机器人设置下一帧为当前帧位置
         for (int i = 0; i < waitFlag.size(); ++i) {
-            if (waitFlag[i])
+            if (waitFlag[i]){
+                LOGI("等待", robots.at(i));
                 stopRobot(robots.at(i));
+            }
         }
         // 直至解决冲突
     }

@@ -134,7 +134,7 @@ public:
         destination = dst;
         std::variant<Path, PathfindingFailureReason> path = pathFinder.findPath(pos, destination, map);
         if (std::holds_alternative<Path>(path)){
-            path = std::get<Path>(path);
+            this->path = std::get<Path>(path);
             return true;
         }
         else {

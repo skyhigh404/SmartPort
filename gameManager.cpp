@@ -316,7 +316,7 @@ void GameManager::robotControl()
         }
     }
 
-    // // 执行动作
+    // 执行动作
     robotController->runController(gameMap);
     
     // 输出指令

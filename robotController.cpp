@@ -2,19 +2,23 @@
 #include <chrono>
 void RobotController::runController(Map &map)
 {
+    auto start = std::chrono::steady_clock::now();
     // 为所有需要寻路算法的机器人调用寻路算法，给定新目标位置
     for (Robot &robot : robots){
         if (needPathfinding(robot)){
+            // LOGI("機器人",robot.id,"需要尋路");
             runPathfinding(map, robot);
-            LOGI(robot);
+            // LOGI(robot);
         }
     }
+    auto end = std::chrono::steady_clock::now();
+    LOGI("robotController 尋路时间: ",std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()," ms");
 
     // 更新所有机器人下一步位置
     for (Robot &robot : robots)
         robot.updateNextPos();
 
-    auto start = std::chrono::steady_clock::now();
+    start = std::chrono::steady_clock::now();
     int i = 0;
     while(1){
         ++i;
@@ -49,10 +53,10 @@ void RobotController::runController(Map &map)
         break;
     }
 
-    for(const auto &robot : robots)
-        LOGI(robot);
-    auto end = std::chrono::steady_clock::now();
-    LOGI("robotController 循环处理时间: ",std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()," ms, i: ", i);
+    // for(const auto &robot : robots)
+    //     LOGI(robot);
+    // auto end = std::chrono::steady_clock::now();
+    // LOGI("robotController 循环处理时间: ",std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()," ms, i: ", i);
 
     // 返回给 gameManager 以输出所有机器人的行动指令
 }
@@ -211,10 +215,11 @@ void RobotController::runPathfinding(const Map &map, Robot &robot)
         robot.path = Path();
         robot.targetid = -1;
         robot.destination = Point2d(-1,-1);
+        LOGI("尋路失敗",robot);
     }
     // 寻路成功，设置机器人状态
     else{
-        // LOGI("寻路成功",robot);
+        LOGI("寻路成功",robot);
         ;
     }
 }

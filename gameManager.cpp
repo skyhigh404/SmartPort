@@ -159,7 +159,7 @@ void GameManager::processFrameData()
         exit(0);
     }
     
-    // 清除零时障碍
+    // 清除临时障碍
     gameMap.clearTemporaryObstacles();
 
     cin >> this->currentFrame >> this->currentMoney;
@@ -270,8 +270,7 @@ void GameManager::robotControl()
         if (robot.status==DEATH) continue;
         if (robot.status==MOVING_TO_GOODS && robot.targetid!=-1 && robot.pos == goods[robot.targetid].pos) {
             if (goods[robot.targetid].TTL>0) {
-                // LOGI("機器人",robot.id,"取貨 ");
-                commandManager.addRobotCommand(robot.get());
+                                commandManager.addRobotCommand(robot.get());
                 robot.carryingItem = 1;
                 robot.carryingItemId = robot.targetid;
                 robot.status = MOVING_TO_BERTH;
@@ -300,7 +299,7 @@ void GameManager::robotControl()
                 robot.carryingItem = 0;
                 robot.carryingItemId = -1;
                 robot.targetid = -1;
-                // LOGI("测试。。。");
+// LOGI("测试。。。");
                 Berth::maxLoadGoodNum += 1;
             }
             else {

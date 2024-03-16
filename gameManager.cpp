@@ -8,6 +8,7 @@
 using namespace std;
 int Goods::number = 0;
 int Berth::totalLoadGoodnum = 0;
+int Berth::maxLoadGoodNum = 0;
 int CURRENT_FRAME = 0;
 int canUnload(Berth& berth, Point2d pos) {
     int x = pos.x-berth.pos.x, y=pos.y-berth.pos.y;
@@ -268,6 +269,7 @@ void GameManager::robotControl()
                 robot.targetid = -1;
                 robot.status = MOVING_TO_BERTH;
                 goods[robot.targetid].TTL = INT_MAX;
+                // Berth::maxLoadGoodNum += 1;
             }
             // 货物过期
             else {
@@ -288,6 +290,8 @@ void GameManager::robotControl()
                 robot.carryingItem = 0;
                 robot.carryingItemId = -1;
                 robot.targetid = -1;
+                // LOGI("测试。。。");
+                Berth::maxLoadGoodNum += 1;
             }
             else {
                 robot.targetid = -1;
@@ -503,6 +507,7 @@ void GameManager::RobotControl()
                     robot.carryingItem = 0;
                     robot.carryingItemId = -1;
                     robot.targetid = -1;
+                    Berth::maxLoadGoodNum += 1;
                 }
                 // 不可放货，重新分配放货位置
                 else {

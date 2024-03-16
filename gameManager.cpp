@@ -7,6 +7,7 @@
 
 using namespace std;
 int Goods::number = 0;
+int Berth::totalLoadGoodnum = 0;
 int CURRENT_FRAME = 0;
 int canUnload(Berth& berth, Point2d pos) {
     int x = pos.x-berth.pos.x, y=pos.y-berth.pos.y;
@@ -124,7 +125,9 @@ void GameManager::initializeGame()
     // // 打印单行路
     // std::vector<Point2d> singleLaneList = this->singleLaneManager.getSingleLanesVector();
     // LOGI("单行路数量：",singleLaneList.size());
-    // this->gameMap.drawMap(nullptr,nullptr,&singleLaneList,nullptr,nullptr);
+    // LOGI(this->gameMap.drawMap(nullptr,nullptr,nullptr,nullptr,nullptr));
+    // LOGI(this->gameMap.drawMap(nullptr,nullptr,&singleLaneList,nullptr,nullptr));
+    // exit(0);
 
     // LOGI("Log berth 0 BFS map.");
     // LOGI(Map::drawMap(this->gameMap.berthDistanceMap[0],12));
@@ -504,7 +507,7 @@ void GameManager::update()
 
     if(shipDebugOutput){LOGI("船只开始调度");};
     auto ship_start = std::chrono::high_resolution_clock::now();
-    std::vector<std::pair<int, Action>> ShipActions = this->scheduler->scheduleShips(ships, berths, goods, robots, shipDebugOutput);
+    std::vector<std::pair<int, Action>> ShipActions = this->scheduler->scheduleShips(ships, berths, goods, robots,this->currentFrame, shipDebugOutput);
     auto ship_end = std::chrono::high_resolution_clock::now();
     if(shipDebugOutput) LOGI("调度船只时长:",std::chrono::duration_cast<std::chrono::milliseconds>(ship_end - ship_start).count(),"ms");
 

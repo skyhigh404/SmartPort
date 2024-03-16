@@ -13,7 +13,7 @@ public:
         int robotId2; // 第二个机器人的ID
         enum CollisionType { TargetOverlap, SwapPositions } type; // 碰撞类型
         
-        CollisionEvent(int id1, int id2, CollisionType t, Point2d pos)
+        CollisionEvent(int id1, int id2, CollisionType t)
             : robotId1(std::min(id1, id2)), robotId2(std::max(id1, id2)), type(t) {}
         bool operator<(const CollisionEvent &rhs) const {
             // 防止重复机器人对
@@ -48,7 +48,7 @@ public:
 
 private:
     // 根据动作判断是否需要调用寻路算法
-    bool needPathfinding();
+    bool needPathfinding(const Robot &robot);
 
     // 调用寻路算法
     void runPathfinding(const Map &map, Robot &robot);
@@ -57,7 +57,7 @@ private:
     std::set<CollisionEvent> detectNextFrameConflict();
 
     // 解决冲突
-    void resolveConflict(Robot &robot1, Robot &robot2);
+    void resolveConflict(const CollisionEvent &event);
 
     // 解决死锁的逻辑
     // 根据机器人的位置和预定路径检测潜在的死锁

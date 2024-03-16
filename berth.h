@@ -18,12 +18,12 @@ public:
     int residue_num = 0;    //泊位当前剩余无法装在的货物数量，每帧重新计算
     int totalValue = 0; //泊位当前理论收益，每帧重新计算
 
-    std::vector<std::vector<Goods*>> storageSlots;  //16个存在货物的格子，nullptr表示格子是空的，有值则存的是指定货物对象的地址
+    std::vector<std::vector<int>> storageSlots;  //16个存在货物的格子，nullptr表示格子是空的，有值则存的是指定货物对象的地址
 public:
     Berth(int id, Point2d pos, int time, int velocity)
         : id(id), pos(pos), time(time), velocity(velocity), stockpile(0), stockpileValue(0)
     {
-        storageSlots = std::vector<std::vector<Goods*>>(4, std::vector<Goods*>(4, nullptr));
+        storageSlots = std::vector<std::vector<int>>(4, std::vector<int>(4, -1));
     }
 
     // 打印泊位信息
@@ -31,41 +31,49 @@ public:
         std::string berth_info = "泊位" + std::to_string(id) + "位置" + std::to_string(pos.x) +','+std::to_string(pos.y) + ",装货速度：" + std::to_string(velocity) + ",送货时间：" + std::to_string(time) + ";"+"剩余容量："+ std::to_string(residue_num)+";";
         std::string reach_info = "已到达货物数量:" + std::to_string(reached_goods.size()) + ";";
         for(const auto& good : reached_goods){
-            reach_info += "(" + std::to_string(good.status) + "," + std::to_string(good.value) + "),";
+            reach_info += "(" + std::to_string(good.id) + "," + std::to_string(good.value) + "),";
         }
 
         std::string unreach_info = "未到达货物数量:" + std::to_string(unreached_goods.size()) + ";";
         for(const auto& good : unreached_goods){
-            unreach_info += "(" + std::to_string(good.status) + "," + std::to_string(good.value) + "),";
+            unreach_info += "(" + std::to_string(good.id) + "," + std::to_string(good.value) + "),";
         }
         LOGI(berth_info,reach_info,";",unreach_info);
-        std::vector<std::vector<int>> temp(4,std::vector<int>(4,0));
-        for(int i =0;i < 4;i++){
-            for(int j=0;j<4;j++){
-                if(storageSlots[i][j] != nullptr){
-                    temp[i][j] = 1;
-                }
-            }
-        }
+        // std::vector<std::vector<int>> temp(4,std::vector<int>(4,-1));
+        // for(int i =0;i < 4;i++){
+        //     for(int j=0;j<4;j++){
+        //         if(storageSlots[i][j] != nullptr){
+        //             temp[i][j] = storageSlots[i][j]->id;
+        //         }
+        //     }
+        // }
         for(int i=0;i<4;i++){
-            LOGI(temp[i][0]," ",temp[i][1]," ",temp[i][2]," ",temp[i][3]);
+            LOGI(storageSlots[i][0]," ",storageSlots[i][1]," ",storageSlots[i][2]," ",storageSlots[i][3]);
         }
+        LOGI("-----------------------------------------------------------------------------------------------------------------------------------------------");
     }
 
     // 传入卸货数量，按照进货数量进行卸货
     void unloadGoods(int res){
+        int num = 0;
         for(int index = 0;index < res && index < reached_goods.size();index++){
             bool find_flag = false;
             for(int i =0;i < 4;i++){
                 for(int j = 0;j < 4 ;j++){
-                    if(storageSlots[i][j] != nullptr && storageSlots[i][j]->id == reached_goods[index].id){
-                        storageSlots[i][j] = nullptr;
+                    if(storageSlots[i][j] == reached_goods[index].id){
+                        storageSlots[i][j] = -1;
                         find_flag = true;
+                        num++;
                         break;
                     }
                 }
                 if(find_flag) break;
             }
+        }
+        
+        if(res != num){
+            LOGI("应该卸货数量：",res,",实际卸货数量：",num);
+            info();
         }
     }
 

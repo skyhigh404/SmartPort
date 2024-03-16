@@ -11,7 +11,7 @@ int CURRENT_FRAME = 0;
 int canUnload(Berth& berth, Point2d pos) {
     int x = pos.x-berth.pos.x, y=pos.y-berth.pos.y;
     if (x<0 || x>3 || y<0 || y>3) {LOGI("越界",pos,' ',berth.pos);return 0;}
-    if (berth.storageSlots[x][y]==nullptr) {LOGI("可放貨");return 1;}
+    if (berth.storageSlots[x][y]== -1) {LOGI("可放貨");return 1;}
     else return 0;
 }
 
@@ -329,7 +329,7 @@ void GameManager::robotControl()
 
 void GameManager::RobotControl()
 {
-    bool robotDebugOutput = false;
+    bool robotDebugOutput = true;
     AStarPathfinder pathfinder;
     for (int i=0;i<robots.size();i++) {
         Robot& robot = robots[i];
@@ -363,10 +363,9 @@ void GameManager::RobotControl()
             if (action.type==FAIL) continue;
             std::variant<Path, PathfindingFailureReason> path = pathfinder.findPath(robots[i].pos, action.desination, gameMap);
             if (std::holds_alternative<Path>(path)) {
-            // if (robots[i].findPath(gameMap, action.desination)) {
                 if (robotDebugOutput) LOGI(i, "寻路成功");
-                // Path temp_path = std::get<Path>(path);
-                // robot.path = temp_path;
+                Path temp_path = std::get<Path>(path);
+                robot.path = temp_path;
                 robot.status = MOVING_TO_GOODS;
                 robot.targetid = action.targetId;
                 robot.destination = action.desination;
@@ -375,7 +374,7 @@ void GameManager::RobotControl()
             else {
                 if (robotDebugOutput) LOGI(i, "寻路失败");
                 // 重置窗台
-                // robots[i].path = Path();
+                robots[i].path = Path();
                 robot.status = IDLE;
                 robot.targetid = -1;
                 // robot.destination = Point2d(-1,-1);
@@ -384,7 +383,6 @@ void GameManager::RobotControl()
 
         if (robot.status == MOVING_TO_GOODS) {
             if (!robot.path.empty()) {
-                robot.findPath(gameMap);
                 const std::string temp = robot.moveWithPath();
                 if (robotDebugOutput) LOGI(i, "向货物移动中:",temp, robot.path.size());
                 commandManager.addRobotCommand(temp);
@@ -456,10 +454,9 @@ void GameManager::RobotControl()
             if (robot.targetid == -1) {
                 Action action = this->scheduler->scheduleRobot(robot, gameMap, goods, berths, robotDebugOutput);
                 std::variant<Path, PathfindingFailureReason> path = pathfinder.findPath(robot.pos, action.desination, gameMap);
-                // if (robots[i].findPath(gameMap, action.desination)){
                 if (std::holds_alternative<Path>(path)) {
-                    // Path temp_path = std::get<Path>(path);
-                    // robot.path = temp_path;
+                    Path temp_path = std::get<Path>(path);
+                    robot.path = temp_path;
                     robot.status = MOVING_TO_BERTH;
                     robot.targetid = action.targetId;
                     robot.destination = action.desination;
@@ -471,18 +468,18 @@ void GameManager::RobotControl()
             }
 
             // 如果未到达目标泊位，但是路径为空
-            // if (robot.pos != robot.destination && robot.path.empty()) {
-            //     std::variant<Path, PathfindingFailureReason> path = pathfinder.findPath(robot.pos, robot.destination, gameMap);
-            //     if (std::holds_alternative<Path>(path)) {
-            //         Path temp_path = std::get<Path>(path);
-            //         robot.path = temp_path;
-            //     }
-            //     else {
-            //         LOGI("已分配泊位，但路径为空，且寻路失败.",robot.pos,',',robot.destination);
-            //         robot.targetid = -1;
-            //     }
-            // }
-            robot.findPath(gameMap);
+            if (robot.pos != robot.destination && robot.path.empty()) {
+                std::variant<Path, PathfindingFailureReason> path = pathfinder.findPath(robot.pos, robot.destination, gameMap);
+                if (std::holds_alternative<Path>(path)) {
+                    Path temp_path = std::get<Path>(path);
+                    robot.path = temp_path;
+                }
+                else {
+                    LOGI("已分配泊位，但路径为空，且寻路失败.",robot.pos,',',robot.destination);
+                    robot.targetid = -1;
+                }
+            }
+            
             const std::string temp = robot.moveWithPath();
             if (robotDebugOutput) LOGI(i, "向泊位移动中:",temp);
             commandManager.addRobotCommand(temp);
@@ -493,13 +490,13 @@ void GameManager::RobotControl()
             // berth.info(); //这个函数有bug，
             if (robot.pos == robot.destination) {
                 // 货物可放货 todo
-                // LOGI("放貨",robot,"dest",robot.destination);
+                LOGI("放貨",robot,"dest",robot.destination);
                 if (canUnload(berth, robot.pos)) {
-                    // LOGI("輸出");
+                    LOGI("輸出");
                     commandManager.addRobotCommand(robots[i].pull());
                     // 货物 泊位 状态更新 todo
                     int x = robot.pos.x-berth.pos.x, y=robot.pos.y-berth.pos.y;
-                    berth.storageSlots[x][y] = &goods[robot.carryingItemId];
+                    berth.storageSlots[x][y] = goods[robot.carryingItemId].id;
                     berth.reached_goods.push_back(goods[robot.carryingItemId]);
 
 
@@ -531,13 +528,12 @@ void GameManager::update()
     auto start = std::chrono::steady_clock::now();
     
     bool robotDebugOutput = false;
-    bool shipDebugOutput = false;
+    bool shipDebugOutput = true;
 
     // robots[3].findPath(gameMap,Point2d(133,99));
     // robots[6].findPath(gameMap,Point2d(142,112));
     // commandManager.addRobotCommand(robots[3].moveWithPath());
     // commandManager.addRobotCommand(robots[6].moveWithPath());
-
     RobotControl();
 
     auto end = std::chrono::steady_clock::now();

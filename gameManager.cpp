@@ -159,7 +159,7 @@ void GameManager::processFrameData()
         exit(0);
     }
     
-    // 清除零时障碍
+    // 清除临时障碍
     gameMap.clearTemporaryObstacles();
 
     cin >> this->currentFrame >> this->currentMoney;
@@ -266,7 +266,7 @@ void GameManager::robotControl()
     for (Robot& robot : robots) {
         if(robot.status==MOVING_TO_GOODS && robot.targetid!=-1 && robot.pos == goods[robot.targetid].pos){
             if (goods[robot.targetid].TTL>0) {
-                commandManager.addRobotCommand(robot.get());
+                                commandManager.addRobotCommand(robot.get());
                 robot.carryingItem = 1;
                 robot.carryingItemId = robot.targetid;
                 robot.targetid = -1;
@@ -284,7 +284,7 @@ void GameManager::robotControl()
         else if(robot.status==MOVING_TO_BERTH && robot.targetid!=-1 && robot.pos == robot.destination){
             Berth &berth = berths[robot.targetid];
             if (canUnload(berth, robot.pos)) {
-                commandManager.addRobotCommand(robot.pull());
+                                commandManager.addRobotCommand(robot.pull());
                 int x = robot.pos.x-berth.pos.x, y=robot.pos.y-berth.pos.y;
                 berth.storageSlots[x][y] = goods[robot.carryingItemId].id;
                 berth.reached_goods.push_back(goods[robot.carryingItemId]);
@@ -293,7 +293,7 @@ void GameManager::robotControl()
                 robot.carryingItem = 0;
                 robot.carryingItemId = -1;
                 robot.targetid = -1;
-                // LOGI("测试。。。");
+// LOGI("测试。。。");
                 Berth::maxLoadGoodNum += 1;
             }
             else {
@@ -538,7 +538,7 @@ void GameManager::update()
     // robots[6].findPath(gameMap,Point2d(142,112));
     // commandManager.addRobotCommand(robots[3].moveWithPath());
     // commandManager.addRobotCommand(robots[6].moveWithPath());
-    RobotControl();
+    robotControl();
 
     auto end = std::chrono::steady_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);

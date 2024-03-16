@@ -3,7 +3,6 @@
 #include "log.h"
 #include "pathFinder.h"
 #include <chrono>
-#include <thread>
 int main()
 {
 #ifdef DEBUG

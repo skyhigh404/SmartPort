@@ -142,7 +142,10 @@ public:
 class ImplicitEnumeration : public Scheduler
 {
 public:
-    int Constraint_distance;
+    int Constraint_max_distance;
+    int Constraint_total_distance;
+    int Constraint_least_berths;
+    vector<int> leastBerthsIndex;
 
     Action scheduleRobot(Robot &robot, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths, bool debug=false) override;
     std::vector<std::pair<int, Action>>  scheduleRobots(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths) override {}
@@ -153,13 +156,20 @@ public:
     bool GoodsPickedOnce(vector<int>& array, std::vector<Goods> &goods);
     bool ArriveBeforeTTL(vector<int>& array, vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths);
     bool CloseToGood(Robot& robot, Goods& good, const Map &map, std::vector<Berth> &berths, int dist);
+    bool ImplicitEnumeration::LowTotalCost(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths, vector<int>& array, int len);
+    void ImplicitEnumeration::calBerthsHoldingGoods(std::vector<Goods> &goods, std::vector<Berth> &berths);
+    bool ImplicitEnumeration::NotTheLeastBerths(Goods& good);
+
+
+
     double CalTargetValue(vector<int>& array, std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths);
-    
-    ImplicitEnumeration(): Scheduler(),Constraint_distance(100) {}
 
     StageType getSchedulerType( )override{
         return StageType::SIMPLE;
     }
+
+    ImplicitEnumeration(): Scheduler(),Constraint_max_distance(200),Constraint_total_distance(150),Constraint_least_berths(3) {}
+
 };
 
 // class EfficientTransportStrategy : public Scheduler {

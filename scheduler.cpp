@@ -223,9 +223,10 @@ Action SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std:
             // 去曼哈顿距离最近且有空的位置
             for (int i=3;i>=0;i--) {
                 for (int j=3;j>=0;j--) {
-                    if (berth.storageSlots[i][j]==-1 && map.cost(robot.pos, berth.pos)<nearest) {
+                    // if (berth.storageSlots[i][j]==-1 && map.cost(robot.pos, berth.pos)<nearest) {
+                    if (map.cost(robot.pos, Point2d(berth.pos.x+i, berth.pos.y+j))<nearest) {
                         dest = Point2d(berth.pos.x+i, berth.pos.y+j);
-                        nearest = map.cost(robot.pos, berth.pos);
+                        nearest = map.cost(robot.pos, Point2d(berth.pos.x+i, berth.pos.y+j));
                     }
                 }
             }

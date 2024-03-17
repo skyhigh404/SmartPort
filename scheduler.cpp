@@ -287,7 +287,7 @@ Action SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std:
         // profit_output += "(timetogood:" + std::to_string(timeToGoods) + ",timetoberths:" + std::to_string(timeToBerths) + ",profit:" + std::to_string(profits[j]) + ") ";
         // LOGI("货物",j,"收益为：",profits[j]);
     }
-    LOGI(profit_output);
+    // LOGI(profit_output);
     
     if (debug) LOGI("开始分配货物");
 

@@ -4,6 +4,7 @@
 #include <tuple>
 #include <unordered_map>
 #include <vector>
+#include <climits>
 
 #define DEBUG
 
@@ -61,7 +62,7 @@ struct Point2d
     }
     static inline float calculateEuclideanDistance(const Point2d &p1, const Point2d &p2)
     {
-        return std::sqrt((double)(std::pow(p1.x - p2.x, 2) + std::pow(p1.y - p2.y, 2)));
+        return std::sqrt((float)(std::pow(p1.x - p2.x, 2) + std::pow(p1.y - p2.y, 2)));
     }
     static bool isIN(Point2d pos, std::vector<Point2d> poss)
     {
@@ -71,7 +72,7 @@ struct Point2d
         return false;
     }
 
-    float operator*(const Point2d &other) const
+    int operator*(const Point2d &other) const
     { // 重载*运算符以实现点积
         return this->x * other.x + this->y * other.y;
     }

@@ -302,6 +302,7 @@ void GameManager::robotControl()
                 berth.storageSlots[x][y] = goods[robot.carryingItemId].id;
                 berth.reached_goods.push_back(goods[robot.carryingItemId]);
                 goods[robot.carryingItemId].status = 3;
+                totalGetGoodsValue += goods[robot.carryingItemId].value;
                 robot.status = IDLE;
                 robot.carryingItem = 0;
                 robot.carryingItemId = -1;
@@ -314,7 +315,7 @@ void GameManager::robotControl()
             }
         }
     }
-    LOGI("機器人取放貨完畢");
+    // LOGI("機器人取放貨完畢");
 
     // 对所有需要调度的机器人进行调度
     for (Robot& robot : robots) {
@@ -345,6 +346,8 @@ void GameManager::robotControl()
             commandManager.addRobotCommand(command);
         }
     }
+    if(currentFrame==14000)
+        LOGI("totalGetGoodsValue: ", totalGetGoodsValue);
 }
 
 

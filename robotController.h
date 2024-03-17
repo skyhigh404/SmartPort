@@ -80,7 +80,7 @@ private:
     // 让一个机器人等待
     void stopRobot(Robot &robot);
 
-
+    void decideWhoToWaitAndRefindWhenTargetOverlap(Map &map, const Robot &robot1, const Robot &robot2);
 
 private:
     // std::unordered_map<int, Action> robotAction;

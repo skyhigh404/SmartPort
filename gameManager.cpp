@@ -167,7 +167,10 @@ void GameManager::processFrameData()
     gameMap.clearTemporaryObstacles();
 
     cin >> this->currentFrame >> this->currentMoney;
-    skipFrame += this->currentFrame - CURRENT_FRAME - 1;
+    int skipFrame = this->currentFrame - CURRENT_FRAME - 1;
+    this->skipFrame += skipFrame;
+    if(skipFrame)
+        LOGW("跳帧: ", skipFrame);
     CURRENT_FRAME = this->currentFrame;
     LOGI("====================================================新的一帧=====================================================");
     // 货物生命周期维护
@@ -243,7 +246,7 @@ void GameManager::processFrameData()
 
 void GameManager::robotControl()
 {
-    bool robotDebugOutput = true;
+    bool robotDebugOutput = false;
     // 机器人状态更新
     for (Robot& robot:robots) {
         if (robot.status==DEATH) continue;
@@ -320,6 +323,7 @@ void GameManager::robotControl()
     }
     // LOGI("機器人取放貨完畢");
 
+    auto start = std::chrono::steady_clock::now();
     // 对所有需要调度的机器人进行调度
     for (Robot& robot : robots) {
         if (robot.status==DEATH) continue;
@@ -335,6 +339,8 @@ void GameManager::robotControl()
             robot.destination = action.desination;
         }
     }
+    auto end = std::chrono::steady_clock::now();
+    LOGI("scheduleRobot时间: ",std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()," ms");
     // LOGI("機器人調度完畢");
 
     // 执行动作
@@ -350,9 +356,7 @@ void GameManager::robotControl()
             commandManager.addRobotCommand(command);
         }
     }
-    if(currentFrame>=14000 && currentFrame <= 14005){
-        LOGI("skipFrame: ", skipFrame, ", totalGetGoodsValue: ", totalGetGoodsValue);
-    }
+    
 }
 
 
@@ -569,7 +573,7 @@ void GameManager::update()
 
     auto end = std::chrono::steady_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-    LOGI("调度机器人时长:",duration.count(),"ms");
+    LOGI("robotControl时长:",duration.count(),"ms");
 
     if(shipDebugOutput){LOGI("船只开始调度");};
     auto ship_start = std::chrono::high_resolution_clock::now();
@@ -594,6 +598,10 @@ void GameManager::update()
             // LOGI(ship_id,"分配去泊位",ship_action.targetId);
             commandManager.addShipCommand(ships[ship_id].moveToBerth(ship_action.targetId));
         }
+    }
+
+    if(currentFrame>=14000 && currentFrame <= 14005){
+        LOGI("skipFrame: ", skipFrame, ", totalGetGoodsValue: ", totalGetGoodsValue);
     }
 }
 

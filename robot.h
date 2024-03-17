@@ -45,7 +45,7 @@ public:
           state(0),
           status(IDLE),
           carryingItemId(-1),
-          targetid(0),
+          targetid(-1),
           nextPos(-1,-1)
     {
     }
@@ -200,7 +200,7 @@ public:
     
     friend std::ostream &operator<<(std::ostream &os, const Robot &robot) {
         os << "id: " << robot.id << " pos: " << robot.pos << " nextPos: " << robot.nextPos << " dst: " << robot.destination << " path: ";
-        for(int i = std::min(2, (int)robot.path.size()-1); i >= 0; --i){
+        for(int i = (int)robot.path.size()-1; i >= std::max(0, (int)robot.path.size()-3); --i){
             os << robot.path[i];
         }
         return os;

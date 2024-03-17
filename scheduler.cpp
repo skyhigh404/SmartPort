@@ -180,7 +180,7 @@ void SimpleTransportStrategy::calCostAndBestBerthIndes(const Map &map, std::vect
         });
         cost2berths.push_back(cost);
         bestBerthIndex.push_back(index);
-        LOGI(bestBerthIndex.size(),' ',cost2berths.size());
+        // LOGI(bestBerthIndex.size(),' ',cost2berths.size());
     }
     // LOGI("cal end:",bestBerthIndex.size(),' ',cost2berths.size());
 }
@@ -276,7 +276,7 @@ Action SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std:
     std::string profit_output="";
     // 计算机器人将货物送达泊位的耗时
     std::vector<float> profits(goods.size(), 0);
-    LOGI(goods.size());
+    // LOGI(goods.size());
     for (int j = 0; j < goods.size(); j++)  {
         int timeToGoods = cost2goods[j];
         // int timeToBerths = cost2berths[j][bestBerthIndex[goods[j].id]];
@@ -307,7 +307,7 @@ Action SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std:
         profits_output += std::to_string(profits[i]) + " ";
     }
     profits = profits_sorted;
-    LOGI(profits_output);
+    // LOGI(profits_output);
 
     for (int j = 0; j < goods.size(); ++j) {
         int goodsIndex = indices[j];

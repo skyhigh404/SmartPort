@@ -38,10 +38,7 @@ public:
     }
 
     void goStatus(){
-        // 进行统计
-        Berth::deliverGoodNum += (capacity - now_capacity);
-
-        //装满,去往虚拟点
+        //恢复状态
         now_capacity = capacity;
         state = 0;
         berthId = -1;

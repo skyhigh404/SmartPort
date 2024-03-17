@@ -126,6 +126,8 @@ public:
                     return ship2Berth[shipId];
                 }
             }
+            assert(ship2Berth[shipId] != -1);
+            return -1;
         }
         else{
             return ship2Berth[shipId];
@@ -154,6 +156,10 @@ public:
     double CalTargetValue(vector<int>& array, std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths);
     
     ImplicitEnumeration(): Scheduler(),Constraint_distance(100) {}
+
+    StageType getSchedulerType( )override{
+        return StageType::SIMPLE;
+    }
 };
 
 // class EfficientTransportStrategy : public Scheduler {

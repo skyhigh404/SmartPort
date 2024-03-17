@@ -520,13 +520,14 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleShips(std:
             if(ships[i].berthId != -1){  
                 if(berths[ships[i].berthId].mustGo(remainder)){
                     if(debug){LOGI("剩余时间：",remainder,",必须走了：",berths[ships[i].berthId].mustGo(remainder));}
+                    Berth::deliverGoodNum += (ships[i].capacity - ships[i].now_capacity);
                     ships[i].goStatus();
                     shipActions.push_back(std::make_pair(i, Action{DEPART_BERTH,Point2d(),-1}));
                 }
                 else if(ships[i].now_capacity <= 1){
                     // 装满则发货
                     if(debug){LOGI("装满了，发船（移动）");ships[i].info();berths[ships[i].berthId].info();}
-
+                    Berth::deliverGoodNum += (ships[i].capacity - ships[i].now_capacity);
                     ships[i].goStatus();
                     //装满,去往虚拟点
                     shipActions.push_back(std::make_pair(i, Action{DEPART_BERTH,Point2d(),-1}));
@@ -544,6 +545,7 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleShips(std:
                     // else if(action == DEPART_BERTH || berths[ships[i].berthId].mustGo(remainder)){
                     else if(action == DEPART_BERTH){
                         if(debug){LOGI("没货，船载到货，发船（移动）");ships[i].info();berths[ships[i].berthId].info();}
+                        Berth::deliverGoodNum += (ships[i].capacity - ships[i].now_capacity);
                         ships[i].goStatus();
                         shipActions.push_back(std::make_pair(i, Action{DEPART_BERTH,Point2d(),-1}));
                     }
@@ -749,9 +751,9 @@ ActionType SimpleTransportStrategy::scheudleNormalShip(Ship &ship,Berth &berth,s
 }
 
 // 调度船只
-std::vector<std::pair<int, Action>>  FinalTransportStrategy::scheduleShips(std::vector<Ship> &ships, std::vector<Berth> &berths,std::vector<Goods>& goods,std::vector<Robot> &robots,std::vector<vector<int>> bestBerthIndex,int currentFrame,bool debug=false){
+std::vector<std::pair<int, Action>>  FinalTransportStrategy::scheduleShips(std::vector<Ship> &ships, std::vector<Berth> &berths,std::vector<Goods>& goods,std::vector<Robot> &robots,std::vector<vector<int>> bestBerthIndex,int currentFrame,bool debug){
     // 设置五个唯一泊位
-    calculateBestBerths(ships,berths,goods,bestBerthIndex);
+    calculateBestBerths(ships,berths,goods,bestBerthIndex,debug);
     int remainder = 15000 - currentFrame;
 
     // 遍历船，进行调度
@@ -776,6 +778,8 @@ std::vector<std::pair<int, Action>>  FinalTransportStrategy::scheduleShips(std::
             // 货满则出发
             if (ships[i].now_capacity == 0 && ships[i].berthId != -1){
                 //装满,去往虚拟点
+                // 进行统计
+                Berth::deliverGoodNum += (ships[i].capacity - ships[i].now_capacity);
                 ships[i].goStatus();
                 shipActions.push_back(std::make_pair(i, Action{DEPART_BERTH,Point2d(),-1}));
             }
@@ -790,6 +794,7 @@ std::vector<std::pair<int, Action>>  FinalTransportStrategy::scheduleShips(std::
                 // 到了终局准备阶段前直接走;一去一回
                 if(berths[assignedBerthId].mustGo(remainder,2 * berths[assignedBerthId].time + maxLoadTime) && nowCapaityProportion < 0.9){
                     //装满,去往虚拟点
+                    Berth::deliverGoodNum += (ships[i].capacity - ships[i].now_capacity);
                     ships[i].goStatus();
                     shipActions.push_back(std::make_pair(i, Action{DEPART_BERTH,Point2d(),-1}));
                 }
@@ -800,14 +805,17 @@ std::vector<std::pair<int, Action>>  FinalTransportStrategy::scheduleShips(std::
                     if(ships[i].berthId == assignedBerthId){
                         // 剩余容量 <= 90% ，去虚拟点
                         if(nowCapaityProportion < 0.9){
+                            Berth::deliverGoodNum += (ships[i].capacity - ships[i].now_capacity);
                             ships[i].goStatus();
                             shipActions.push_back(std::make_pair(i, Action{DEPART_BERTH,Point2d(),-1}));
                         }
                     }
+                    // 泊位不一致
                     else{
                         // 剩余货量 <= 90，去虚拟点，否则直接去对应泊位
                         // 剩余容量 <= 90% ，去虚拟点
                         if(nowCapaityProportion < 0.9){
+                            Berth::deliverGoodNum += (ships[i].capacity - ships[i].now_capacity);
                             ships[i].goStatus();
                             shipActions.push_back(std::make_pair(i, Action{DEPART_BERTH,Point2d(),-1}));
                         }
@@ -838,7 +846,7 @@ std::vector<std::pair<int, Action>>  FinalTransportStrategy::scheduleShips(std::
 }
 
 // 计算最优的五个泊位，并给对应的availiable_berths赋值
-void FinalTransportStrategy::calculateBestBerths(std::vector<Ship> &ships, std::vector<Berth> &berths,std::vector<Goods>& goods, std::vector<vector<int>> bestBerthIndex,bool debug=false)
+void FinalTransportStrategy::calculateBestBerths(std::vector<Ship> &ships, std::vector<Berth> &berths,std::vector<Goods>& goods, std::vector<vector<int>> bestBerthIndex,bool debug)
 {
     if(!hasInit){
         // 初始化泊位价值,计算已到达货物的价值;统计泊位上船的数量

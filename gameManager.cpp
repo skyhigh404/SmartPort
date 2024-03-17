@@ -14,8 +14,8 @@ int CURRENT_FRAME = 0;
 int canUnload(Berth& berth, Point2d pos) {
     int x = pos.x-berth.pos.x, y=pos.y-berth.pos.y;
     if (x<0 || x>3 || y<0 || y>3) {LOGI("越界",pos,' ',berth.pos);return 0;}
-    if (berth.storageSlots[x][y]== -1) {LOGI("可放貨");return 1;}
-    else return 0;
+    // if (berth.storageSlots[x][y]== -1) {LOGI("可放貨");return 1;}
+    else return 1;
 }
 
 void GameManager::initializeGame()
@@ -559,7 +559,7 @@ void GameManager::update()
     auto start = std::chrono::steady_clock::now();
     
     bool robotDebugOutput = false;
-    bool shipDebugOutput = true;
+    bool shipDebugOutput = false;
 
     // robots[3].findPath(gameMap,Point2d(133,99));
     // robots[6].findPath(gameMap,Point2d(142,112));
@@ -570,14 +570,14 @@ void GameManager::update()
 
     auto end = std::chrono::steady_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-    if(robotDebugOutput) LOGI("调度机器人时长:",duration.count(),"ms");
+    LOGI("调度机器人时长:",duration.count(),"ms");
 
     if(shipDebugOutput){LOGI("船只开始调度");};
     auto ship_start = std::chrono::high_resolution_clock::now();
     std::vector<std::pair<int, Action>> ShipActions = this->scheduler->scheduleShips(ships, berths, goods, robots,this->currentFrame, shipDebugOutput);
     auto ship_end = std::chrono::high_resolution_clock::now();
-    if(shipDebugOutput) LOGI("调度船只时长:",std::chrono::duration_cast<std::chrono::milliseconds>(ship_end - ship_start).count(),"ms");
-    
+    LOGI("调度船只时长:",std::chrono::duration_cast<std::chrono::milliseconds>(ship_end - ship_start).count(),"ms");
+
     // CommandManager.shipCommands
     for (int i = 0; i < ShipActions.size(); i++)
     {

@@ -17,10 +17,20 @@
 // 在这里设置当前的日志级别
 #define LOG_LEVEL LOG_LEVEL_INFO
 
+#ifdef DEBUG
 // 定义记录宏
 #define LOGI(...) Log::logWriteFormatted(LogLevel::INFO, __VA_ARGS__)
 #define LOGW(...) Log::logWriteFormatted(LogLevel::WARNING, __VA_ARGS__)
 #define LOGE(...) Log::logWriteFormatted(LogLevel::ERROR, __VA_ARGS__)
+
+#else
+// 如果没有定义DEBUG，则将LOG宏定义为不执行任何操作的宏
+// 使用do { } while(0)是为了确保宏在使用时的语义正确性，比如在if语句中不会出现语法错误
+#define LOGI(...) do {} while (0)
+#define LOGW(...) do {} while (0)
+#define LOGE(...) do {} while (0)
+
+#endif
 
 enum class LogLevel
 {

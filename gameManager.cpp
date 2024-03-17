@@ -167,6 +167,7 @@ void GameManager::processFrameData()
     gameMap.clearTemporaryObstacles();
 
     cin >> this->currentFrame >> this->currentMoney;
+    skipFrame += this->currentFrame - CURRENT_FRAME - 1;
     CURRENT_FRAME = this->currentFrame;
     LOGI("====================================================新的一帧=====================================================");
     // 货物生命周期维护
@@ -349,8 +350,9 @@ void GameManager::robotControl()
             commandManager.addRobotCommand(command);
         }
     }
-    if(currentFrame==14000)
-        LOGI("totalGetGoodsValue: ", totalGetGoodsValue);
+    if(currentFrame>=14000 && currentFrame <= 14005){
+        LOGI("skipFrame: ", skipFrame, ", totalGetGoodsValue: ", totalGetGoodsValue);
+    }
 }
 
 
@@ -574,7 +576,7 @@ void GameManager::update()
     std::vector<std::pair<int, Action>> ShipActions = this->scheduler->scheduleShips(ships, berths, goods, robots,this->currentFrame, shipDebugOutput);
     auto ship_end = std::chrono::high_resolution_clock::now();
     if(shipDebugOutput) LOGI("调度船只时长:",std::chrono::duration_cast<std::chrono::milliseconds>(ship_end - ship_start).count(),"ms");
-
+    
     // CommandManager.shipCommands
     for (int i = 0; i < ShipActions.size(); i++)
     {

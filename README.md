@@ -3,8 +3,12 @@
 不要改动 `CMakeLists.txt`，windows 平台下编译指令如下：
 ```
 cmake -G "MinGW Makefiles" -B ./build
-cd build && mingw32-make
+cmake --build ./build
 ```
+
+## 提交到平台
+关闭 utils.h 文件下 `DEBUG` 宏后运行 package.bat，会在上一级目录打包一个 zip 文件。
+
 
 ## 与判题器交互
 ```

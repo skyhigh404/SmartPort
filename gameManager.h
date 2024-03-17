@@ -35,6 +35,7 @@ public:
     std::shared_ptr<RobotController> robotController;
     // 统计
     int totalGetGoodsValue = 0;
+    int skipFrame = 0;
 
 public:
     SingleLaneManager singleLaneManager;

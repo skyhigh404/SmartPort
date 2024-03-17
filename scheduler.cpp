@@ -352,22 +352,22 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleShips(std:
             // ships[i].now_capacity = ships[i].capacity;
             break;
         case 1: // 正常状态
-            // if(ships[i].berthId != -1 && ships[i].now_capacity <= 1){   
-            if(ships[i].berthId != -1 && ships[i].now_capacity <= 1){   
-                if(debug){LOGI("装满了，发船（移动）");ships[i].info();}
+            if(ships[i].berthId != -1){  
+                if(ships[i].now_capacity <= 1){
+                    // 装满则发货
+                    if(debug){LOGI("装满了，发船（移动）");ships[i].info();}
 
-                // 进行统计
-                Berth::deliverGoodNum += (ships[i].capacity - ships[i].now_capacity);
+                    // 进行统计
+                    Berth::deliverGoodNum += (ships[i].capacity - ships[i].now_capacity);
 
-                //装满,去往虚拟点
-                shipActions.push_back(std::make_pair(i, Action{DEPART_BERTH,Point2d(),-1}));
-                ships[i].now_capacity = ships[i].capacity;
-                ships[i].state = 0;
-                ships[i].berthId = -1;
-            }
-            else if(ships[i].berthId != -1){  
+                    //装满,去往虚拟点
+                    shipActions.push_back(std::make_pair(i, Action{DEPART_BERTH,Point2d(),-1}));
+                    ships[i].now_capacity = ships[i].capacity;
+                    ships[i].state = 0;
+                    ships[i].berthId = -1;
+                }
                 // 泊位货物为空，进行船只调度
-                if (berths[ships[i].berthId].reached_goods.size() == 0){
+                else if (berths[ships[i].berthId].reached_goods.size() == 0){
                     if(debug){LOGI("当前没货,");berths[ships[i].berthId].info();}
                     ActionType action = scheudleNormalShip(ships[i],berths[ships[i].berthId],robots);
                     if(action == MOVE_TO_BERTH && berths[ships[i].berthId].canMoveBerth(remainder)){
@@ -464,7 +464,7 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleShips(std:
         }
     }
     // 第二次调度船只，为剩余船只分配泊位,留有两个空闲船只
-    // todo 考虑运输完成船只从虚拟点返回泊位的时间
+    // todo 考虑运输完成船只从虚拟点返回泊位的时间，去除前面已经调度的船舶
     for (auto& ship : freeShips) {
         for (auto& berth : berths_copy) {
             // if (ship.berthId == -1 && berth.residue_num > 0 && shipNumInBerth(berth,ships) == 0) {

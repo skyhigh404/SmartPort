@@ -48,11 +48,11 @@ public:
         }
     }
 
-    inline bool inBounds(int x, int y) const
+    inline bool inBounds(const int x, const int y) const
     {
         return x >= 0 && x < rows && y >= 0 && y < cols;
     }
-    inline bool inBounds(Point2d pos) const
+    inline bool inBounds(const Point2d &pos) const
     {
         return inBounds(pos.x, pos.y);
     }

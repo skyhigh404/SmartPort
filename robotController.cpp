@@ -142,8 +142,8 @@ void RobotController::tryResolveConflict(Map &map, const CollisionEvent &event)
         else{
             // 如果下一帧都不是两者的目的地，都只是过路，则停一帧或重新寻路
             if (robot1.nextPos != robot2.destination && robot2.nextPos != robot1.destination ) {
-                // makeRobotWait(decideWhoWaits(robot1, robot2)); // 基于某种逻辑决定谁等待，如果处于单行路，需要额外解决方案
-                // TODO：临时方案，让一个机器人等待，一个机器人重新寻路，有可能有一个机器人占了它的终点
+                // 基于某种逻辑决定谁等待，如果处于单行路，需要额外解决方案
+                // 让一个机器人等待，一个机器人重新寻路，有可能有一个机器人占了它的终点
                 LOGI("robot1.nextPos != robot2.destination && robot2.nextPos != robot1.destination ",robot1," ",robot2);
                 decideWhoToWaitAndRefindWhenTargetOverlap(map, robot1, robot2);
                 
@@ -166,7 +166,7 @@ void RobotController::tryResolveConflict(Map &map, const CollisionEvent &event)
             // robot1 和 robot2 处在单行道上要怎么解决
             // 未考虑到的情况
             else{
-                LOGE("未考虑到的 TargetOverlap, robot id: ", robot1.id, ", ", robot2.id);
+                LOGE("未考虑到的 TargetOverlap, robot id: ", robot1, ", ", robot2);
                 // robot1.nextPos == robot2.destination，但是 robot1.path.empty() 为 true, 反之亦然
                 makeRobotWait(robot1);
                 makeRobotWait(robot2);
@@ -177,23 +177,23 @@ void RobotController::tryResolveConflict(Map &map, const CollisionEvent &event)
     else if(event.type == CollisionEvent::CollisionType::SwapPositions){
         // DIZZY 状态的 robot 不可以移动，因此不应该出现这种状态
         if(robot1.status == RobotStatus::DIZZY || robot2.status == RobotStatus::DIZZY) {
-            LOGI("SwapPositions 错误情况出现了 DIZZY, robot id: ", robot1.id, ", ", robot2.id);
+            LOGI("SwapPositions 错误情况出现了 DIZZY, robot id: ", robot1, ", ", robot2);
         }
         // robot2 当前帧位置是 robot1 的 destination, robot1 当前帧位置是 robot2 的 destination
         else if (robot1.destination == robot2.pos && robot1.pos == robot2.destination) {
-            LOGE("发生死锁");
-            // resolveDeadlocks();  // TODO
+            LOGI("发生死锁");
+            resolveDeadlocks(map, robot1, robot2);  // TODO: 未经验证
         }
         // robot2 当前帧位置是 robot1 的 destination, robot2 只是过路。robot1 等待，robot2 重新寻路
         else if (robot1.destination == robot2.pos && !robot2.path.empty()) {
-            LOGI("robot1.destination == robot2.pos && !robot2.path.empty(): ", robot1.id, ", ", robot2.id);
+            LOGI("robot1.destination == robot2.pos && !robot2.path.empty(): ", robot1, ", ", robot2);
             makeRobotWait(robot1);
             map.addTemporaryObstacle(robot1.pos);
             makeRobotRefindPath(robot2);
         }
         // robot1 当前帧位置是 robot2 的 destination，robot1 只是过路。robot2 等待，robot1 重新寻路
         else if (robot1.pos == robot2.destination && !robot1.path.empty()) {
-            LOGI("robot1.pos == robot2.destination && !robot1.path.empty(): ", robot1.id, ", ", robot2.id);
+            LOGI("robot1.pos == robot2.destination && !robot1.path.empty(): ", robot1, ", ", robot2);
             makeRobotWait(robot2);
             map.addTemporaryObstacle(robot2.pos);
             makeRobotRefindPath(robot1);
@@ -237,7 +237,7 @@ void RobotController::decideWhoToWaitAndRefindWhenTargetOverlap(Map &map, const 
         makeRobotRefindPath(robot1);
     }
     else if(robot2DstReachable && robot1DstReachable){
-        // TODO:临时解决方案
+        // TODO:临时解决方案，不一定让 robot1 等待
         makeRobotWait(robot1);
         map.addTemporaryObstacle(robot1.pos);
         makeRobotRefindPath(robot2);
@@ -256,12 +256,25 @@ void RobotController::makeRobotRefindPath(const Robot &robot)
     refindPathFlag[robot.id] = true;
 }
 
-bool RobotController::resolveDeadlocks()
+void RobotController::resolveDeadlocks(Map &map, Robot &robot1, Robot &robot2)
 {
-    // 解决死锁的逻辑
-    // 根据机器人的位置和预定路径检测潜在的死锁
-    // 如果检测到死锁，尝试通过调整任务分配、路径或优先级来解决
-    return true; // 返回值表示是否成功解决了死锁
+    // 让一个机器人往可移动位置移动一格
+    for(const Point2d &pos : map.neighbors(robot1.pos)){
+        if(pos != robot2.pos){
+            robot1.moveToTemporaryPosition(pos);
+            return;
+        }   
+    }
+    for(const Point2d &pos : map.neighbors(robot2.pos)){
+        if(pos != robot1.pos){
+            robot2.moveToTemporaryPosition(pos);
+            return;
+        }   
+    }
+    // 如果两个机器人都不可以移动
+    makeRobotWait(robot1);
+    makeRobotWait(robot2);
+    LOGW("解决死锁失败");
 }
 
 void RobotController::runPathfinding(const Map &map, Robot &robot)

@@ -346,6 +346,7 @@ void GameManager::robotControl()
     vector<Robot> needSchedule;
     for (Robot& robot : robots) {
         if (robot.status==DEATH) continue;
+        if (needSchedule.size()>=5) break;
         if ((robot.status==MOVING_TO_GOODS && robot.targetid==-1)) {
             needSchedule.push_back(robot);
         }
@@ -375,9 +376,9 @@ void GameManager::robotControl()
     }
     // 分配泊位
     for (Robot& robot:robots) {
-        LOGI(robot);
+        // LOGI(robot);
         if (robot.status==DEATH) continue;
-        Action action = this->RobotScheduler->scheduleRobot(robot, gameMap, goods,berths,robotDebugOutput);
+        Action action = this->RobotScheduler->scheduleRobot(robot, gameMap, goods,berths, false);
         if (action.type!=FAIL) {
             robot.targetid = action.targetId;
             robot.destination = action.desination;
@@ -396,7 +397,7 @@ void GameManager::robotControl()
         if (robot.status==DEATH) continue;
         if (!robot.path.empty()) {
             string command = robot.movetoNextPosition();
-            if (robotDebugOutput) LOGI(robot.id, "向货物移动中:", command, " 路径长度: ",robot.path.size());
+            // if (robotDebugOutput) LOGI(robot.id, "向货物移动中:", command, " 路径长度: ",robot.path.size());
             commandManager.addRobotCommand(command);
         }
     }
@@ -605,8 +606,8 @@ void GameManager::update()
     LOGI("进入update函数-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
     auto start = std::chrono::steady_clock::now();
     
-    bool robotDebugOutput = false;
-    bool shipDebugOutput = true;
+    bool robotDebugOutput = true;
+    bool shipDebugOutput = false;
 
     // robots[3].findPath(gameMap,Point2d(133,99));
     // robots[6].findPath(gameMap,Point2d(142,112));

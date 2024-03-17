@@ -74,15 +74,16 @@ double ImplicitEnumeration::CalTargetValue(vector<int>& array, std::vector<Robot
         cost += timeToGood + timeToBerth;
         sum_TTL += goods[index].TTL;
     }
-    // LOGI(profit, ' ',cost,' ',sum_TTL);
+    LOGI(profit, ' ',cost,' ',sum_TTL);
     // 可添加系数
     return 1000*profit*1.0/cost/sum_TTL;
 }
 void ImplicitEnumeration::scheduleRobots(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths, vector<int>& array, int idx)
 {
+    // 检查约束条件、计算目标值
     if (idx == array.size()) {
         if (!ArriveBeforeTTL(array, robots, map, goods, berths)) return;
-        if (!AtLeastOne(array)) return;
+        // if (!AtLeastOne(array)) return;
         // LOGI("ArriveBeforeTTL");
         // LOGI("calTargetValue");
         double z = CalTargetValue(array, robots, map, goods, berths);
@@ -127,6 +128,18 @@ void ImplicitEnumeration::LPscheduleRobots(std::vector<Robot> &robots, const Map
     LOGI("开始LP调度，机器人数：",robots.size(),",货物数：",goods.size());
 
     scheduleRobots(robots, map, goods, berths, array, idx);
+
+    std::string output="";
+    for (int x:scheduleResult) {
+        output += std::to_string(x) + " ";
+    }
+    LOGI("调度结果：",output,",目标值：",bestValue);
+    // if (scheduleResult.size()==0) {Constraint_distance*=2;scheduleRobots(robots, map, goods, berths, array, idx);Constraint_distance/=2;}
+    // output="";
+    // for (int x:scheduleResult) {
+    //     output += std::to_string(x) + " ";
+    // }
+    // LOGI("调度结果：",output,",目标值：",bestValue);
 }
 Action ImplicitEnumeration::scheduleRobot(Robot &robot, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths, bool debug)
 {

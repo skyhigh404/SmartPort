@@ -19,10 +19,10 @@ public:
     virtual Action scheduleRobot(Robot &robot, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths, bool debug=false) = 0;
     virtual std::vector<std::pair<int, Action>>  scheduleRobots(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths) = 0;
     virtual std::vector<std::pair<int, Action>>  scheduleShips(std::vector<Ship> &ships, std::vector<Berth> &berths,std::vector<Goods>& goods,std::vector<Robot> &robots,int currentFrame,bool debug=false) = 0;
-    virtual int shipNumInBerth(const Berth& berth,const std::vector<Ship>& ships) = 0;
-    virtual void countGoodInBerth(std::vector<Robot> &robots,std::vector<Berth> &berths,std::vector<Goods> goods) = 0;
-    virtual void calculateBerthIncome(std::vector<Berth> &berths) = 0;
-    virtual ActionType scheudleNormalShip(Ship &ship,Berth &berth,std::vector<Robot> robots) = 0;
+    // virtual int shipNumInBerth(const Berth& berth,const std::vector<Ship>& ships) = 0;
+    // virtual void countGoodInBerth(std::vector<Robot> &robots,std::vector<Berth> &berths,std::vector<Goods> goods) = 0;
+    // virtual void calculateBerthIncome(std::vector<Berth> &berths) = 0;
+    // virtual ActionType scheudleNormalShip(Ship &ship,Berth &berth,std::vector<Robot> robots) = 0;
 };
 
 class SimpleTransportStrategy : public Scheduler
@@ -38,12 +38,19 @@ public:
     int WhereIsRobot(Robot& robot, std::vector<Berth> &berths, const Map &map);
 
     std::vector<std::pair<int, Action>>  scheduleShips(std::vector<Ship> &ships, std::vector<Berth> &berths,std::vector<Goods>& goods,std::vector<Robot> &robots,int currentFrame,bool debug=false) override;
-    int shipNumInBerth(const Berth& berth,const std::vector<Ship>& ships) override;
-    void countGoodInBerth(std::vector<Robot> &robots,std::vector<Berth> &berths,std::vector<Goods> goods)override;
-    void calculateBerthIncome(std::vector<Berth> &berths) override;
-    ActionType scheudleNormalShip(Ship &ship,Berth &berth,std::vector<Robot> robots) override;
+    int shipNumInBerth(const Berth& berth,const std::vector<Ship>& ships) ;
+    void countGoodInBerth(std::vector<Robot> &robots,std::vector<Berth> &berths,std::vector<Goods> goods);
+    void calculateBerthIncome(std::vector<Berth> &berths) ;
+    ActionType scheudleNormalShip(Ship &ship,Berth &berth,std::vector<Robot> robots);
 
     SimpleTransportStrategy(): cost2berths(),bestBerthIndex() {}
+};
+
+class ImplicitEnumeration : public Scheduler
+{
+public:
+    std::vector<std::pair<int, Action>>  scheduleRobots(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths) override;
+    
 };
 
 // class EfficientTransportStrategy : public Scheduler {

@@ -9,6 +9,7 @@ using namespace std;
 int Goods::number = 0;
 int Berth::totalLoadGoodnum = 0;
 int Berth::maxLoadGoodNum = 0;
+int Berth::deliverGoodNum = 0;
 int CURRENT_FRAME = 0;
 int canUnload(Berth& berth, Point2d pos) {
     int x = pos.x-berth.pos.x, y=pos.y-berth.pos.y;
@@ -562,7 +563,7 @@ void GameManager::update()
     auto start = std::chrono::steady_clock::now();
     
     bool robotDebugOutput = false;
-    bool shipDebugOutput = false;
+    bool shipDebugOutput = true;
 
     // robots[3].findPath(gameMap,Point2d(133,99));
     // robots[6].findPath(gameMap,Point2d(142,112));

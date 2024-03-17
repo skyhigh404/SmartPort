@@ -18,10 +18,11 @@ public:
     int residue_num = 0;    //泊位当前剩余无法装在的货物数量，每帧重新计算
     int totalValue = 0; //泊位当前理论收益，每帧重新计算
 
-    std::vector<std::vector<int>> storageSlots;  //16个存在货物的格子，nullptr表示格子是空的，有值则存的是指定货物对象的地址
+    std::vector<std::vector<int>> storageSlots;  //16个格子，-1表示没有机器人，否则表示机器人id
 public:
     static int totalLoadGoodnum;    // 总装货的数量
     static int maxLoadGoodNum;  //理论最大装货数量
+    static int deliverGoodNum;  //送达货物数量
     float canGoScale = 0.1; // < 可以去虚拟点的剩余容量比例
     float canMoveScale = 0.2;   // > 可以移动泊位的剩余容量比例
 
@@ -33,7 +34,7 @@ public:
 
     // 打印泊位信息
     void info(){
-        std::string berth_info = "泊位" + std::to_string(id) + "位置" + std::to_string(pos.x) +','+std::to_string(pos.y) + ",装货速度：" + std::to_string(velocity) + ",送货时间：" + std::to_string(time) + ";"+"剩余容量："+ std::to_string(residue_num)+";";
+        std::string berth_info = "泊位" + std::to_string(id) + "位置" + std::to_string(pos.x) +','+std::to_string(pos.y) + ",装货速度：" + std::to_string(velocity) + ",送货时间：" + std::to_string(time) + ";"+"溢出容量："+ std::to_string(residue_num)+";";
         std::string reach_info = "已到达货物数量:" + std::to_string(reached_goods.size()) + ";";
         // for(const auto& good : reached_goods){
         //     reach_info += "(" + std::to_string(good.id) + "," + std::to_string(good.value) + "),";
@@ -44,7 +45,7 @@ public:
         //     unreach_info += "(" + std::to_string(good.id) + "," + std::to_string(good.value) + "),";
         // }
         LOGI(berth_info,reach_info,";",unreach_info);
-        LOGI("总装货量：",totalLoadGoodnum,",理论最大装货量：",maxLoadGoodNum,", 成功装载比例：",totalLoadGoodnum * 1.0 /maxLoadGoodNum);
+        LOGI("总装货量：",totalLoadGoodnum,",送达货物量：",deliverGoodNum,",理论最大装货量：",maxLoadGoodNum,", 成功装载比例：",totalLoadGoodnum * 1.0 /maxLoadGoodNum,",成功送达比例：",deliverGoodNum * 1.0/maxLoadGoodNum);
         // std::vector<std::vector<int>> temp(4,std::vector<int>(4,-1));
         // for(int i =0;i < 4;i++){
         //     for(int j=0;j<4;j++){
@@ -84,7 +85,7 @@ public:
     }
 
     // 剩余时间能够再去一次泊位后再去虚拟点，预留时间10帧
-    // todo 调参
+    // todo 调参，缓冲时间应该等于 船容量/目的泊位的搬运速度
     bool canMoveBerth(int remainder = 0){
         if(remainder - 500 - time >= 10){
             return true;
@@ -92,9 +93,9 @@ public:
         return false;
     }
 
-    // 是否必须要去虚拟点,预留时间 10帧
+    // 是否必须要去虚拟点, 10帧缓冲时间
     bool mustGo(int remainder){
-        if(remainder - time <= 1){
+        if(remainder - time <= 10){
             return true;
         }
         return false;

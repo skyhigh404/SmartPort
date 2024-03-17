@@ -11,7 +11,9 @@ int main()
 
     GameManager gameManager;
     SimpleTransportStrategy simpleTransportStrategy;
+    ImplicitEnumeration implicitEnumeration;
     gameManager.setScheduler(&simpleTransportStrategy);
+    gameManager.setRobotScheduler(&implicitEnumeration);
     gameManager.initializeGame();
 
 

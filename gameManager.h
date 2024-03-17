@@ -21,6 +21,7 @@ class GameManager
 {
 public:
     Scheduler *scheduler;
+    Scheduler *RobotScheduler;
 
 public:
     Map gameMap;
@@ -53,5 +54,9 @@ public:
     void setScheduler(Scheduler *scheduler)
     {
         this->scheduler = scheduler;
+    }
+    void setRobotScheduler(Scheduler *scheduler)
+    {
+        this->RobotScheduler = scheduler;
     }
 };

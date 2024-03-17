@@ -21,6 +21,7 @@ class GameManager
 {
 public:
     Scheduler *scheduler;
+    Scheduler *RobotScheduler;
 
 public:
     Map gameMap;
@@ -36,6 +37,9 @@ public:
     // 统计
     int totalGetGoodsValue = 0;
     int skipFrame = 0;
+
+    int finalFrame = -1; //进入终局调度的帧数
+    // int finalReadyFrame = -1;    // 进去终局调度前的准备帧数
 
 public:
     SingleLaneManager singleLaneManager;
@@ -53,5 +57,31 @@ public:
     void setScheduler(Scheduler *scheduler)
     {
         this->scheduler = scheduler;
+    }
+
+    inline StageType nowStateType(){
+        // 初始化
+        if(finalFrame == -1)
+        {
+            // 最终帧计算公式
+            // todo 可以调参,应该考虑机器人的路途代价
+            // finalFrame = 15000 - 最大的泊位运输时间 * 3 - 最大的船舶容量 / 最小的泊位装货速度（装货时间） * 2 - 缓冲时间
+            
+            int maxCapacity = -1,minVelocity = INT_MAX,maxTime = -1;
+            for(auto &ship : ships) maxCapacity = std::max(maxCapacity,ship.capacity);
+            for(auto &berth : berths) minVelocity = std::min(minVelocity,berth.velocity),maxTime = std::max(maxTime, berth.time);
+            finalFrame = 15000 - maxTime * 3 - static_cast<int>(maxCapacity/minVelocity) * 2; 
+        }
+        if(currentFrame < finalFrame){
+            return StageType::SIMPLE;
+        }
+        else{
+            return StageType::FINAL;
+        }
+    }
+    
+    void setRobotScheduler(Scheduler *scheduler)
+    {
+        this->RobotScheduler = scheduler;
     }
 };

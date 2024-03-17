@@ -13,7 +13,7 @@ void RobotController::runController(Map &map)
         }
     }
     auto end = std::chrono::steady_clock::now();
-    LOGI("robotController 尋路时间: ",std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()," ms");
+    // LOGI("robotController 尋路时间: ",std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()," ms");
 
     // 更新所有机器人下一步位置
     for (Robot &robot : robots)
@@ -28,7 +28,7 @@ void RobotController::runController(Map &map)
         std::set<RobotController::CollisionEvent> collisions = detectNextFrameConflict();
         if(collisions.empty())
             break;
-        LOGI("发现冲突");
+        // LOGI("发现冲突");
         // 遍历冲突机器人集合
         for(const auto &collision : collisions) {
             // 重新规划冲突机器人的行动以解决冲突
@@ -38,7 +38,7 @@ void RobotController::runController(Map &map)
         // 为需要重新寻路的机器人重新寻路，并设置新的下一帧位置
         for (int i = 0; i < refindPathFlag.size(); ++i) {
             if (refindPathFlag[i]){
-                LOGI("重新寻路", robots.at(i));
+                // LOGI("重新寻路", robots.at(i));
                 runPathfinding(map, robots.at(i));
                 robots.at(i).updateNextPos();
             }
@@ -46,7 +46,7 @@ void RobotController::runController(Map &map)
         // 为停止一帧的机器人设置下一帧为当前帧位置
         for (int i = 0; i < waitFlag.size(); ++i) {
             if (waitFlag[i]){
-                LOGI("等待", robots.at(i));
+                // LOGI("等待", robots.at(i));
                 stopRobot(robots.at(i));
             }
         }

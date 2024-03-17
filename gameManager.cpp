@@ -118,7 +118,7 @@ void GameManager::initializeGame()
         }
         // 孤立机器人
         if (is_isolated)
-            robot.status = DEATH;
+            {robot.status = DEATH;LOGI("死機器人:",robot.id);}
     }
 
     // 初始化 RobotController
@@ -135,7 +135,8 @@ void GameManager::initializeGame()
     {
         LOGE("Init fail!");
     }
-    //     // 初始化单行路
+    
+    // // 初始化单行路
     // this->singleLaneManager.findSingleLanes(this->gameMap);
     // // 打印单行路
     // std::vector<Point2d> singleLaneList = this->singleLaneManager.getSingleLanesVector();
@@ -241,9 +242,10 @@ void GameManager::processFrameData()
 
 void GameManager::robotControl()
 {
-    bool robotDebugOutput = false;
+    bool robotDebugOutput = true;
     // 机器人状态更新
     for (Robot& robot:robots) {
+        if (robot.status==DEATH) continue;
         // 机器人眩晕
         if (robot.status == DIZZY || robot.state == 0) {
             // 还在眩晕状态
@@ -287,7 +289,7 @@ void GameManager::robotControl()
             }
             // 货物过期
             else {
-                robot.status = IDLE;
+                robot.status = MOVING_TO_GOODS;
                 robot.targetid = -1;
                 continue;
             }
@@ -296,14 +298,14 @@ void GameManager::robotControl()
             Berth &berth = berths[robot.targetid];
             // LOGI(robot);
             if (canUnload(berth, robot.pos)) {
-                // LOGI("機器人",robot.id,"放貨 ");
+                LOGI("機器人",robot.id,"放貨 ");
                 commandManager.addRobotCommand(robot.pull());
                 int x = robot.pos.x-berth.pos.x, y=robot.pos.y-berth.pos.y;
                 berth.storageSlots[x][y] = goods[robot.carryingItemId].id;
                 berth.reached_goods.push_back(goods[robot.carryingItemId]);
                 goods[robot.carryingItemId].status = 3;
                 totalGetGoodsValue += goods[robot.carryingItemId].value;
-                robot.status = IDLE;
+                robot.status = MOVING_TO_GOODS;
                 robot.carryingItem = 0;
                 robot.carryingItemId = -1;
                 robot.targetid = -1;
@@ -323,6 +325,7 @@ void GameManager::robotControl()
         if ((robot.status==MOVING_TO_GOODS && robot.targetid==-1) || (robot.status==MOVING_TO_BERTH && robot.targetid==-1)) {
             Action action = this->scheduler->scheduleRobot(robot, gameMap, goods, berths, robotDebugOutput);
             if (action.type==FAIL) {
+                LOGI("機器人",robot.id,"調度失敗");
                 robot.targetid = -1;
                 robot.destination = Point2d(-1,-1);
                 continue;
@@ -553,7 +556,7 @@ void GameManager::update()
     auto start = std::chrono::steady_clock::now();
     
     bool robotDebugOutput = false;
-    bool shipDebugOutput = false;
+    bool shipDebugOutput = true;
 
     // robots[3].findPath(gameMap,Point2d(133,99));
     // robots[6].findPath(gameMap,Point2d(142,112));

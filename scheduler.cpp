@@ -471,12 +471,12 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleShips(std:
             if (berth.residue_num > 0 && shipNumInBerth(berth,ships) == 0) {  
                 if(debug){LOGI("调度船去新泊位（移动）",berth.id);ship.info();}
                 if(ship.berthId == berth.id){
-                break;
+                    break;
                 }
                 ship.berthId = berth.id; 
                 shipActions.push_back(std::make_pair(ship.id, Action{MOVE_TO_BERTH,Point2d(),berth.id}));
                 berth.residue_num -= ship.now_capacity; // 更新泊位的剩余需求
-                continue; // 跳出循环，继续为下一艘船分配泊位
+                break; // 跳出循环，继续为下一艘船分配泊位
             }
         }
     }
@@ -487,15 +487,15 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleShips(std:
             if(berth.reached_goods.size() >= 10){
                 LOGI("船只调度有问题-------------------------");
                 berth.info ();
-                for( auto& ship : ships){
-                    ship.info();
-                }
-                if(debug){
-                LOGI("收益排序后的泊位：");
-                for(auto &berth : berths_copy){
-                    berth.info();
-                }
-            }
+            //     for( auto& ship : ships){
+            //         ship.info();
+            //     }
+            //     if(debug){
+            //     LOGI("收益排序后的泊位：");
+            //     for(auto &berth : berths_copy){
+            //         berth.info();
+            //     }
+            // }
             }
         }
     }

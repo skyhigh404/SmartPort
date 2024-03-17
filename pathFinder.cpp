@@ -39,7 +39,8 @@ void AStarPathfinder::aStarSearch(const Graph &graph,
                                   std::unordered_map<Location, Location> &came_from,
                                   std::unordered_map<Location, int> &cost_so_far)
 {
-    // int calTime = 0;
+    if (!graph.inBounds(goal) || !graph.passable(goal))
+        return;
     PriorityQueue<Location, double> frontier;
     frontier.put(start, 0);
 
@@ -169,8 +170,6 @@ Path DStarPathfinder::replan(const Point2d &start, const Map &map, const std::ve
     }
 }
 
-
-
 Path DStarPathfinder::computeShortesPath(const Map &map)
 {
     auto startTime = std::chrono::steady_clock::now();
@@ -245,13 +244,12 @@ Path DStarPathfinder::computeShortesPath(const Map &map)
             }
         }
 
-        if(std::chrono::steady_clock::now() - startTime > std::chrono::milliseconds(1000)){
+        if (std::chrono::steady_clock::now() - startTime > std::chrono::milliseconds(1000))
+        {
             LOGW("寻路超时 start: ", start, " goal: ", goal, " queue size", pq.size());
             isSuccess = false;
             break;
         }
-
-        
     }
 
     if (isSuccess)

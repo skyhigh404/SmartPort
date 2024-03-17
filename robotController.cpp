@@ -13,22 +13,22 @@ void RobotController::runController(Map &map)
         }
     }
     auto end = std::chrono::steady_clock::now();
-    LOGI("robotController 尋路时间: ",std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()," ms");
+    // LOGI("robotController 尋路时间: ",std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()," ms");
 
     // 更新所有机器人下一步位置
     for (Robot &robot : robots)
         robot.updateNextPos();
 
     start = std::chrono::steady_clock::now();
-    int i = 0;
-    while(i<=2){
-        ++i;
+    int tryTime = 0;
+    // 尝试次数大于 0 就出错
+    for(; tryTime <= 1; ++tryTime){
         reset();
         // 考虑下一步机器人的行动是否会冲突
         std::set<RobotController::CollisionEvent> collisions = detectNextFrameConflict();
         if(collisions.empty())
             break;
-        LOGI("发现冲突");
+        // LOGI("发现冲突");
         // 遍历冲突机器人集合
         for(const auto &collision : collisions) {
             // 重新规划冲突机器人的行动以解决冲突
@@ -38,7 +38,7 @@ void RobotController::runController(Map &map)
         // 为需要重新寻路的机器人重新寻路，并设置新的下一帧位置
         for (int i = 0; i < refindPathFlag.size(); ++i) {
             if (refindPathFlag[i]){
-                LOGI("重新寻路", robots.at(i));
+                // LOGI("重新寻路", robots.at(i));
                 runPathfinding(map, robots.at(i));
                 robots.at(i).updateNextPos();
             }
@@ -46,7 +46,7 @@ void RobotController::runController(Map &map)
         // 为停止一帧的机器人设置下一帧为当前帧位置
         for (int i = 0; i < waitFlag.size(); ++i) {
             if (waitFlag[i]){
-                LOGI("等待", robots.at(i));
+                // LOGI("等待", robots.at(i));
                 stopRobot(robots.at(i));
             }
         }
@@ -56,8 +56,8 @@ void RobotController::runController(Map &map)
 
     // for(const auto &robot : robots)
     //     LOGI(robot);
-    // end = std::chrono::steady_clock::now();
-    // LOGI("robotController 循环处理时间: ",std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()," ms, i: ", i);
+    end = std::chrono::steady_clock::now();
+    LOGI("robotController 冲突处理时间: ",std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()," ms, i: ", tryTime);
 
     // 返回给 gameManager 以输出所有机器人的行动指令
 }
@@ -141,13 +141,12 @@ void RobotController::tryResolveConflict(Map &map, const CollisionEvent &event)
         // 两个机器人都可正常运行
         else{
             // 如果下一帧都不是两者的目的地，都只是过路，则停一帧或重新寻路
-            if (robot1.nextPos != robot2.destination && robot2.nextPos != robot1.destination) {
+            if (robot1.nextPos != robot2.destination && robot2.nextPos != robot1.destination ) {
                 // makeRobotWait(decideWhoWaits(robot1, robot2)); // 基于某种逻辑决定谁等待，如果处于单行路，需要额外解决方案
-                // TODO：临时方案，让一个机器人等待，一个机器人重新寻路
+                // TODO：临时方案，让一个机器人等待，一个机器人重新寻路，有可能有一个机器人占了它的终点
                 LOGI("robot1.nextPos != robot2.destination && robot2.nextPos != robot1.destination ",robot1," ",robot2);
-                makeRobotWait(robot1);
-                map.addTemporaryObstacle(robot1.pos);
-                makeRobotRefindPath(robot2);
+                decideWhoToWaitAndRefindWhenTargetOverlap(map, robot1, robot2);
+                
             }
             // 下一帧是 robot1 和 robot2 的 destination，让一个机器人等待
             else if (robot1.nextPos == robot2.destination && robot2.nextPos == robot1.destination) {
@@ -201,7 +200,7 @@ void RobotController::tryResolveConflict(Map &map, const CollisionEvent &event)
         }
         // robot1 和 robot2 都是过路，选择一个重新寻路，让 robot1 等待，robot2 重新寻路
         else {
-            LOGI("robot1 和 robot2 都是过路，选择一个重新寻路，让 robot1 等待，robot2 重新寻路: ", robot1.id, ", ", robot2.id);
+            LOGI("robot1 和 robot2 都是过路，选择一个重新寻路，让 robot1 等待，robot2 重新寻路: ", robot1, ", ", robot2);
             makeRobotWait(robot1);
             map.addTemporaryObstacle(robot1.pos);
             makeRobotRefindPath(robot2);
@@ -217,6 +216,37 @@ const Robot & RobotController::decideWhoWaits(const Robot &robot1, const Robot &
         return robot1;
     return robot2;
 }
+
+void RobotController::decideWhoToWaitAndRefindWhenTargetOverlap(Map &map, const Robot &robot1, const Robot &robot2)
+{
+    // 有可能有某个机器人占了它的终点，只能等待
+    bool robot1DstReachable = robot1.destination != robot2.pos && map.passable(robot1.destination);
+    bool robot2DstReachable = robot2.destination != robot1.pos && map.passable(robot2.destination);
+    if(!robot1DstReachable && !robot2DstReachable){
+        makeRobotWait(robot1);
+        makeRobotWait(robot2);
+    }
+    else if(!robot1DstReachable && robot2DstReachable){
+        makeRobotWait(robot1);
+        map.addTemporaryObstacle(robot1.pos);
+        makeRobotRefindPath(robot2);
+    }
+    else if(!robot2DstReachable && robot1DstReachable){
+        makeRobotWait(robot2);
+        map.addTemporaryObstacle(robot2.pos);
+        makeRobotRefindPath(robot1);
+    }
+    else if(robot2DstReachable && robot1DstReachable){
+        // TODO:临时解决方案
+        makeRobotWait(robot1);
+        map.addTemporaryObstacle(robot1.pos);
+        makeRobotRefindPath(robot2);
+    }
+    else {
+        LOGE("decideWhoToWaitAndRefindWhenTargetOverlap 未考虑的情况: ", robot1, robot2);
+    }
+}
+
 void RobotController::makeRobotWait(const Robot &robot)
 {
     waitFlag[robot.id] = true;

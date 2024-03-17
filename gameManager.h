@@ -21,6 +21,7 @@ class GameManager
 {
 public:
     Scheduler *scheduler;
+    Scheduler *RobotScheduler;
 
 public:
     Map gameMap;
@@ -77,5 +78,10 @@ public:
         else{
             return StageType::FINAL;
         }
+    }
+    
+    void setRobotScheduler(Scheduler *scheduler)
+    {
+        this->RobotScheduler = scheduler;
     }
 };

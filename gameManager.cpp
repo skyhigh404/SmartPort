@@ -10,7 +10,8 @@ int Goods::number = 0;
 int Berth::totalLoadGoodnum = 0;
 int Berth::maxLoadGoodNum = 0;
 int Berth::deliverGoodNum = 0;
-int CURRENT_FRAME = 0;
+std::vector<bool> Berth::available_berths = std::vector<bool>(BERTHNUMS,true);  //  泊位是否可获取，用于终局调度
+int CURRENT_FRAME = 0;  //当前帧数
 int canUnload(Berth& berth, Point2d pos) {
     int x = pos.x-berth.pos.x, y=pos.y-berth.pos.y;
     if (x<0 || x>3 || y<0 || y>3) {LOGI("越界",pos,' ',berth.pos);return 0;}
@@ -574,7 +575,7 @@ void GameManager::update()
 
     if(shipDebugOutput){LOGI("船只开始调度");};
     auto ship_start = std::chrono::high_resolution_clock::now();
-    std::vector<std::pair<int, Action>> ShipActions = this->scheduler->scheduleShips(ships, berths, goods, robots,this->currentFrame, shipDebugOutput);
+    std::vector<std::pair<int, Action>> ShipActions = this->scheduler->scheduleShips(ships, berths, goods, robots,vector<vector<int>>(),this->currentFrame, shipDebugOutput);
     auto ship_end = std::chrono::high_resolution_clock::now();
     LOGI("调度船只时长:",std::chrono::duration_cast<std::chrono::milliseconds>(ship_end - ship_start).count(),"ms");
 

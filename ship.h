@@ -37,6 +37,16 @@ public:
         return "go "s + std::to_string(id);
     }
 
+    void goStatus(){
+        // 进行统计
+        Berth::deliverGoodNum += (capacity - now_capacity);
+
+        //装满,去往虚拟点
+        now_capacity = capacity;
+        state = 0;
+        berthId = -1;
+    }
+
     // 装货,并返回转货的数量
     int loadGoods(int num){
         // LOGI("now_capacity before",this->now_capacity);

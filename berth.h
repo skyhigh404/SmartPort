@@ -17,12 +17,15 @@ public:
     std::vector<Goods> unreached_goods;  //未到达货物的列表
     int residue_num = 0;    //泊位当前剩余无法装在的货物数量，每帧重新计算
     int totalValue = 0; //泊位当前理论收益，每帧重新计算
+    int shipInBerthNum = 0; //泊位上船的数量
 
     std::vector<std::vector<int>> storageSlots;  //16个格子，-1表示没有机器人，否则表示机器人id
 public:
     static int totalLoadGoodnum;    // 总装货的数量
     static int maxLoadGoodNum;  //理论最大装货数量
     static int deliverGoodNum;  //送达货物数量
+    static std::vector<bool> available_berths;
+
     float canGoScale = 0.1; // < 可以去虚拟点的剩余容量比例
     float canMoveScale = 0.2;   // > 可以移动泊位的剩余容量比例
 
@@ -93,9 +96,10 @@ public:
         return false;
     }
 
-    // 是否必须要去虚拟点, 10帧缓冲时间
-    bool mustGo(int remainder){
-        if(remainder - time <= 10){
+    // 是否必须要去虚拟点, +5帧缓冲时间
+    // otherTime表示需要预留的时间
+    bool mustGo(int remainder,int otherTime = 0){
+        if(remainder - time - otherTime <= 5 && remainder - time - otherTime >= -2){
             return true;
         }
         return false;

@@ -72,6 +72,11 @@ public:
             nextPos = pos;
     }
 
+    void moveToTemporaryPosition(const Point2d &tempPos){
+        path.push_back(pos);
+        nextPos = tempPos;
+    }
+
     std::string move(int direction)
     {
         // 向特定方向移动

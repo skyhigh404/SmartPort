@@ -66,11 +66,8 @@ private:
     // 尝试为所有机器人分配新状态解决冲突
     void tryResolveConflict(Map &map, const CollisionEvent &event);
 
-    // 解决死锁的逻辑
-    // 根据机器人的位置和预定路径检测潜在的死锁
-    // 如果检测到死锁，尝试通过调整任务分配、路径或优先级来解决
-    // 返回值表示是否成功解决了死锁
-    bool resolveDeadlocks();
+    // 解决死锁的逻辑，尝试让一个机器人移动往一个可行的点以让出终点
+    void resolveDeadlocks(Map &map, Robot &robot1, Robot &robot2);
 
     const Robot & decideWhoWaits(const Robot &robot1, const Robot &robot2);
     // 设置标志位，让一个机器人等待

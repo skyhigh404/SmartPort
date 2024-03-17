@@ -46,6 +46,13 @@ public:
     SimpleTransportStrategy(): cost2berths(),bestBerthIndex() {}
 };
 
+class ImplicitEnumeration : public Scheduler
+{
+public:
+    std::vector<std::pair<int, Action>>  scheduleRobots(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths) override;
+    
+};
+
 // class EfficientTransportStrategy : public Scheduler {
 // public:
 //     virtual void scheduleRobots(std::vector<Robot>& robots, const Map& map, std::vector<Goods>& goods) = 0;

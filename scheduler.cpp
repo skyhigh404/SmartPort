@@ -354,9 +354,18 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleShips(std:
             break;
         case 1: // 正常状态
             if(ships[i].berthId != -1){  
-                if(ships[i].now_capacity <= 1){
+                if(berths[ships[i].berthId].mustGo(remainder)){
+                    if(debug){LOGI("剩余时间：",remainder,",必须走了：",berths[ships[i].berthId].mustGo(remainder));}
+                    Berth::deliverGoodNum += (ships[i].capacity - ships[i].now_capacity);
+                    shipActions.push_back(std::make_pair(i, Action{DEPART_BERTH,Point2d(),-1}));
+                    // 重置船的容量和状态
+                    ships[i].now_capacity = ships[i].capacity;
+                    ships[i].state = 0;
+                    ships[i].berthId = -1;
+                }
+                else if(ships[i].now_capacity <= 1){
                     // 装满则发货
-                    if(debug){LOGI("装满了，发船（移动）");ships[i].info();}
+                    if(debug){LOGI("装满了，发船（移动）");ships[i].info();berths[ships[i].berthId].info();}
 
                     // 进行统计
                     Berth::deliverGoodNum += (ships[i].capacity - ships[i].now_capacity);
@@ -377,9 +386,9 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleShips(std:
                         ships[i].info();
                         freeShips.push_back(ships[i]);
                     }
-                    else if(action == DEPART_BERTH || berths[ships[i].berthId].mustGo(remainder)){
-                        if(debug){LOGI("没货，船载到货，发船（移动）");ships[i].info();berths[ships[i].berthId].info();LOGI("剩余时间：",remainder,",必须走了：",berths[ships[i].berthId].mustGo(remainder));}
-
+                    // else if(action == DEPART_BERTH || berths[ships[i].berthId].mustGo(remainder)){
+                    else if(action == DEPART_BERTH){
+                        if(debug){LOGI("没货，船载到货，发船（移动）");ships[i].info();berths[ships[i].berthId].info();}
                         Berth::deliverGoodNum += (ships[i].capacity - ships[i].now_capacity);
                         shipActions.push_back(std::make_pair(i, Action{DEPART_BERTH,Point2d(),-1}));
                         // 重置船的容量和状态
@@ -397,7 +406,7 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleShips(std:
                     // todo 有bug
                     if(debug){LOGI("装货前------------------");ships[i].info();}
                     int res = ships[i].loadGoods(shipment); // 装货
-                    berths[berthId].unloadGoods(res);   // 卸货
+                    // berths[berthId].unloadGoods(res);   // 卸货
                     berths[berthId].reached_goods.erase(berths[berthId].reached_goods.begin(),berths[berthId].reached_goods.begin() + res);
                     if(debug){LOGI("装货后------------------");ships[i].info();}
                 }
@@ -432,7 +441,7 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleShips(std:
     // 对船只进行排序
     std::sort(freeShips.begin(),freeShips.end(),[&](Ship a, Ship b) {
         if(a.berthId == -1 && b.berthId == -1){
-            return a.state > b.state;
+            return a.now_capacity > b.now_capacity;
         }
         else if(a.berthId == -1){
             return true;
@@ -441,7 +450,7 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleShips(std:
             return false;
         }
         else{
-            return a.state > b.state;
+            return a.now_capacity > b.now_capacity;
         }
         });
 
@@ -470,7 +479,7 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleShips(std:
         for (auto& berth : berths_copy) {
             // if (ship.berthId == -1 && berth.residue_num > 0 && shipNumInBerth(berth,ships) == 0) {
             if (berth.residue_num > 0 && shipNumInBerth(berth,ships) == 0) {  
-                if(debug){LOGI("调度船去新泊位（移动）",berth.id);ship.info();}
+                if(debug){LOGI("第二次调度船去新泊位（移动）",berth.id);ship.info();}
                 if(ship.berthId == berth.id){
                     break;
                 }

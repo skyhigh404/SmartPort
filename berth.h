@@ -18,7 +18,7 @@ public:
     int residue_num = 0;    //泊位当前剩余无法装在的货物数量，每帧重新计算
     int totalValue = 0; //泊位当前理论收益，每帧重新计算
 
-    std::vector<std::vector<int>> storageSlots;  //16个存在货物的格子，nullptr表示格子是空的，有值则存的是指定货物对象的地址
+    std::vector<std::vector<int>> storageSlots;  //16个格子，-1表示没有机器人，否则表示机器人id
 public:
     static int totalLoadGoodnum;    // 总装货的数量
     static int maxLoadGoodNum;  //理论最大装货数量
@@ -85,7 +85,7 @@ public:
     }
 
     // 剩余时间能够再去一次泊位后再去虚拟点，预留时间10帧
-    // todo 调参
+    // todo 调参，缓冲时间应该等于 船容量/目的泊位的搬运速度
     bool canMoveBerth(int remainder = 0){
         if(remainder - 500 - time >= 10){
             return true;
@@ -93,9 +93,9 @@ public:
         return false;
     }
 
-    // 是否必须要去虚拟点,预留时间 10帧
+    // 是否必须要去虚拟点, 10帧缓冲时间
     bool mustGo(int remainder){
-        if(remainder - time <= 1){
+        if(remainder - time <= 10){
             return true;
         }
         return false;

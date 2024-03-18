@@ -156,9 +156,9 @@ public:
     bool GoodsPickedOnce(vector<int>& array, std::vector<Goods> &goods);
     bool ArriveBeforeTTL(vector<int>& array, vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths);
     bool CloseToGood(Robot& robot, Goods& good, const Map &map, std::vector<Berth> &berths, int dist);
-    bool ImplicitEnumeration::LowTotalCost(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths, vector<int>& array, int len);
-    void ImplicitEnumeration::calBerthsHoldingGoods(std::vector<Goods> &goods, std::vector<Berth> &berths);
-    bool ImplicitEnumeration::NotTheLeastBerths(Goods& good);
+    bool LowTotalCost(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths, vector<int>& array, int len);
+    void calBerthsHoldingGoods(std::vector<Goods> &goods, std::vector<Berth> &berths);
+    bool NotTheLeastBerths(Goods& good);
 
 
 

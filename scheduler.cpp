@@ -38,9 +38,10 @@ bool ImplicitEnumeration::ArriveBeforeTTL(vector<int>& array, vector<Robot> &rob
         int index = array[i];
         if (index==-1) continue;
 
-        int berthid = WhereIsRobot(robots[i], berths, map), timeToGood=INT_MAX;
-        if (berthid==-1) timeToGood = map.cost(robots[i].pos, goods[array[i]].pos);
-        else timeToGood = map.berthDistanceMap.at(berthid)[goods[array[i]].pos.x][goods[array[i]].pos.y];
+        // int berthid = WhereIsRobot(robots[i], berths, map), timeToGood=INT_MAX;
+        // if (berthid==-1) timeToGood = map.cost(robots[i].pos, goods[array[i]].pos);
+        // else timeToGood = map.berthDistanceMap.at(berthid)[goods[array[i]].pos.x][goods[array[i]].pos.y];
+        int timeToGood = TimeToGood(robots[i], goods[index], map, berths);
         
         if (timeToGood + 10 > goods[array[i]].TTL) return false;
     }
@@ -50,6 +51,38 @@ bool ImplicitEnumeration::CloseToGood(Robot& robot, Goods& good, const Map &map,
 {
     if (TimeToGood(robot, good, map, berths) <= dist) return true;
     return false;
+}
+
+bool ImplicitEnumeration::LowTotalCost(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths, vector<int>& array, int len)
+{
+    long long totalTime = 0;
+    for (int i=0; i<len; i++) {
+        int index = array[i];
+        int timeToGood = TimeToGood(robots[i], goods[index], map, berths);
+        totalTime += timeToGood;
+    }
+    if (totalTime< Constraint_total_distance*robots.size()) return true;
+    else return false;
+}
+void ImplicitEnumeration::calBerthsHoldingGoods(std::vector<Goods> &goods, std::vector<Berth> &berths)
+{
+    vector<int> BerthsHoldingGoods(berths.size(), 0);
+    for (int i=0;i<goods.size();i++) {
+        Goods& good = goods[i];
+        BerthsHoldingGoods[bestBerthIndex[good.id][0]]++;
+    }
+    leastBerthsIndex = vector<int>(berths.size());
+    for (int i=0;i<berths.size();i++) leastBerthsIndex[i]=i;
+    std::sort(leastBerthsIndex.begin(), leastBerthsIndex.end(), [&](int a, int b) {
+        return BerthsHoldingGoods[a] < BerthsHoldingGoods[b]; // 根据第二个维度进行降序排序
+    });
+}
+bool ImplicitEnumeration::NotTheLeastBerths(Goods& good) 
+{
+    for (int i=0;i<Constraint_least_berths;i++) {
+        if (bestBerthIndex[good.id][0]==leastBerthsIndex[i]) return false;
+    }
+    return true;
 }
 bool AtLeastOne(vector<int>& array)
 {
@@ -76,7 +109,7 @@ double ImplicitEnumeration::CalTargetValue(vector<int>& array, std::vector<Robot
     }
     LOGI(profit, ' ',cost,' ',sum_TTL);
     // 可添加系数
-    return 1000*profit*1.0/cost/sum_TTL;
+    return 1000*profit*2.0 / cost / sum_TTL;
 }
 void ImplicitEnumeration::scheduleRobots(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths, vector<int>& array, int idx)
 {
@@ -110,7 +143,9 @@ void ImplicitEnumeration::scheduleRobots(std::vector<Robot> &robots, const Map &
     for (int i=0; i<goods.size(); i++) {
         // 剪枝
         if (picked[i]) continue;
-        if (!CloseToGood(robots[idx], goods[i], map, berths, Constraint_distance)) continue;
+        if (!CloseToGood(robots[idx], goods[i], map, berths, Constraint_max_distance)) continue;
+        if (!NotTheLeastBerths(goods[i])) continue;
+        // if (!LowTotalCost(robots, map, goods, berths, array, idx)) continue;
 
         picked[i] = true;
         array[idx] = i;
@@ -125,17 +160,12 @@ void ImplicitEnumeration::LPscheduleRobots(std::vector<Robot> &robots, const Map
     picked = vector<bool>(goods.size(), false);
     bestValue = -LONG_MAX;
     scheduleResult.clear();
+    calBerthsHoldingGoods(goods, berths);
     LOGI("开始LP调度，机器人数：",robots.size(),",货物数：",goods.size());
 
     scheduleRobots(robots, map, goods, berths, array, idx);
 
-    std::string output="";
-    for (int x:scheduleResult) {
-        output += std::to_string(x) + " ";
-    }
-    LOGI("调度结果：",output,",目标值：",bestValue);
-    // if (scheduleResult.size()==0) {Constraint_distance*=2;scheduleRobots(robots, map, goods, berths, array, idx);Constraint_distance/=2;}
-    // output="";
+    // std::string output="";
     // for (int x:scheduleResult) {
     //     output += std::to_string(x) + " ";
     // }

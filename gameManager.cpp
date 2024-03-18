@@ -347,7 +347,7 @@ void GameManager::robotControl()
     vector<Robot> needSchedule;
     for (Robot& robot : robots) {
         if (robot.status==DEATH) continue;
-        if (needSchedule.size()>=5) break;
+        if (needSchedule.size()>=3) break;
         if ((robot.status==MOVING_TO_GOODS && robot.targetid==-1)) {
             needSchedule.push_back(robot);
         }

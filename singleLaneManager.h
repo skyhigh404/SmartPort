@@ -254,6 +254,7 @@ struct SingleLaneLock
     bool startLock;
     bool endLock;
     SingleLaneLock(Point2d start,Point2d end):startPos(start),endPos(end),startLock(false),endLock(false){}
+    SingleLaneLock(){}
 };
 
 

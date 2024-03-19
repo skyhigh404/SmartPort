@@ -20,7 +20,7 @@
 class GameManager
 {
 public:
-    Scheduler *scheduler;
+    Scheduler *ShipScheduler;
     Scheduler *RobotScheduler;
 
 public:
@@ -42,7 +42,7 @@ public:
     // int finalReadyFrame = -1;    // 进去终局调度前的准备帧数
 
 public:
-    SingleLaneManager singleLaneManager;
+    SingleLaneManger singleLaneManager;
 
     GameManager() : gameMap(MAPROWS, MAPCOLS)
     {
@@ -54,9 +54,9 @@ public:
     void RobotControl();
     void robotControl();
 
-    void setScheduler(Scheduler *scheduler)
+    void setShipScheduler(Scheduler *scheduler)
     {
-        this->scheduler = scheduler;
+        this->ShipScheduler = scheduler;
     }
 
     inline StageType nowStateType(){
@@ -79,7 +79,7 @@ public:
             return StageType::FINAL;
         }
     }
-    
+
     void setRobotScheduler(Scheduler *scheduler)
     {
         this->RobotScheduler = scheduler;

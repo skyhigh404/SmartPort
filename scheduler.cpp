@@ -824,7 +824,7 @@ void SimpleTransportStrategy::calculateBerthIncome(std::vector<Berth> &berths)
             // berth.totalValue += static_cast<int>(good.value / 2);
             berth.totalValue += static_cast<int>(good.value);
         }
-        // todo平滑处理
+        // todo 可以调参
         berth.totalValue = static_cast<int>(berth.totalValue * berth.velocity / berth.time);
     }
 }

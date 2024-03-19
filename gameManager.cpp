@@ -138,15 +138,15 @@ void GameManager::initializeGame()
         LOGE("Init fail!");
     }
     
-    // // 初始化单行路
-    // this->singleLaneManager.findSingleLanes(this->gameMap);
-    // // 打印单行路
-    // std::vector<Point2d> singleLaneList = this->singleLaneManager.getSingleLanesVector();
-    // LOGI(this->gameMap.drawMap(nullptr,nullptr,&singleLaneList,nullptr,nullptr));
-    // LOGI("单行路数量：",singleLaneList.size());
-    
-    // LOGI(this->gameMap.drawMap(nullptr,nullptr,nullptr,nullptr,nullptr));
-
+    auto start = std::chrono::steady_clock::now();
+    this->singleLaneManager.init(gameMap);
+    auto end = std::chrono::steady_clock::now();
+    int findTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    LOGI("单行路初始化处理时间：",findTime,"ms");
+    // 打印单行路
+    LOGI("单行路数量：",this->singleLaneManager.singleLanes.size());
+    // LOGI(Map::drawMap(this->singleLaneManager.singleLaneMap,3));
+    // LOGI(this->gameMap.drawMap(nullptr, nullptr, nullptr, nullptr, nullptr));
     // LOGI("Log berth 0 BFS map.");
     // LOGI(Map::drawMap(this->gameMap.berthDistanceMap[0],12));
     // exit(0);
@@ -325,17 +325,17 @@ void GameManager::robotControl()
     }
     // LOGI("機器人取放貨完畢");
 
-    if (this->scheduler->getSchedulerType()==FINAL && this->scheduler->enterFinal==false) {
+    if (this->RobotScheduler->getSchedulerType()==FINAL && this->RobotScheduler->enterFinal==false) {
         LOGI("機器人調度進入終局");
         for (Robot& robot:robots) {
-            if ( (robot.status==MOVING_TO_BERTH && Berth::available_berths[robot.targetid]==false) || (robot.status==MOVING_TO_GOODS && Berth::available_berths[this->scheduler->bestBerthIndex[robot.targetid][0]==false])) {
+            if ( (robot.status==MOVING_TO_BERTH && Berth::available_berths[robot.targetid]==false) || (robot.status==MOVING_TO_GOODS && Berth::available_berths[this->RobotScheduler->bestBerthIndex[robot.targetid][0]==false])) {
                 robot.targetid = -1;
                 robot.destination = Point2d(-1,-1);
                 robot.path = Path();
             }
         }
-        this->scheduler->bestBerthIndex.clear();
-        this->scheduler->enterFinal = true;
+        this->RobotScheduler->bestBerthIndex.clear();
+        this->RobotScheduler->enterFinal = true;
     }
 
     LOGI("机器人开始调度");
@@ -344,7 +344,7 @@ void GameManager::robotControl()
     for (Robot& robot : robots) {
         if (robot.status==DEATH) continue;
         if ((robot.status==MOVING_TO_GOODS && robot.targetid==-1) || (robot.status==MOVING_TO_BERTH && robot.targetid==-1)) {
-            Action action = this->scheduler->scheduleRobot(robot, gameMap, goods, berths, robotDebugOutput);
+            Action action = this->RobotScheduler->scheduleRobot(robot, gameMap, goods, berths, robotDebugOutput);
             if (action.type==FAIL) {
                 LOGI("機器人",robot.id,"調度失敗");
                 robot.targetid = -1;
@@ -451,7 +451,7 @@ void GameManager::RobotControl()
         }
 
         if (robot.status == IDLE) {
-            Action action = this->scheduler->scheduleRobot(robots[i], gameMap, goods, berths, robotDebugOutput);
+            Action action = this->RobotScheduler->scheduleRobot(robots[i], gameMap, goods, berths, robotDebugOutput);
             if (action.type==FAIL) continue;
             std::variant<Path, PathfindingFailureReason> path = pathfinder.findPath(robots[i].pos, action.desination, gameMap);
             if (std::holds_alternative<Path>(path)) {
@@ -544,7 +544,7 @@ void GameManager::RobotControl()
         if (robot.status == MOVING_TO_BERTH) {
             // 分配泊位
             if (robot.targetid == -1) {
-                Action action = this->scheduler->scheduleRobot(robot, gameMap, goods, berths, robotDebugOutput);
+                Action action = this->RobotScheduler->scheduleRobot(robot, gameMap, goods, berths, robotDebugOutput);
                 std::variant<Path, PathfindingFailureReason> path = pathfinder.findPath(robot.pos, action.desination, gameMap);
                 if (std::holds_alternative<Path>(path)) {
                     Path temp_path = std::get<Path>(path);
@@ -636,7 +636,7 @@ void GameManager::update()
 
     if(shipDebugOutput){LOGI("船只开始调度");};
     auto ship_start = std::chrono::high_resolution_clock::now();
-    std::vector<std::pair<int, Action>> ShipActions = this->scheduler->scheduleShips(ships, berths, goods, robots,vector<vector<int>>(),this->currentFrame, shipDebugOutput);
+    std::vector<std::pair<int, Action>> ShipActions = this->ShipScheduler->scheduleShips(ships, berths, goods, robots,vector<vector<int>>(),this->currentFrame, shipDebugOutput);
     auto ship_end = std::chrono::high_resolution_clock::now();
     LOGI("调度船只时长:",std::chrono::duration_cast<std::chrono::milliseconds>(ship_end - ship_start).count(),"ms");
 

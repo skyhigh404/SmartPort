@@ -125,6 +125,9 @@ void GameManager::initializeGame()
 
     // 初始化 RobotController
     this->robotController = std::make_shared<RobotController>(this->robots);
+    auto start = std::chrono::steady_clock::now();
+    this->singleLaneManager.init(gameMap);
+    auto end = std::chrono::steady_clock::now();
 
     string ok;
     cin >> ok;
@@ -138,9 +141,6 @@ void GameManager::initializeGame()
         LOGE("Init fail!");
     }
     
-    auto start = std::chrono::steady_clock::now();
-    this->singleLaneManager.init(gameMap);
-    auto end = std::chrono::steady_clock::now();
     int findTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
     LOGI("单行路初始化处理时间：",findTime,"ms");
     // 打印单行路

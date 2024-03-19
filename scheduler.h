@@ -171,7 +171,6 @@ public:
     bool NotTheLeastBerths(Goods& good);
     void calGoodsValue(std::vector<Goods> &goods, std::vector<Berth> &berths, const Map &map, std::vector<Robot> &robots);
     void calGoodsPriority(std::vector<Goods> &goods, std::vector<Berth> &berths, const Map &map, std::vector<Robot> &robots);
-    bool HighValue(Goods& good);
 
 
     double CalTargetValue(vector<int>& array, std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths);

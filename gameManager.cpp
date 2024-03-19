@@ -328,65 +328,65 @@ void GameManager::robotControl()
     LOGI("机器人开始调度");
     auto start = std::chrono::steady_clock::now();
     // 对所有需要调度的机器人进行调度
-    // for (Robot& robot : robots) {
-    //     if (robot.status==DEATH) continue;
-    //     if ((robot.status==MOVING_TO_GOODS && robot.targetid==-1) || (robot.status==MOVING_TO_BERTH && robot.targetid==-1)) {
-    //         Action action = this->scheduler->scheduleRobot(robot, gameMap, goods, berths, robotDebugOutput);
-    //         if (action.type==FAIL) {
-    //             LOGI("機器人",robot.id,"調度失敗");
-    //             robot.targetid = -1;
-    //             robot.destination = Point2d(-1,-1);
-    //             continue;
-    //         }
-    //         robot.targetid = action.targetId;
-    //         robot.destination = action.desination;
-    //     }
-    // }
-
-    // 分配货物
-    vector<Robot> needSchedule;
     for (Robot& robot : robots) {
         if (robot.status==DEATH) continue;
-        if (needSchedule.size()>=3) break;
-        if ((robot.status==MOVING_TO_GOODS && robot.targetid==-1)) {
-            needSchedule.push_back(robot);
-        }
-    }
-    vector<Goods> availableGoods;
-    for (Goods& good : goods) {
-        if (good.status==0) availableGoods.push_back(good);
-    }
-    vector<int> array(needSchedule.size(), -1); int idx=0;
-    this->RobotScheduler->calCostAndBestBerthIndes(gameMap, goods, berths);
-    this->RobotScheduler->LPscheduleRobots(needSchedule, gameMap, availableGoods, berths, array, idx);
-    vector<int> scheduleResult = this->RobotScheduler->getResult();
-    for (int i=0;i<scheduleResult.size();i++) {
-        // LOGI(scheduleResult[i]);
-        int index = scheduleResult[i];
-        Robot& robot = robots[needSchedule[i].id];
-        if (index==-1) {
-            LOGI("機器人",robot.id,"調度失敗");
-            robot.targetid = -1;
-            robot.destination = Point2d(-1,-1);
-            continue;
-        }
-        robot.targetid = availableGoods[index].id;
-        robot.destination = availableGoods[index].pos;
-        goods[availableGoods[index].id].status = 1;
-        LOGI("机器人分配货物：",robot.id,' ',robot.targetid,' ',robot.destination);
-    }
-    // 分配泊位
-    for (Robot& robot:robots) {
-        // LOGI(robot);
-        if (robot.status==DEATH) continue;
-        Action action = this->RobotScheduler->scheduleRobot(robot, gameMap, goods,berths, false);
-        if (action.type!=FAIL) {
+        if ((robot.status==MOVING_TO_GOODS && robot.targetid==-1) || (robot.status==MOVING_TO_BERTH && robot.targetid==-1)) {
+            Action action = this->scheduler->scheduleRobot(robot, gameMap, goods, berths, robotDebugOutput);
+            if (action.type==FAIL) {
+                LOGI("機器人",robot.id,"調度失敗");
+                robot.targetid = -1;
+                robot.destination = Point2d(-1,-1);
+                continue;
+            }
             robot.targetid = action.targetId;
             robot.destination = action.desination;
         }
     }
-    auto end = std::chrono::steady_clock::now();
-    LOGI("scheduleRobots时间: ",std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()," ms");
+
+    // // 分配货物
+    // vector<Robot> needSchedule;
+    // for (Robot& robot : robots) {
+    //     if (robot.status==DEATH) continue;
+    //     if (needSchedule.size()>=3) break;
+    //     if ((robot.status==MOVING_TO_GOODS && robot.targetid==-1)) {
+    //         needSchedule.push_back(robot);
+    //     }
+    // }
+    // vector<Goods> availableGoods;
+    // for (Goods& good : goods) {
+    //     if (good.status==0) availableGoods.push_back(good);
+    // }
+    // vector<int> array(needSchedule.size(), -1); int idx=0;
+    // this->RobotScheduler->calCostAndBestBerthIndes(gameMap, goods, berths);
+    // this->RobotScheduler->LPscheduleRobots(needSchedule, gameMap, availableGoods, berths, array, idx);
+    // vector<int> scheduleResult = this->RobotScheduler->getResult();
+    // for (int i=0;i<scheduleResult.size();i++) {
+    //     // LOGI(scheduleResult[i]);
+    //     int index = scheduleResult[i];
+    //     Robot& robot = robots[needSchedule[i].id];
+    //     if (index==-1) {
+    //         LOGI("機器人",robot.id,"調度失敗");
+    //         robot.targetid = -1;
+    //         robot.destination = Point2d(-1,-1);
+    //         continue;
+    //     }
+    //     robot.targetid = availableGoods[index].id;
+    //     robot.destination = availableGoods[index].pos;
+    //     goods[availableGoods[index].id].status = 1;
+    //     LOGI("机器人分配货物：",robot.id,' ',robot.targetid,' ',robot.destination);
+    // }
+    // // 分配泊位
+    // for (Robot& robot:robots) {
+    //     // LOGI(robot);
+    //     if (robot.status==DEATH) continue;
+    //     Action action = this->RobotScheduler->scheduleRobot(robot, gameMap, goods,berths, false);
+    //     if (action.type!=FAIL) {
+    //         robot.targetid = action.targetId;
+    //         robot.destination = action.desination;
+    //     }
+    // }
+    // auto end = std::chrono::steady_clock::now();
+    // LOGI("scheduleRobots时间: ",std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()," ms");
     // LOGI("機器人調度完畢");
 
     // 执行动作

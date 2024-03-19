@@ -132,10 +132,6 @@ void ImplicitEnumeration::calGoodsPriority(std::vector<Goods> &goods, std::vecto
         if (goodsPriority[i] < priorityBound) dontPick[i] = true;
     }
 }
-bool ImplicitEnumeration::HighValue(Goods& good) 
-{
-
-}
 bool AtLeastOne(vector<int>& array)
 {
     for (int x:array) if (x!=-1) return true;
@@ -566,9 +562,9 @@ Action SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std:
     std::vector<float> profits(goods.size(), 0);
     // LOGI(goods.size());
     for (int j = 0; j < goods.size(); j++)  {
-        int timeToGoods = cost2goods[j];
+        long long timeToGoods = cost2goods[j];
         // int timeToBerths = cost2berths[j][bestBerthIndex[goods[j].id]];
-        int timeToBerths = cost2berths[j][bestBerthIndex[goods[j].id][0]];
+        long long timeToBerths = cost2berths[j][bestBerthIndex[goods[j].id][0]];
         profit_output += "(timetogood:" + std::to_string(timeToGoods) + ",timetoberths:" + std::to_string(timeToBerths) + ") ";
         
         if (timeToBerths==INT_MAX || timeToGoods==INT_MAX) continue;
@@ -604,7 +600,7 @@ Action SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std:
         int timeToGoods = cost2goods[j];
         int timeToBerths = cost2berths[j][bestBerthIndex[goods[j].id][0]];
         // LOGI("货物id：",goods[goodsIndex].id,"货物状态：",goods[goodsIndex].status,"货物收益：",profits[j]);
-        if (goods[goodsIndex].status==0 && profits[j]>0 && goods[goodsIndex].TTL+10>=timeToGoods+timeToBerths) {
+        if (goods[goodsIndex].status==0 && profits[j]>0 && goods[goodsIndex].TTL+10>=timeToGoods+timeToBerths && timeToBerths!=INT_MAX) {
             LOGI("分配货物",goods[goodsIndex].id,",给机器人：",robot.id,"机器人状态：",robot.state);
             robot.targetid = goods[goodsIndex].id;
             goods[goodsIndex].status = 1;

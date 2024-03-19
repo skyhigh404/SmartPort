@@ -12,7 +12,8 @@ int main()
     GameManager gameManager;
     SimpleTransportStrategy simpleTransportStrategy;
     ImplicitEnumeration implicitEnumeration;
-    gameManager.setScheduler(&simpleTransportStrategy);
+    FinalTransportStrategy finalTransportStrategy;
+    gameManager.setShipScheduler(&simpleTransportStrategy);
     gameManager.setRobotScheduler(&implicitEnumeration);
     gameManager.initializeGame();
 
@@ -43,6 +44,18 @@ int main()
     while (1)
     {
         gameManager.processFrameData();
+        // 调度变换
+        if(gameManager.nowStateType() == gameManager.ShipScheduler->getSchedulerType()){
+            switch (gameManager.nowStateType())
+            {
+            case StageType::FINAL:
+                gameManager.setShipScheduler(&finalTransportStrategy);
+                break;
+            
+            default:
+                break;
+            }
+        }
         auto start = std::chrono::steady_clock::now();
         gameManager.update();
         auto end = std::chrono::steady_clock::now();

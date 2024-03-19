@@ -329,7 +329,7 @@ public:
         }
         // LOGI("上一个id：",nextSingleLaneId,",当前坐标：",pos);
         // LOGI("left:",left,",up:",up);
-        LOGI(singleLaneMap[pos.x-1][pos.y],",",singleLaneMap[pos.x+1][pos.y],",",singleLaneMap[pos.x][pos.y-1],",",singleLaneMap[pos.x][pos.y+1]);
+        // LOGI(singleLaneMap[pos.x-1][pos.y],",",singleLaneMap[pos.x+1][pos.y],",",singleLaneMap[pos.x][pos.y-1],",",singleLaneMap[pos.x][pos.y+1]);
         return false;
     }
 

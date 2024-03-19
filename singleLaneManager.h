@@ -249,8 +249,8 @@ enum VisitType
 
 struct SingleLaneLock
 {
-    const Point2d startPos;
-    const Point2d endPos;
+    Point2d startPos;
+    Point2d endPos;
     bool startLock;
     bool endLock;
     int count;
@@ -410,13 +410,36 @@ public:
                 if (canPass({x, y}) && visited[x][y] == VisitType::UNVISITED) {
                     std::vector<Point2d> path;
                     findSingleLaneFromPoint({x, y}, path);
-                    if (path.size() >= 2 || (path.size() == 1 && ! isCorner(path[0]))) {
+                    if(path.size() == 1){
+                        if(!isCorner(path[0]) && countObstacle(path[0]) == 2){
+                            int laneId = nextSingleLaneId++;
+                            singleLanes[laneId] = path; // 保存找到的单行路路径
+                            singleLaneLocks[laneId] = SingleLaneLock(path[0],path[path.size()-1]); // 默认锁为解锁状态
+                            // 对单行路地图进行标记
+                            for(auto& point : path){
+                                singleLaneMap[point.x][point.y] = laneId;
+                            }   
+                        }
+                    }
+                    if (path.size() >= 2) {
+                        if(countObstacle(path[0])==3 && countObstacle(path.back())==3){
+                            continue;
+                        }
                         int laneId = nextSingleLaneId++;
                         singleLanes[laneId] = path; // 保存找到的单行路路径
                         singleLaneLocks[laneId] = SingleLaneLock(path[0],path[path.size()-1]); // 默认锁为解锁状态
                         // 对单行路地图进行标记
                         for(auto& point : path){
                             singleLaneMap[point.x][point.y] = laneId;
+                        }
+
+                        if(countObstacle(path[0]) == 3){
+                            singleLaneLocks[laneId].startPos = singleLaneLocks[laneId].endPos;
+                            singleLaneLocks[laneId].endPos = {-1,-1};
+                            std::reverse(singleLanes[laneId].begin(),singleLanes[laneId].end());
+                        }
+                        if(countObstacle(path.back()) == 3){
+                            singleLaneLocks[laneId].endPos = {-1,-1};
                         }
                     }
                 }

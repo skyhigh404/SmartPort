@@ -72,10 +72,13 @@ public:
             for(auto &berth : berths) minVelocity = std::min(minVelocity,berth.velocity),maxTime = std::max(maxTime, berth.time);
             finalFrame = 15000 - maxTime * 3 - static_cast<int>(maxCapacity/minVelocity) * 2; 
         }
+        LOGI("终局帧数：",finalFrame);
+        LOGI("当前帧数：",currentFrame);
         if(currentFrame < finalFrame){
             return StageType::SIMPLE;
         }
         else{
+            LOGI("大于终局帧数");
             return StageType::FINAL;
         }
     }

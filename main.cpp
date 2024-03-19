@@ -45,7 +45,7 @@ int main()
     {
         gameManager.processFrameData();
         // 调度变换
-        // if(gameManager.nowStateType() == gameManager.ShipScheduler->getSchedulerType()){
+        // if(gameManager.nowStateType() != gameManager.ShipScheduler->getSchedulerType()){
         //     switch (gameManager.nowStateType())
         //     {
         //     case StageType::FINAL:

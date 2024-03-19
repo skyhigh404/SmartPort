@@ -326,6 +326,7 @@ void GameManager::robotControl()
     // LOGI("機器人取放貨完畢");
 
     if (this->scheduler->getSchedulerType()==FINAL && this->scheduler->enterFinal==false) {
+        LOGI("機器人調度進入終局");
         for (Robot& robot:robots) {
             if ( (robot.status==MOVING_TO_BERTH && Berth::available_berths[robot.targetid]==false) || (robot.status==MOVING_TO_GOODS && Berth::available_berths[this->scheduler->bestBerthIndex[robot.targetid][0]==false])) {
                 robot.targetid = -1;

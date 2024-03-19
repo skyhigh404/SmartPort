@@ -125,6 +125,9 @@ void GameManager::initializeGame()
 
     // 初始化 RobotController
     this->robotController = std::make_shared<RobotController>(this->robots);
+    auto start = std::chrono::steady_clock::now();
+    this->singleLaneManager.init(gameMap);
+    auto end = std::chrono::steady_clock::now();
 
     string ok;
     cin >> ok;
@@ -138,9 +141,6 @@ void GameManager::initializeGame()
         LOGE("Init fail!");
     }
     
-    auto start = std::chrono::steady_clock::now();
-    this->singleLaneManager.init(gameMap);
-    auto end = std::chrono::steady_clock::now();
     int findTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
     LOGI("单行路初始化处理时间：",findTime,"ms");
     // 打印单行路
@@ -326,6 +326,7 @@ void GameManager::robotControl()
     // LOGI("機器人取放貨完畢");
 
     if (this->RobotScheduler->getSchedulerType()==FINAL && this->RobotScheduler->enterFinal==false) {
+        LOGI("機器人調度進入終局");
         for (Robot& robot:robots) {
             if ( (robot.status==MOVING_TO_BERTH && Berth::available_berths[robot.targetid]==false) || (robot.status==MOVING_TO_GOODS && Berth::available_berths[this->RobotScheduler->bestBerthIndex[robot.targetid][0]==false])) {
                 robot.targetid = -1;

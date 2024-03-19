@@ -6,7 +6,7 @@ set "DIRECTORY=%~1"
 if "%DIRECTORY%"=="" set "DIRECTORY=."
 
 :: 设置输出的zip文件名
-set "OUTPUT_FILE=../smartPort.zip"
+set "OUTPUT_FILE=./smartPort.zip"
 
 :: 初始化一个临时文件列表
 set "FILE_LIST=temp_file_list.txt"

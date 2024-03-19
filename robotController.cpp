@@ -1,6 +1,6 @@
 #include "robotController.h"
 #include <chrono>
-void RobotController::runController(Map &map)
+void RobotController::runController(Map &map, SingleLaneManger &singleLaneManger)
 {
     auto start = std::chrono::steady_clock::now();
     // 为所有需要寻路算法的机器人调用寻路算法，给定新目标位置
@@ -25,7 +25,7 @@ void RobotController::runController(Map &map)
     for(; tryTime <= 1; ++tryTime){
         reset();
         // 考虑下一步机器人的行动是否会冲突
-        std::set<RobotController::CollisionEvent> collisions = detectNextFrameConflict();
+        std::set<RobotController::CollisionEvent> collisions = detectNextFrameConflict(map, singleLaneManger);
         if(collisions.empty())
             break;
         // LOGI("发现冲突");
@@ -62,7 +62,8 @@ void RobotController::runController(Map &map)
     // 返回给 gameManager 以输出所有机器人的行动指令
 }
 
-std::set<RobotController::CollisionEvent> RobotController::detectNextFrameConflict()
+std::set<RobotController::CollisionEvent> 
+RobotController::detectNextFrameConflict(const Map &map, SingleLaneManger &singleLaneManger)
 {
     std::set<RobotController::CollisionEvent> collision; // 使用 set 保证输出的机器人对不重复
     for(const Robot &robot1 : robots){
@@ -80,6 +81,10 @@ std::set<RobotController::CollisionEvent> RobotController::detectNextFrameConfli
                 CollisionEvent event(robot1.id, robot2.id, CollisionEvent::SwapPositions);
                 collision.insert(event);
             }
+            // 检查单行路情况
+            // else if(map.s){
+
+            // }
         }
     }
     return collision;
@@ -308,4 +313,17 @@ bool RobotController::needPathfinding(const Robot &robot)
         return true;
     }
     return false;
+}
+
+void RobotController::checkRobotsEnteringSingleLanes(Map &map)
+{
+    // 机器人尝试进入单行路，且下一帧只有该机器人存在单行路里
+
+    // 有另一个机器人同时尝试从另一端进入单行路
+
+    // 有另一个机器人已经从另一端进入单行路，相向而行
+
+    // 有另一个机器人已经从同一端进入单行路，同向而行
+
+    // 不会出现背向而行的情况
 }

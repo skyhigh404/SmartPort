@@ -403,7 +403,7 @@ void GameManager::robotControl()
     // LOGI("機器人調度完畢");
 
     // 执行动作
-    robotController->runController(gameMap);
+    robotController->runController(gameMap, this->singleLaneManager);
     // LOGI("機器人尋路完畢");
     
     // 输出指令

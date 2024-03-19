@@ -2,6 +2,7 @@
 #include <set>
 #include "robot.h"
 #include "utils.h"
+#include "singleLaneManager.h"
 #include "log.h"
 
 class RobotController
@@ -47,7 +48,7 @@ public:
     // 解决冲突（重新寻路或等待，根据它们的代价来判断）
     // 直至解决冲突
     // 确定下一步所有机器人的行动
-    void runController(Map &map);
+    void runController(Map &map, SingleLaneManger &singleLaneManger);
 
 private:
     void reset(){
@@ -61,7 +62,7 @@ private:
     void runPathfinding(const Map &map, Robot &robot);
 
     // 检测机器人之间是否冲突，输出冲突的机器人 ID 对
-    std::set<CollisionEvent> detectNextFrameConflict();
+    std::set<CollisionEvent> detectNextFrameConflict(const Map &map, SingleLaneManger &singleLaneManger);
 
     // 尝试为所有机器人分配新状态解决冲突
     void tryResolveConflict(Map &map, const CollisionEvent &event);
@@ -78,6 +79,8 @@ private:
     void stopRobot(Robot &robot);
 
     void decideWhoToWaitAndRefindWhenTargetOverlap(Map &map, const Robot &robot1, const Robot &robot2);
+
+    void checkRobotsEnteringSingleLanes(Map &map);
 
 private:
     // std::unordered_map<int, Action> robotAction;

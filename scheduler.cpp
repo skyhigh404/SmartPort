@@ -458,13 +458,15 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleRobots(std
 void Scheduler::calCostAndBestBerthIndes(const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths)
 {
     // LOGI("cal begin:", bestBerthIndex.size(),' ',cost2berths.size(),' ',goods.size());
+    LOGI("cal begin");
     for (int i=bestBerthIndex.size(); i<goods.size(); i++) {
-        // LOGI(i);
+        LOGI("goodsid:",i);
         vector<int> index(berths.size(), -1);
         vector<int> cost(berths.size(), INT_MAX);
         for (int j=0;j<berths.size();j++) {
             if (Berth::available_berths[j]) cost[j] = map.berthDistanceMap.at(berths[j].id)[goods[i].pos.x][goods[i].pos.y];
             else cost[j] = INT_MAX;
+            LOGI(cost[j]);
             index[j] = berths[j].id;
         }
         std::sort(index.begin(), index.end(), [&](int a, int b) {
@@ -473,6 +475,7 @@ void Scheduler::calCostAndBestBerthIndes(const Map &map, std::vector<Goods> &goo
         cost2berths.push_back(cost);
         bestBerthIndex.push_back(index);
         // LOGI(bestBerthIndex.size(),' ',cost2berths.size());
+        LOGI("最佳泊位:", bestBerthIndex[i][0]);
     }
     // LOGI("cal end:",bestBerthIndex.size(),' ',cost2berths.size());
 }
@@ -494,13 +497,18 @@ Action SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std:
     //         }
     //     }
     // }
+    
+    auto start = std::chrono::steady_clock::now();
     calCostAndBestBerthIndes(map, goods, berths);
     if(debug){LOGI("carry状态：",robot.carryingItem,",carry id：",robot.carryingItemId);}
+    auto end = std::chrono::steady_clock::now();
+    LOGI("calCostAndBestBerthIndes时间: ",std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()," ms");
 
-    if (robot.carryingItem==1) for (int b=0;b<berths.size();b++) {
-        if (robot.carryingItem==1 && robot.carryingItemId != -1 && bestBerthIndex[robot.carryingItemId][b]!=-1 && berths[bestBerthIndex[robot.carryingItemId][b]].reached_goods.size()<16) {
+    start = std::chrono::steady_clock::now();
+    // if (robot.carryingItem==1) for (int b=0;b<berths.size();b++) {
+        if (robot.carryingItem==1 && robot.carryingItemId != -1 && bestBerthIndex[robot.carryingItemId][0]!=-1) {
             if (debug) LOGI("分配泊位");
-            Berth &berth = berths[bestBerthIndex[robot.carryingItemId][b]];
+            Berth &berth = berths[bestBerthIndex[robot.carryingItemId][0]];
             // if (debug) LOGI("泊位已预定货物数量：", berth.reached_goods.size(), ' ', berth.unreached_goods.size());
             robot.targetid = berth.id;
             Point2d dest(-1,-1);
@@ -522,7 +530,9 @@ Action SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std:
             if(debug) LOGI("分配泊位失败");
             return Action{FAIL, Point2d(0,0), -1};
         }
-    }
+    // }
+    end = std::chrono::steady_clock::now();
+    LOGI("分配泊位时间: ",std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()," ms");
     // todo 临时举措
     // if (robot.carryingItem==1 && bestBerthIndex[robot.carryingItemId]!=-1 && robot.carryingItemId != -1) {
     //     if (debug) LOGI("分配泊位");
@@ -545,6 +555,7 @@ Action SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std:
     //     return Action{FAIL, Point2d(0,0), 0};
     // }
 
+    start = std::chrono::steady_clock::now();
     if (debug) LOGI("计算到货物路径");
     vector<int> cost2goods(goods.size());
     for (int j=0;j<goods.size();j++) {
@@ -556,7 +567,10 @@ Action SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std:
         if (berthid==-1) cost2goods[j] = map.cost(robot.pos, goods[j].pos);
         else cost2goods[j] = map.berthDistanceMap.at(berthid)[goods[j].pos.x][goods[j].pos.y];
     }
+    end = std::chrono::steady_clock::now();
+    LOGI("计算到货物路径时间: ",std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()," ms");
     
+    start = std::chrono::steady_clock::now();
     if (debug) LOGI("开始衡量收益");
     std::string profit_output="";
     // 计算机器人将货物送达泊位的耗时
@@ -566,18 +580,28 @@ Action SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std:
         long long timeToGoods = cost2goods[j];
         // int timeToBerths = cost2berths[j][bestBerthIndex[goods[j].id]];
         long long timeToBerths = cost2berths[j][bestBerthIndex[goods[j].id][0]];
-        profit_output += "(timetogood:" + std::to_string(timeToGoods) + ",timetoberths:" + std::to_string(timeToBerths) + ") ";
+        // profit_output += "(timetogood:" + std::to_string(timeToGoods) + ",timetoberths:" + std::to_string(timeToBerths) + ") ";
         
+        bool canReach = false;
+        for (int k=0;k<berths.size();k++) {
+            // vector<vector<int>> grid = map.berthDistanceMap.at(k);
+            if (map.berthDistanceMap.at(k)[robot.pos.x][robot.pos.y]!=INT_MAX && map.berthDistanceMap.at(k)[goods[j].pos.x][goods[j].pos.y]!=INT_MAX) {canReach = true;break;}
+        }
+        if (!canReach) continue;
+
         if (timeToBerths==INT_MAX || timeToGoods==INT_MAX) continue;
         profits[j] = goods[j].value*1.0 / (timeToGoods+timeToBerths);
         if (goods[j].TTL<=500) profits[j] *= 1.5;
         // profit_output += "(timetogood:" + std::to_string(timeToGoods) + ",timetoberths:" + std::to_string(timeToBerths) + ",profit:" + std::to_string(profits[j]) + ") ";
         // LOGI("货物",j,"收益为：",profits[j]);
     }
+    end = std::chrono::steady_clock::now();
+    LOGI("衡量收益时间: ",std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()," ms");
     // LOGI(profit_output);
     
     if (debug) LOGI("开始分配货物");
 
+    start = std::chrono::steady_clock::now();
     // 确定\分配机器人目的地
     std::vector<int> indices(goods.size(), 0);
     for (int j=0;j<goods.size();j++) {
@@ -592,24 +616,27 @@ Action SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std:
         profits_sorted.push_back(profits[i]);
         profits_output += std::to_string(profits[i]) + " ";
     }
-    profits = profits_sorted;
-    // LOGI(profits_output);
-
+    // profits = profits_sorted;
+    LOGI(profits_output);
+//robot
     for (int j = 0; j < goods.size(); ++j) {
         int goodsIndex = indices[j];
+        Goods& good = goods[goodsIndex];
         // int berthsIndex = bestBerthIndex[goodsIndex];
-        int berthsIndex = bestBerthIndex[goodsIndex][0];
-        int timeToGoods = cost2goods[j];
-        int timeToBerths = cost2berths[j][bestBerthIndex[goods[j].id][0]];
+        int berthsIndex = bestBerthIndex[good.id][0];
+        int timeToGoods = cost2goods[good.id];
+        int timeToBerths = cost2berths[good.id][bestBerthIndex[good.id][0]];
         if (timeToBerths==INT_MAX || timeToGoods==INT_MAX) continue;
-        // LOGI("货物id：",goods[goodsIndex].id,"货物状态：",goods[goodsIndex].status,"货物收益：",profits[j]);
-        if (goods[goodsIndex].status==0 && profits[j]>0 && goods[goodsIndex].TTL+10>=timeToGoods+timeToBerths && timeToBerths!=INT_MAX) {
+        LOGI("货物id：",good.id,"货物状态：",good.status,"货物收益：",profits[good.id]);
+        if (good.status==0 && profits[good.id]>0 && good.TTL+10>=timeToGoods && timeToBerths!=INT_MAX) {
             LOGI("分配货物",goods[goodsIndex].id,",给机器人：",robot.id,"机器人状态：",robot.state);
-            robot.targetid = goods[goodsIndex].id;
-            goods[goodsIndex].status = 1;
-            return Action{MOVE_TO_POSITION, goods[goodsIndex].pos, goods[goodsIndex].id};
+            robot.targetid = good.id;
+            good.status = 1;
+            return Action{MOVE_TO_POSITION, good.pos, good.id};
         }
     }
+    end = std::chrono::steady_clock::now();
+    LOGI("分配货物时间: ",std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()," ms");
     if (debug) LOGI("分配货物失败");
     return Action{FAIL, Point2d(0,0), 0};
 }

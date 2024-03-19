@@ -249,11 +249,12 @@ enum VisitType
 
 struct SingleLaneLock
 {
-    Point2d startPos;
-    Point2d endPos;
+    const Point2d startPos;
+    const Point2d endPos;
     bool startLock;
     bool endLock;
-    SingleLaneLock(Point2d start,Point2d end):startPos(start),endPos(end),startLock(false),endLock(false){}
+    int count;
+    SingleLaneLock(Point2d start,Point2d end):startPos(start),endPos(end),startLock(false),endLock(false),count(0){}
     SingleLaneLock(){}
 };
 
@@ -262,11 +263,12 @@ struct SingleLaneLock
 class SingleLaneManger {
 public:
     int rows, cols;
-    std::vector<std::vector<int>> singleLaneMap;    //  单行路位置标记为单行路的id，其余位置标记为-1
+    std::vector<std::vector<int>> singleLaneMap;    //  单行路位置标记为单行路的id，标记0为度大于2，障碍位置标记为-1
     std::unordered_map<int,SingleLaneLock> singleLaneLocks;    // 维护每个单行路的锁，标记当前是否通行
+    std::unordered_map<int,std::vector<Point2d>> singleLanes;   //存储单行路的路径
+
     std::vector<std::vector<MapItemSpace::MapItem>> grid;    //原地图
     std::vector<std::vector<VisitType>> visited; // 访问过的位置
-    std::unordered_map<int,std::vector<Point2d>> singleLanes;   //存储单行路的路径
 
     int nextSingleLaneId = 1;   // 单行路的路径
 

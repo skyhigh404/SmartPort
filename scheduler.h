@@ -29,6 +29,8 @@ public:
     vector<int> scheduleResult;
     double bestValue;
 
+    bool enterFinal; // 用於首次判定進入終局時刻
+
     int pickup[10]; // 机器人要取的货的id
     virtual Action scheduleRobot(Robot &robot, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths, bool debug=false) = 0;
     // virtual std::vector<std::pair<int, Action>>  scheduleRobots(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths) = 0;
@@ -45,7 +47,7 @@ public:
     void calCostAndBestBerthIndes(const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths);
     vector<int> getResult() {return scheduleResult;}
 
-    Scheduler(): cost2berths(),bestBerthIndex(),scheduleResult(),bestValue(0) {}
+    Scheduler(): cost2berths(),bestBerthIndex(),scheduleResult(),bestValue(0),enterFinal(false) {}
 };
 
 class SimpleTransportStrategy : public Scheduler

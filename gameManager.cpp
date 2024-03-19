@@ -325,6 +325,18 @@ void GameManager::robotControl()
     }
     // LOGI("機器人取放貨完畢");
 
+    if (this->scheduler->getSchedulerType()==FINAL && this->scheduler->enterFinal==false) {
+        for (Robot& robot:robots) {
+            if ( (robot.status==MOVING_TO_BERTH && Berth::available_berths[robot.targetid]==false) || (robot.status==MOVING_TO_GOODS && Berth::available_berths[this->scheduler->bestBerthIndex[robot.targetid][0]==false])) {
+                robot.targetid = -1;
+                robot.destination = Point2d(-1,-1);
+                robot.path = Path();
+            }
+        }
+        this->scheduler->bestBerthIndex.clear();
+        this->scheduler->enterFinal = true;
+    }
+
     LOGI("机器人开始调度");
     auto start = std::chrono::steady_clock::now();
     // 对所有需要调度的机器人进行调度

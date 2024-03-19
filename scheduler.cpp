@@ -463,8 +463,9 @@ void Scheduler::calCostAndBestBerthIndes(const Map &map, std::vector<Goods> &goo
         vector<int> index(berths.size(), -1);
         vector<int> cost(berths.size(), INT_MAX);
         for (int j=0;j<berths.size();j++) {
-            cost[j] = map.berthDistanceMap.at(berths[j].id)[goods[i].pos.x][goods[i].pos.y];
-            index[j] = j;
+            if (Berth::available_berths[j]) cost[j] = map.berthDistanceMap.at(berths[j].id)[goods[i].pos.x][goods[i].pos.y];
+            else cost[j] = INT_MAX;
+            index[j] = berths[j].id;
         }
         std::sort(index.begin(), index.end(), [&](int a, int b) {
             return cost[a] < cost[b]; // 根据第二个维度进行降序排序
@@ -519,7 +520,7 @@ Action SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std:
                 return Action{MOVE_TO_BERTH, dest, berth.id};
             }
             if(debug) LOGI("分配泊位失败");
-            return Action{FAIL, Point2d(0,0), 0};
+            return Action{FAIL, Point2d(0,0), -1};
         }
     }
     // todo 临时举措
@@ -599,6 +600,7 @@ Action SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std:
         int berthsIndex = bestBerthIndex[goodsIndex][0];
         int timeToGoods = cost2goods[j];
         int timeToBerths = cost2berths[j][bestBerthIndex[goods[j].id][0]];
+        if (timeToBerths==INT_MAX || timeToGoods==INT_MAX) continue;
         // LOGI("货物id：",goods[goodsIndex].id,"货物状态：",goods[goodsIndex].status,"货物收益：",profits[j]);
         if (goods[goodsIndex].status==0 && profits[j]>0 && goods[goodsIndex].TTL+10>=timeToGoods+timeToBerths && timeToBerths!=INT_MAX) {
             LOGI("分配货物",goods[goodsIndex].id,",给机器人：",robot.id,"机器人状态：",robot.state);

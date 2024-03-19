@@ -74,8 +74,17 @@ void ImplicitEnumeration::calBerthsHoldingGoods(std::vector<Goods> &goods, std::
     leastBerthsIndex = vector<int>(berths.size());
     for (int i=0;i<berths.size();i++) leastBerthsIndex[i]=i;
     std::sort(leastBerthsIndex.begin(), leastBerthsIndex.end(), [&](int a, int b) {
-        return BerthsHoldingGoods[a] < BerthsHoldingGoods[b]; // 根据第二个维度进行降序排序
+        return BerthsHoldingGoods[a] < BerthsHoldingGoods[b]; // 升序排序
     });
+    int index = 0;
+    for (Goods& good : goods) {
+        for (int i=0;i<Constraint_least_berths;i++) {
+            if (bestBerthIndex[good.id][0]==leastBerthsIndex[i]) {
+                dontPick[index] = true;
+            }
+        }
+        index++;
+    }
 }
 bool ImplicitEnumeration::NotTheLeastBerths(Goods& good) 
 {
@@ -83,6 +92,49 @@ bool ImplicitEnumeration::NotTheLeastBerths(Goods& good)
         if (bestBerthIndex[good.id][0]==leastBerthsIndex[i]) return false;
     }
     return true;
+}
+void ImplicitEnumeration::calGoodsValue(std::vector<Goods> &goods, std::vector<Berth> &berths, const Map &map, std::vector<Robot> &robots)
+{
+    vector<double> goodsValue(goods.size(), 0);
+    for (int i =0;i<goods.size();i++) {
+        Goods& good = goods[i];
+        goodsValue[i] = good.value / map.berthDistanceMap.at(bestBerthIndex[good.id][0])[good.pos.x][good.pos.y];
+    }
+    vector<int> goodsIndex(goods.size(), 0);
+    for (int i=0;i<goods.size();i++) goodsIndex[i]=i;
+    std::sort(goodsIndex.begin(), goodsIndex.end(), [&](int a, int b) {
+        return goodsValue[a] < goodsValue[b];
+    });
+    double valueBound = goodsValue[goodsIndex[goods.size()/2]];
+    if (robots.size()>goods.size()/2) valueBound = goodsValue[goodsIndex[0]];
+    // double valueBound = std::min(goodsValue[goodsIndex[goods.size()/2]], goodsValue[std::min(robots.size()*2, goods.size()-1)]);
+    for (int i=0;i<goods.size();i++) {
+        if (goodsValue[i] < valueBound) dontPick[i] = true;
+    }
+}
+void ImplicitEnumeration::calGoodsPriority(std::vector<Goods> &goods, std::vector<Berth> &berths, const Map &map, std::vector<Robot> &robots)
+{
+    vector<double> goodsPriority(goods.size(), 0);
+    for (int i =0;i<goods.size();i++) {
+        Goods& good = goods[i];
+        if (good.TTL<=0) {goodsPriority[i]=0; continue;}
+        goodsPriority[i] = good.value / good.TTL;
+    }
+    vector<int> goodsIndex(goods.size(), 0);
+    for (int i=0;i<goods.size();i++) goodsIndex[i]=i;
+    std::sort(goodsIndex.begin(), goodsIndex.end(), [&](int a, int b) {
+        return goodsPriority[a] < goodsPriority[b]; // 升序排序
+    });
+    double priorityBound = goodsPriority[goodsIndex[goods.size()/2]];
+    if (robots.size()>goods.size()/2) priorityBound = goodsPriority[goodsIndex[0]];
+    // double priorityBound = std::min(goodsPriority[goodsIndex[goods.size()/2]], goodsPriority[std::min(robots.size()*2, goods.size()-1)]); //有问题 to do
+    for (int i=0;i<goods.size();i++) {
+        if (goodsPriority[i] < priorityBound) dontPick[i] = true;
+    }
+}
+bool ImplicitEnumeration::HighValue(Goods& good) 
+{
+
 }
 bool AtLeastOne(vector<int>& array)
 {
@@ -95,6 +147,8 @@ double ImplicitEnumeration::CalTargetValue(vector<int>& array, std::vector<Robot
     long long profit = 0;
     long long cost = 0;
     long long sum_TTL = 0;
+    long long profit_TTL = 0;
+    long long profit_total = 0;
     for (int i=0;i<array.size();i++) {
         int index = array[i];
         if (index==-1) continue;
@@ -107,19 +161,41 @@ double ImplicitEnumeration::CalTargetValue(vector<int>& array, std::vector<Robot
         cost += timeToGood + timeToBerth;
         sum_TTL += goods[index].TTL;
     }
+    for (int i=0;i<goods.size();i++) {
+        if (goods[i].TTL < Constraint_danger_TTL && !picked[i]) profit_TTL+=goods[i].value;
+        profit_total += goods[i].value;
+    }
     LOGI(profit, ' ',cost,' ',sum_TTL);
+    int count = 0;
+    for (int i=0;i<array.size();i++) if (array[i]==-1) count++;
+    if (count==array.size()) cost = -LONG_MAX;
     // 可添加系数
+    return coefficient_profit*profit - coefficient_ttl*profit_TTL*1.0 - coefficient_cost*cost;
+    return profit*1.0/cost;
     return 1000*profit*2.0 / cost / sum_TTL;
 }
+
+// 基于整数规划调度机器人
 void ImplicitEnumeration::scheduleRobots(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths, vector<int>& array, int idx)
 {
     // 检查约束条件、计算目标值
     if (idx == array.size()) {
-        if (!ArriveBeforeTTL(array, robots, map, goods, berths)) return;
+        LOGI("check constraint");
+        auto start = std::chrono::steady_clock::now();
+        if (!ArriveBeforeTTL(array, robots, map, goods, berths)) {
+            t_ArriveBeforeTTL += std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now()-start).count();
+            n_ArriveBeforeTTL ++;
+            return;
+        }
+        else {t_ArriveBeforeTTL += std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now()-start).count();
+            n_ArriveBeforeTTL ++;}
         // if (!AtLeastOne(array)) return;
         // LOGI("ArriveBeforeTTL");
-        // LOGI("calTargetValue");
+        LOGI("calTargetValue");
+        start = std::chrono::steady_clock::now();
         double z = CalTargetValue(array, robots, map, goods, berths);
+        t_CalTargetValue += std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now()-start).count();
+        n_CalTargetValue ++;
         if (z > bestValue) {
             std::string output="";
             for (int x:array) {
@@ -143,8 +219,9 @@ void ImplicitEnumeration::scheduleRobots(std::vector<Robot> &robots, const Map &
     for (int i=0; i<goods.size(); i++) {
         // 剪枝
         if (picked[i]) continue;
-        if (!CloseToGood(robots[idx], goods[i], map, berths, Constraint_max_distance)) continue;
-        if (!NotTheLeastBerths(goods[i])) continue;
+        if (dontPick[i]) continue;
+        // if (!CloseToGood(robots[idx], goods[i], map, berths, Constraint_max_distance)) continue;
+        // if (!NotTheLeastBerths(goods[i])) continue;
         // if (!LowTotalCost(robots, map, goods, berths, array, idx)) continue;
 
         picked[i] = true;
@@ -155,22 +232,39 @@ void ImplicitEnumeration::scheduleRobots(std::vector<Robot> &robots, const Map &
         picked[i] = false;
     }
 }
+
+// 整数规划启动器
 void ImplicitEnumeration::LPscheduleRobots(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths, vector<int>& array, int idx)
 {
     picked = vector<bool>(goods.size(), false);
+    dontPick = vector<bool>(goods.size(), false);
     bestValue = -LONG_MAX;
     scheduleResult.clear();
+
+
+    t_ArriveBeforeTTL=0;
+    t_CalTargetValue=0;
+    n_ArriveBeforeTTL=0;
+    n_CalTargetValue=0;
+
+    if (goods.size()==0 || robots.size()==0) return;
     calBerthsHoldingGoods(goods, berths);
-    LOGI("开始LP调度，机器人数：",robots.size(),",货物数：",goods.size());
+    calGoodsValue(goods, berths, map, robots);
+    calGoodsPriority(goods, berths, map, robots);
+    int count = 0;
+    for (int i=0;i<goods.size();i++) if (dontPick[i]) count++;
+    LOGI("开始LP调度，机器人数：",robots.size(),",货物数：",goods.size(),",可选货物数：",goods.size()-count);
 
     scheduleRobots(robots, map, goods, berths, array, idx);
 
-    // std::string output="";
-    // for (int x:scheduleResult) {
-    //     output += std::to_string(x) + " ";
-    // }
-    // LOGI("调度结果：",output,",目标值：",bestValue);
+    std::string output="";
+    for (int x:scheduleResult) {
+        output += std::to_string(x) + " ";
+    }
+    LOGI("调度结果：",output,",目标值：",bestValue);
+    LOGI("t_ArriveBeforeTTL:",t_ArriveBeforeTTL,",t_CalTargetValue:",t_CalTargetValue,",n_ArriveBeforeTTL",n_ArriveBeforeTTL,",n_CalTargetValue",n_CalTargetValue);
 }
+
 Action ImplicitEnumeration::scheduleRobot(Robot &robot, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths, bool debug)
 {
     if (debug) LOGI("调度开始:goodsize:",goods.size(),". 机器人id：",robot.id);
@@ -180,7 +274,7 @@ Action ImplicitEnumeration::scheduleRobot(Robot &robot, const Map &map, std::vec
     if (robot.carryingItem==1) for (int b=0;b<berths.size();b++) {
         if (robot.carryingItem==1 && robot.carryingItemId != -1 && bestBerthIndex[robot.carryingItemId][b]!=-1 && berths[bestBerthIndex[robot.carryingItemId][b]].reached_goods.size()<16) {
             if (debug) LOGI("分配泊位");
-            Berth &berth = berths[bestBerthIndex[robot.carryingItemId][b]];
+            Berth &berth = berths[bestBerthIndex[robot.carryingItemId][0]];
             // if (debug) LOGI("泊位已预定货物数量：", berth.reached_goods.size(), ' ', berth.unreached_goods.size());
             robot.targetid = berth.id;
             Point2d dest(-1,-1);

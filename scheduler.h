@@ -145,7 +145,17 @@ public:
     int Constraint_max_distance;
     int Constraint_total_distance;
     int Constraint_least_berths;
+    int Constraint_danger_TTL;
+    double coefficient_profit;
+    double coefficient_ttl;
+    double coefficient_cost;
     vector<int> leastBerthsIndex;
+    vector<bool> dontPick;
+
+    int t_ArriveBeforeTTL;
+    int t_CalTargetValue;
+    int n_ArriveBeforeTTL;
+    int n_CalTargetValue;
 
     Action scheduleRobot(Robot &robot, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths, bool debug=false) override;
     std::vector<std::pair<int, Action>>  scheduleRobots(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths) override {std::vector<std::pair<int, Action>> ret; return ret;}
@@ -159,7 +169,9 @@ public:
     bool LowTotalCost(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths, vector<int>& array, int len);
     void calBerthsHoldingGoods(std::vector<Goods> &goods, std::vector<Berth> &berths);
     bool NotTheLeastBerths(Goods& good);
-
+    void calGoodsValue(std::vector<Goods> &goods, std::vector<Berth> &berths, const Map &map, std::vector<Robot> &robots);
+    void calGoodsPriority(std::vector<Goods> &goods, std::vector<Berth> &berths, const Map &map, std::vector<Robot> &robots);
+    bool HighValue(Goods& good);
 
 
     double CalTargetValue(vector<int>& array, std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths);
@@ -168,7 +180,7 @@ public:
         return StageType::SIMPLE;
     }
 
-    ImplicitEnumeration(): Scheduler(),Constraint_max_distance(200),Constraint_total_distance(150),Constraint_least_berths(3) {}
+    ImplicitEnumeration(): Scheduler(),Constraint_max_distance(200),Constraint_total_distance(150),Constraint_least_berths(1),Constraint_danger_TTL(300),coefficient_profit(2),coefficient_ttl(0.1),coefficient_cost(1) {}
 
 };
 

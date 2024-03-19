@@ -29,6 +29,8 @@ public:
     vector<int> scheduleResult;
     double bestValue;
 
+    bool enterFinal; // 用於首次判定進入終局時刻
+
     int pickup[10]; // 机器人要取的货的id
     virtual Action scheduleRobot(Robot &robot, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths, bool debug=false) = 0;
     // virtual std::vector<std::pair<int, Action>>  scheduleRobots(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths) = 0;
@@ -45,7 +47,7 @@ public:
     void calCostAndBestBerthIndes(const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths);
     vector<int> getResult() {return scheduleResult;}
 
-    Scheduler(): cost2berths(),bestBerthIndex(),scheduleResult(),bestValue(0) {}
+    Scheduler(): cost2berths(),bestBerthIndex(),scheduleResult(),bestValue(0),enterFinal(false) {}
 };
 
 class SimpleTransportStrategy : public Scheduler
@@ -145,24 +147,45 @@ public:
 class ImplicitEnumeration : public Scheduler
 {
 public:
-    int Constraint_distance;
+    int Constraint_max_distance;
+    int Constraint_total_distance;
+    int Constraint_least_berths;
+    int Constraint_danger_TTL;
+    double coefficient_profit;
+    double coefficient_ttl;
+    double coefficient_cost;
+    vector<int> leastBerthsIndex;
+    vector<bool> dontPick;
+
+    int t_ArriveBeforeTTL;
+    int t_CalTargetValue;
+    int n_ArriveBeforeTTL;
+    int n_CalTargetValue;
 
     Action scheduleRobot(Robot &robot, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths, bool debug=false) override;
-    std::vector<std::pair<int, Action>>  scheduleRobots(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths) override {}
-    std::vector<std::pair<int, Action>>  scheduleShips(std::vector<Ship> &ships, std::vector<Berth> &berths,std::vector<Goods>& goods,std::vector<Robot> &robots,std::vector<vector<int>> bestBerthIndex,int currentFrame,bool debug=false) override{}
+    std::vector<std::pair<int, Action>>  scheduleRobots(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths) override {std::vector<std::pair<int, Action>> ret; return ret;}
+    std::vector<std::pair<int, Action>>  scheduleShips(std::vector<Ship> &ships, std::vector<Berth> &berths,std::vector<Goods>& goods,std::vector<Robot> &robots,std::vector<vector<int>> bestBerthIndex,int currentFrame,bool debug=false) override{std::vector<std::pair<int, Action>> ret; return ret;}
 
     void scheduleRobots(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths, vector<int>& array, int idx) override;
     void LPscheduleRobots(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths, vector<int>& array, int idx) override;
     bool GoodsPickedOnce(vector<int>& array, std::vector<Goods> &goods);
     bool ArriveBeforeTTL(vector<int>& array, vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths);
     bool CloseToGood(Robot& robot, Goods& good, const Map &map, std::vector<Berth> &berths, int dist);
+    bool LowTotalCost(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths, vector<int>& array, int len);
+    void calBerthsHoldingGoods(std::vector<Goods> &goods, std::vector<Berth> &berths);
+    bool NotTheLeastBerths(Goods& good);
+    void calGoodsValue(std::vector<Goods> &goods, std::vector<Berth> &berths, const Map &map, std::vector<Robot> &robots);
+    void calGoodsPriority(std::vector<Goods> &goods, std::vector<Berth> &berths, const Map &map, std::vector<Robot> &robots);
+
+
     double CalTargetValue(vector<int>& array, std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths);
-    
-    ImplicitEnumeration(): Scheduler(),Constraint_distance(100) {}
 
     StageType getSchedulerType( )override{
         return StageType::SIMPLE;
     }
+
+    ImplicitEnumeration(): Scheduler(),Constraint_max_distance(200),Constraint_total_distance(150),Constraint_least_berths(1),Constraint_danger_TTL(300),coefficient_profit(2),coefficient_ttl(0.1),coefficient_cost(1) {}
+
 };
 
 // class EfficientTransportStrategy : public Scheduler {

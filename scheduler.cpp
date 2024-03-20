@@ -3,6 +3,86 @@
 #include "log.h"
 
 using std::vector;
+// Point2d computeCentroid(const std::vector<Berth>& cluster) {
+//     Point2d centroid = Point2d(0, 0);
+//     for (const Berth& berth : cluster) {
+//         centroid.x += berth.pos.x;
+//         centroid.y += berth.pos.y;
+//     }
+//     centroid.x /= cluster.size();
+//     centroid.y /= cluster.size();
+//     return centroid;
+// }
+
+// std::vector<std::vector<Berth>> kMeans(const std::vector<Berth>& berths, Map &map, int k, int maxIterations) {
+//     std::vector<Point2d> centroids;
+//     std::vector<std::vector<Berth>> clusters(k);
+
+//     // 初始化聚类中心点
+//     for (int i = 0; i < k; ++i) {
+//         centroids.push_back(berths[i].pos);
+//     }
+
+//     // 迭代更新聚类
+//     for (int iter = 0; iter < maxIterations; ++iter) {
+//         // 清空聚类
+//         for (auto& cluster : clusters) {
+//             cluster.clear();
+//         }
+
+//         // 将每个点分配到最近的聚类
+//         for (const Berth& berth : berths) {
+//             int closestCentroidIdx = 0;
+//             int minDistance = map.berthDistanceMap.at(berth.id)[centroids[0].x][centroids[0].y];
+//             for (int i = 1; i < k; ++i) {
+//                 int d = map.berthDistanceMap.at(berth.id)[centroids[i].x][centroids[i].y];
+//                 if (d < minDistance) {
+//                     minDistance = d;
+//                     closestCentroidIdx = i;
+//                 }
+//             }
+//             clusters[closestCentroidIdx].push_back(berth);
+//         }
+
+//         // 更新聚类中心点
+//         for (int i = 0; i < k; ++i) {
+//             centroids[i] = computeCentroid(clusters[i]);
+//         }
+//     }
+
+//     return clusters;
+// }
+
+// vector<vector<Berth>> ClusteringBerths(vector<Berth> &berths, Map &map)
+// {
+//     return kMeans(berths, map, 5, 10);
+//     vector<vector<Berth>> result;
+//     vector<bool> clustered(berths.size(), false);
+//     // 连通性聚类
+//     for (int i=0;i<berths.size();i++) {
+//         Berth& berth = berths[i];
+//         if (!clustered[i]) {
+//             vector<Berth> anotherClass;
+//             for (int j=i+1;j<berths.size();j++) {
+//                 if (map.berthDistanceMap.at(i)[berth.pos.x][berth.pos.y] != INT_MAX) {
+//                     anotherClass.push_back(berths[j]);
+//                     clustered[j] = true;
+//                 }
+//             }
+//             result.push_back(anotherClass);
+//         }
+//     }
+
+//     int class_num = result.size();
+//     // 距离聚类
+//     if (class_num==5) return result; // 正好5（=船数量）类
+//     else if (class_num<5) {
+//         int max = 0, argmax = -1;
+//         // 找类内距最大的类进行拆分
+//         for (int i=0;i<result.size();i++) if (result[i].size()>max) {max=result[i].size(); argmax=i;}
+
+//     }
+// }
 
 int dist(Point2d a, Point2d b) {return abs(a.x-b.x)+abs(a.y-b.y);}
 int WhereIsRobot(Robot& robot, std::vector<Berth> &berths, const Map &map)

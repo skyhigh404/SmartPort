@@ -292,7 +292,7 @@ struct SingleLaneLock
 
 
 
-class SingleLaneManger {
+class SingleLaneManager {
 public:
     int rows, cols;
     std::vector<std::vector<int>> singleLaneMap;    //  标记为单行路的id(从1开始)，标记0为度大于2，标记-1为障碍
@@ -304,9 +304,9 @@ public:
 
     int nextSingleLaneId = 1;   // 单行路的路径
 
-    SingleLaneManger(){}
+    SingleLaneManager(){}
 
-    SingleLaneManger(const Map& map){
+    SingleLaneManager(const Map& map){
         this->rows = map.rows;
         this->cols = map.cols;
         this->grid = map.grid;
@@ -317,7 +317,39 @@ public:
         findAllSingleLanes();
     }
 
-    inline int getSingleLaneId(const Point2d& point) {
+    void lock(int laneId, const Point2d& entryPoint) {
+        if (singleLaneLocks.find(laneId) != singleLaneLocks.end()) {
+            SingleLaneLock& lock = singleLaneLocks.at(laneId);
+            // 不对死路进行特殊处理
+            if (entryPoint == lock.startPos)
+                lock.lock(true);
+            else if (entryPoint == lock.endPos)
+                lock.lock(false);
+            else
+                LOGW("传入错误的加锁位置, pos: ", entryPoint);
+        }
+        else {
+            LOGE("尝试从singleLaneLocks获取不存在的锁的情况 laneId: ", laneId);
+        }
+    }
+
+    void unlock(int laneId, const Point2d& entryPoint) {
+        if (singleLaneLocks.find(laneId) != singleLaneLocks.end()) {
+            SingleLaneLock& lock = singleLaneLocks.at(laneId);
+            // 不对死路进行特殊处理
+            if (entryPoint == lock.startPos)
+                lock.unlock(true);
+            else if (entryPoint == lock.endPos)
+                lock.unlock(false);
+            else
+                LOGW("传入错误的解锁位置, pos: ", entryPoint);
+        }
+        else {
+            LOGE("尝试从singleLaneLocks获取不存在的锁的情况 laneId: ", laneId);
+        }
+    }
+
+    inline int getSingleLaneId(const Point2d& point) const {
         if (point.x >= 0 && point.x < rows && point.y >= 0 && point.y < cols) {
             return singleLaneMap[point.x][point.y];
         }
@@ -325,9 +357,9 @@ public:
     }
 
     // 根据提供的位置，判断是否在单行道的入口处
-    bool isEnteringSingleLane(int laneId, const Point2d& entryPoint) {
+    bool isEnteringSingleLane(int laneId, const Point2d& entryPoint) const {
         if (singleLaneLocks.find(laneId) != singleLaneLocks.end()) {
-            const SingleLaneLock& lock = singleLaneLocks[laneId];
+            const SingleLaneLock& lock = singleLaneLocks.at(laneId);
             // 不对死路进行特殊处理
             if(entryPoint == lock.startPos || entryPoint == lock.endPos)
                 return true;
@@ -338,9 +370,9 @@ public:
         return false;
     }
     // 提供单行路的进入点，检查单行路是否被锁定
-    bool isLocked(int laneId, const Point2d& entryPoint) {
+    bool isLocked(int laneId, const Point2d& entryPoint) const {
         if (singleLaneLocks.find(laneId) != singleLaneLocks.end()) {
-            const SingleLaneLock& lock = singleLaneLocks[laneId];
+            const SingleLaneLock& lock = singleLaneLocks.at(laneId);
             if (lock.isDeadEnd()) {
                 // 对于死路，只检查startLock
                 return lock.startLock;
@@ -506,9 +538,11 @@ public:
                         int laneId = nextSingleLaneId++;
                         singleLanes[laneId] = path; // 保存找到的单行路路径
                         singleLaneLocks[laneId] = SingleLaneLock(path[0],path[path.size()-1]); // 默认锁为解锁状态
+                        // LOGI("single lane ID: ", laneId, ", startPos: ",path[0], ", endPos: ",path[path.size()-1]);
                         // 对单行路地图进行标记
                         for(auto& point : path){
                             singleLaneMap[point.x][point.y] = laneId;
+                            // LOGI(point);
                         }
 
                         if(countObstacle(path[0]) == 3){

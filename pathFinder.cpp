@@ -39,6 +39,7 @@ void AStarPathfinder::aStarSearch(const Graph &graph,
                                   std::unordered_map<Location, Location> &came_from,
                                   std::unordered_map<Location, int> &cost_so_far)
 {
+    int calTime = 0;
     if (!graph.inBounds(goal) || !graph.passable(goal))
         return;
     PriorityQueue<Location, double> frontier;
@@ -55,7 +56,7 @@ void AStarPathfinder::aStarSearch(const Graph &graph,
         {
             break;
         }
-        // calTime += 4;
+        calTime += 4;
         for (const Location &next : graph.neighbors(current))
         {
             int new_cost = cost_so_far[current] + graph.cost(current, next);
@@ -68,7 +69,7 @@ void AStarPathfinder::aStarSearch(const Graph &graph,
             }
         }
     }
-    // LOGI("A* 遍历节点个数：",calTime);
+    LOGI("A* 搜索节点个数：",calTime);
     // LOGI("优先队列长度：",frontier.elements.size());
 }
 

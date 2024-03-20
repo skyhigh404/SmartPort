@@ -1,4 +1,3 @@
-@echo off
 setlocal
 
 :: 设置要打包的目录，默认为当前目录
@@ -6,7 +5,7 @@ set "DIRECTORY=%~1"
 if "%DIRECTORY%"=="" set "DIRECTORY=."
 
 :: 设置输出的zip文件名
-set "OUTPUT_FILE=./smartPort.zip"
+set "OUTPUT_FILE=../smartPort.zip"
 
 :: 初始化一个临时文件列表
 set "FILE_LIST=temp_file_list.txt"
@@ -24,6 +23,6 @@ zip -@ "%OUTPUT_FILE%" < "%FILE_LIST%"
 :: 删除临时文件列表
 del "%FILE_LIST%"
 
-echo 打包完成: %OUTPUT_FILE%
+echo Compression completed: %OUTPUT_FILE%
 
 endlocal

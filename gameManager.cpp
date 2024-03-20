@@ -145,7 +145,13 @@ void GameManager::initializeGame()
     LOGI("单行路初始化处理时间：",findTime,"ms");
     // 打印单行路
     LOGI("单行路数量：",this->singleLaneManager.singleLanes.size());
-    // LOGI(Map::drawMap(this->singleLaneManager.singleLaneMap,3));
+    LOGI(Map::drawMap(this->singleLaneManager.singleLaneMap,3));
+    LOGI("输出单行路锁信息");
+    for (const auto& pair : this->singleLaneManager.singleLaneLocks) {
+        int laneId = pair.first;
+        const SingleLaneLock& lock = pair.second;
+        LOGI("ID: ",laneId, " startPos: ", lock.startPos, ", endPos: ", lock.endPos);
+    }
     // LOGI(this->gameMap.drawMap(nullptr, nullptr, nullptr, nullptr, nullptr));
     // LOGI("Log berth 0 BFS map.");
     // LOGI(Map::drawMap(this->gameMap.berthDistanceMap[9],12));
@@ -251,7 +257,7 @@ void GameManager::processFrameData()
 
 void GameManager::robotControl()
 {
-    bool robotDebugOutput = true;
+    bool robotDebugOutput = false;
     // 机器人状态更新
     for (Robot& robot:robots) {
         if (robot.status==DEATH) continue;
@@ -344,7 +350,6 @@ void GameManager::robotControl()
         this->RobotScheduler->enterFinal = true;
     }
 
-    LOGI("机器人开始调度");
     auto start = std::chrono::steady_clock::now();
     // 对所有需要调度的机器人进行调度
     for (Robot& robot : robots) {
@@ -411,6 +416,8 @@ void GameManager::robotControl()
     // 执行动作
     robotController->runController(gameMap, this->singleLaneManager);
     // LOGI("機器人尋路完畢");
+    // 维护单行路的锁
+    // updateSingleLaneLocks();
     
     // 输出指令
     for (Robot& robot : robots) {
@@ -427,7 +434,7 @@ void GameManager::robotControl()
 
 void GameManager::RobotControl()
 {
-    bool robotDebugOutput = true;
+    bool robotDebugOutput = false;
     AStarPathfinder pathfinder;
     for (int i=0;i<robots.size();i++) {
         Robot& robot = robots[i];
@@ -623,7 +630,6 @@ void GameManager::RobotControl()
 
 void GameManager::update()
 {   
-    LOGI("进入update函数-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
     auto start = std::chrono::steady_clock::now();
     
     bool robotDebugOutput = false;
@@ -681,6 +687,25 @@ void GameManager::update()
         LOGI("游戏结束，泊位剩余情况：");
         for(auto &ship : ships){
             ship.info();
+        }
+    }
+}
+
+void GameManager::updateSingleLaneLocks()
+{
+    for (const Robot &robot : robots) {
+        int currentSingleLaneID = singleLaneManager.getSingleLaneId(robot.pos);
+        int nextFrameSingleLaneID1 = singleLaneManager.getSingleLaneId(robot.nextPos);
+
+        // 即将进入单行道
+        if (nextFrameSingleLaneID1 >= 1 && currentSingleLaneID == 0) {
+            LOGI("加锁 laneID: ", nextFrameSingleLaneID1, " robot: ", robot);
+            singleLaneManager.lock(nextFrameSingleLaneID1, robot.nextPos);
+        }
+        // 即将离开单行道
+        else if (nextFrameSingleLaneID1 == 0 && currentSingleLaneID >= 1) {
+            LOGI("释放锁 laneID: ", currentSingleLaneID, " robot: ", robot);
+            singleLaneManager.unlock(currentSingleLaneID, robot.pos);
         }
     }
 }

@@ -310,13 +310,16 @@ void GameManager::robotControl()
                 berth.storageSlots[x][y] = goods[robot.carryingItemId].id;
                 berth.reached_goods.push_back(goods[robot.carryingItemId]);
                 goods[robot.carryingItemId].status = 3;
-                totalGetGoodsValue += goods[robot.carryingItemId].value;
                 robot.status = MOVING_TO_GOODS;
                 robot.carryingItem = 0;
                 robot.carryingItemId = -1;
                 robot.targetid = -1;
 // LOGI("测试。。。");
-                Berth::maxLoadGoodNum += 1;
+                if(currentFrame < 15000 - berth.time){
+                    Berth::maxLoadGoodNum += 1;
+                    totalGetGoodsValue += goods[robot.carryingItemId].value;
+                }
+                
             }
             else {
                 robot.targetid = -1;

@@ -190,21 +190,21 @@ public:
     }
     
     // 判断优先级，如果优先级更大则返回 true
-    // 认定正常运行的，路径更短的优先级更高，然后是不携带货物的优先级更高，最后比较 ID，更小的优先级更高
+    // 认定正常运行的，不携带货物的优先级更高，然后是路径更短的优先级更高，最后比较 ID，更小的优先级更高
     bool comparePriority(const Robot &rhs) const
     {
         if(state != rhs.state)
             return state > rhs.state;
-        else if (path.size() != rhs.path.size())
-            return path.size() < rhs.path.size();
         else if (carryingItem != rhs.carryingItem)
             return carryingItem < rhs.carryingItem;
+        else if (path.size() != rhs.path.size())
+            return path.size() < rhs.path.size();
         else
             return id < rhs.id;
     }
     
     friend std::ostream &operator<<(std::ostream &os, const Robot &robot) {
-        os << "id: " << robot.id << " pos: " << robot.pos << " nextPos: " << robot.nextPos << " dst: " << robot.destination << " path: ";
+        os << "id: " << robot.id << " pos: " << robot.pos << " nextPos: " << robot.nextPos << " dst: " << robot.destination << " path: " << robot.path.size() << ", ";
         for(int i = (int)robot.path.size()-1; i >= std::max(0, (int)robot.path.size()-3); --i){
             os << robot.path[i];
         }

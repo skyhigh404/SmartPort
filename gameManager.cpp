@@ -148,7 +148,7 @@ void GameManager::initializeGame()
     // LOGI(Map::drawMap(this->singleLaneManager.singleLaneMap,3));
     // LOGI(this->gameMap.drawMap(nullptr, nullptr, nullptr, nullptr, nullptr));
     // LOGI("Log berth 0 BFS map.");
-    // LOGI(Map::drawMap(this->gameMap.berthDistanceMap[0],12));
+    // LOGI(Map::drawMap(this->gameMap.berthDistanceMap[9],12));
     // exit(0);
 }
 
@@ -398,8 +398,8 @@ void GameManager::robotControl()
     //         robot.destination = action.desination;
     //     }
     // }
-    // auto end = std::chrono::steady_clock::now();
-    // LOGI("scheduleRobots时间: ",std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()," ms");
+    auto end = std::chrono::steady_clock::now();
+    LOGI("scheduleRobots时间: ",std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()," ms");
     // LOGI("機器人調度完畢");
 
     // 执行动作

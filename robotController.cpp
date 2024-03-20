@@ -13,7 +13,7 @@ void RobotController::runController(Map &map, SingleLaneManger &singleLaneManger
         }
     }
     auto end = std::chrono::steady_clock::now();
-    // LOGI("robotController 尋路时间: ",std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()," ms");
+    LOGI("robotController 尋路时间: ",std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()," ms");
 
     // 更新所有机器人下一步位置
     for (Robot &robot : robots)

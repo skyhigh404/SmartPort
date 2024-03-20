@@ -447,11 +447,6 @@ public:
     // 只有两个障碍就是可以通行
     void findSingleLaneFromPoint(Point2d pos, std::vector<Point2d>& path) {
         // 路到尽头了
-        //该格子周围障碍数小于两个才是单行路
-        isValid(pos);
-        // LOGI("有效");
-        visited[pos.x][pos.y] == VisitType::VISITED;
-        // LOGI("访问map有用");
         if (!isValid(pos) || visited[pos.x][pos.y] == VisitType::VISITED) return;
         visited[pos.x][pos.y] = VisitType::VISITED;
         // LOGI("有效");
@@ -492,7 +487,7 @@ public:
                         if(!isCorner(path[0]) && countObstacle(path[0]) == 2){
                             int laneId = nextSingleLaneId++;
                             singleLanes[laneId] = path; // 保存找到的单行路路径
-                            singleLaneLocks[laneId] = SingleLaneLock(path[0],path[path.size()-1]); // 默认锁为解锁状态
+                            singleLaneLocks[laneId] = SingleLaneLock(path[0],path.back()); // 默认锁为解锁状态
                             // 对单行路地图进行标记
                             for(auto& point : path){
                                 singleLaneMap[point.x][point.y] = laneId;
@@ -505,7 +500,7 @@ public:
                         }
                         int laneId = nextSingleLaneId++;
                         singleLanes[laneId] = path; // 保存找到的单行路路径
-                        singleLaneLocks[laneId] = SingleLaneLock(path[0],path[path.size()-1]); // 默认锁为解锁状态
+                        singleLaneLocks[laneId] = SingleLaneLock(path[0],path.back()); // 默认锁为解锁状态
                         // 对单行路地图进行标记
                         for(auto& point : path){
                             singleLaneMap[point.x][point.y] = laneId;

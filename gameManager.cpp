@@ -151,6 +151,10 @@ void GameManager::initializeGame()
         int laneId = pair.first;
         const SingleLaneLock& lock = pair.second;
         LOGI("ID: ",laneId, " startPos: ", lock.startPos, ", endPos: ", lock.endPos);
+        // LOGI("-----------------------------------------单行路路径:");
+        // for(auto &point : this->singleLaneManager.singleLanes[laneId]){
+        //     LOGI(point);
+        // }
     }
     // LOGI(this->gameMap.drawMap(nullptr, nullptr, nullptr, nullptr, nullptr));
     // LOGI("Log berth 0 BFS map.");

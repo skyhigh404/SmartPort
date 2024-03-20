@@ -477,7 +477,38 @@ public:
 
 
     // 只有两个障碍就是可以通行
-    void findSingleLaneFromPoint(Point2d pos, std::vector<Point2d>& path) {
+    // void findSingleLaneFromPoint(Point2d pos, std::vector<Point2d>& path) {
+    //     // 路到尽头了
+    //     if (!isValid(pos) || visited[pos.x][pos.y] == VisitType::VISITED) return;
+    //     visited[pos.x][pos.y] = VisitType::VISITED;
+    //     // LOGI("有效");
+    //     if (!canPass(pos)){
+    //         return;
+    //     }
+    //     // LOGI("可通行");
+    //     int num = countObstacle(pos);
+    //     if(num < 2 || num ==4) return;
+    //     // LOGI(pos,",当前位置周围障碍数量:",countObstacle(pos));
+        
+    //     path.push_back(pos);
+
+    //     std::vector<Point2d> directions = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
+    //     // int validDirections = 0;
+    //     Point2d nextStep;
+
+    //     for (const auto& dir : directions) {
+    //         Point2d nextPos = {pos.x + dir.x, pos.y + dir.y};
+    //         if (isValid(nextPos) && canPass(nextPos) && visited[nextPos.x][nextPos.y] == VisitType::UNVISITED) {
+    //             // validDirections++;
+    //             // if(nextPos.x >=199){LOGI("debug：",nextPos,",周围障碍：",countObstacle(nextPos));}
+    //             nextStep = nextPos;
+    //             findSingleLaneFromPoint(nextStep, path);
+    //         }
+    //     }
+    // }
+
+    // 只有两个障碍就是可以通行
+    void findSingleLaneFromPoint(Point2d pos, std::vector<Point2d>& path,bool flag) {
         // 路到尽头了
         if (!isValid(pos) || visited[pos.x][pos.y] == VisitType::VISITED) return;
         visited[pos.x][pos.y] = VisitType::VISITED;
@@ -489,12 +520,18 @@ public:
         int num = countObstacle(pos);
         if(num < 2 || num ==4) return;
         // LOGI(pos,",当前位置周围障碍数量:",countObstacle(pos));
+        if (flag){
+            path.push_back(pos);
+        }
+        else{
+            path.insert(path.begin(),pos);
+        }
         
-        path.push_back(pos);
 
         std::vector<Point2d> directions = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
         // int validDirections = 0;
         Point2d nextStep;
+
 
         for (const auto& dir : directions) {
             Point2d nextPos = {pos.x + dir.x, pos.y + dir.y};
@@ -502,10 +539,13 @@ public:
                 // validDirections++;
                 // if(nextPos.x >=199){LOGI("debug：",nextPos,",周围障碍：",countObstacle(nextPos));}
                 nextStep = nextPos;
-                findSingleLaneFromPoint(nextStep, path);
+                int temp_size = path.size();
+                findSingleLaneFromPoint(nextStep, path,flag);
+                if(temp_size != path.size()) flag = !flag;
             }
         }
     }
+
 
     // 找到所有单行路
     void findAllSingleLanes() {
@@ -514,7 +554,7 @@ public:
                 auto start = std::chrono::steady_clock::now();
                 if (canPass({x, y}) && visited[x][y] == VisitType::UNVISITED) {
                     std::vector<Point2d> path;
-                    findSingleLaneFromPoint({x, y}, path);
+                    findSingleLaneFromPoint({x, y}, path,true);
                     if(path.size() == 1){
                         if(!isCorner(path[0]) && countObstacle(path[0]) == 2){
                             int laneId = nextSingleLaneId++;
@@ -542,7 +582,7 @@ public:
                         if(countObstacle(path[0]) == 3){
                             singleLaneLocks[laneId].startPos = singleLaneLocks[laneId].endPos;
                             singleLaneLocks[laneId].endPos = {-1,-1};
-                            std::reverse(singleLanes[laneId].begin(),singleLanes[laneId].end());
+                            std::reverse(std::begin(singleLanes[laneId]),std::end(singleLanes[laneId]));
                         }
                         if(countObstacle(path.back()) == 3){
                             singleLaneLocks[laneId].endPos = {-1,-1};

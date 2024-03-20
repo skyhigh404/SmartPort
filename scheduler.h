@@ -120,12 +120,13 @@ public:
     }
 
     // 给船分配空闲泊位id并返回
-    int allocationBerth(int shipId){
+    int allocationBerth(int shipId,std::vector<Ship> & ships,std::vector<Berth> &berths){
         if(ship2Berth[shipId] == -1){
             // 遍历找到空闲的泊位id
-            // todo 优化空间：找到货物量和船的capacity相匹配的组合
+            // todo 优化空间：找到货物量和船的capacity相匹配的组合；或者如果有船在泊位外等待，则不让他继续走
             for (std::unordered_map<int, int>::iterator it = berth2Ship.begin(); it != berth2Ship.end(); ++it) {
-                if(it->second == -1){
+                // 当前有位置则不分配
+                if(it->second == -1 && shipNumInBerth(berths[it->first],ships) == 0){
                     berth2Ship[it->first] = shipId;
                     ship2Berth[shipId] = it->first;
                     return ship2Berth[shipId];
@@ -137,8 +138,16 @@ public:
         else{
             return ship2Berth[shipId];
         }
-    }
+    }   
 
+    bool inAssignedBerth(int berthId){
+        if(berth2Ship.count(berthId)== 0){
+            return false;
+        }
+        else{
+            return true;
+        }
+    }
 
 };
 

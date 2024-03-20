@@ -45,18 +45,18 @@ int main()
     {
         gameManager.processFrameData();
         // 调度变换
-        // if(gameManager.nowStateType() != gameManager.ShipScheduler->getSchedulerType()){
-        //     switch (gameManager.nowStateType())
-        //     {
-        //     case StageType::FINAL:
-        //         LOGI("进去船只终局调度");
-        //         gameManager.setShipScheduler(&finalTransportStrategy);
-        //         break;
+        if(gameManager.nowStateType() != gameManager.ShipScheduler->getSchedulerType()){
+            switch (gameManager.nowStateType())
+            {
+            case StageType::FINAL:
+                LOGI("进去船只终局调度");
+                gameManager.setShipScheduler(&finalTransportStrategy);
+                break;
             
-        //     default:
-        //         break;
-        //     }
-        // }
+            default:
+                break;
+            }
+        }
         auto start = std::chrono::steady_clock::now();
         gameManager.update();
         auto end = std::chrono::steady_clock::now();

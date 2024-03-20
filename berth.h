@@ -43,7 +43,7 @@ public:
         //     reach_info += "(" + std::to_string(good.id) + "," + std::to_string(good.value) + "),";
         // }
 
-        std::string unreach_info = "未到达货物数量:" + std::to_string(unreached_goods.size()) + ";";
+        std::string unreach_info = "未到达货物数量:" + std::to_string(unreached_goods.size()) + ";总价值：" + std::to_string(totalValue);
         // for(const auto& good : unreached_goods){
         //     unreach_info += "(" + std::to_string(good.id) + "," + std::to_string(good.value) + "),";
         // }

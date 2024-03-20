@@ -229,6 +229,9 @@ void GameManager::processFrameData()
         cin >> shipState >> berthId;
         this->ships[i].state = shipState;
         this->ships[i].berthId = berthId;
+        if(ships[i].state == 0 && ships[i].berthId != -1){
+            LOGW("船只状态：",ships[i].state,",船只泊位：",ships[i].berthId);
+        }
     }
     // 确认已接收完本帧的所有数据
     string ok;
@@ -620,7 +623,7 @@ void GameManager::update()
     LOGI("进入update函数-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
     auto start = std::chrono::steady_clock::now();
     
-    bool robotDebugOutput = true;
+    bool robotDebugOutput = false;
     bool shipDebugOutput = true;
 
     // robots[3].findPath(gameMap,Point2d(133,99));
@@ -636,7 +639,7 @@ void GameManager::update()
 
     if(shipDebugOutput){LOGI("船只开始调度");};
     auto ship_start = std::chrono::high_resolution_clock::now();
-    std::vector<std::pair<int, Action>> ShipActions = this->ShipScheduler->scheduleShips(ships, berths, goods, robots,vector<vector<int>>(),this->currentFrame, shipDebugOutput);
+    std::vector<std::pair<int, Action>> ShipActions = this->ShipScheduler->scheduleShips(ships, berths, goods, robots,this->RobotScheduler->bestBerthIndex,this->currentFrame, shipDebugOutput);
     auto ship_end = std::chrono::high_resolution_clock::now();
     LOGI("调度船只时长:",std::chrono::duration_cast<std::chrono::milliseconds>(ship_end - ship_start).count(),"ms");
 
@@ -661,6 +664,21 @@ void GameManager::update()
 
     if(currentFrame>=14000 && currentFrame <= 14005){
         LOGI("skipFrame: ", skipFrame, ", totalGetGoodsValue: ", totalGetGoodsValue);
+    }
+    if(currentFrame >=14990 && currentFrame <= 14999){
+        LOGI("游戏结束，泊位剩余情况：");
+        for(auto &berth : berths){
+            // if(debug){LOGI("计算泊位收益-----");berth.info();}
+            berth.totalValue = 0;
+            for(auto & good : berth.reached_goods) berth.totalValue += good.value;
+        }
+        for(auto & berth : berths){
+            berth.info();
+        }
+        LOGI("游戏结束，泊位剩余情况：");
+        for(auto &ship : ships){
+            ship.info();
+        }
     }
 }
 

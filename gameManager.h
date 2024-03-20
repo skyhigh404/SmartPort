@@ -78,7 +78,7 @@ public:
             return StageType::SIMPLE;
         }
         else{
-            LOGI("大于终局帧数");
+            // LOGI("大于终局帧数");
             return StageType::FINAL;
         }
     }

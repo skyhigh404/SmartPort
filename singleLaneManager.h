@@ -256,6 +256,38 @@ struct SingleLaneLock
     int count;
     SingleLaneLock(Point2d start,Point2d end):startPos(start),endPos(end),startLock(false),endLock(false),count(0){}
     SingleLaneLock(){}
+
+    inline bool isDeadEnd() const {
+        return endPos == Point2d(-1, -1);
+    }
+
+    // 加锁函数，参数指明是从startPos进入还是从endPos进入
+    void lock(bool fromStart) {
+        if (isDeadEnd()) {
+            // 对于死路，无论从哪个方向进入，都只锁定startLock
+            startLock = true;
+        }
+        // 给进入的另一端加锁
+        else {
+            if (fromStart)
+                endLock = true;
+            else
+                startLock = true;
+        }
+        count++; // 增加在单行道内的机器人数量
+    }
+
+    // 释放锁函数，参数指明是从startPos退出还是从endPos退出
+    void unlock(bool fromStart) {
+        count--; // 减少在单行道内的机器人数量
+        if (count == 0) { // 如果单行道为空，则解锁两端
+            startLock = false;
+            endLock = false;
+        }
+        else if (count < 0) {
+            LOGE("错误的释放单行路锁, count: ", count);
+        }
+    }
 };
 
 
@@ -263,7 +295,7 @@ struct SingleLaneLock
 class SingleLaneManger {
 public:
     int rows, cols;
-    std::vector<std::vector<int>> singleLaneMap;    //  单行路位置标记为单行路的id，标记0为度大于2，障碍位置标记为-1
+    std::vector<std::vector<int>> singleLaneMap;    //  标记为单行路的id(从1开始)，标记0为度大于2，标记-1为障碍
     std::unordered_map<int,SingleLaneLock> singleLaneLocks;    // 维护每个单行路的锁，标记当前是否通行
     std::unordered_map<int,std::vector<Point2d>> singleLanes;   //存储单行路的路径
 
@@ -283,6 +315,52 @@ public:
 
         // 找到所有单行路
         findAllSingleLanes();
+    }
+
+    inline int getSingleLaneId(const Point2d& point) {
+        if (point.x >= 0 && point.x < rows && point.y >= 0 && point.y < cols) {
+            return singleLaneMap[point.x][point.y];
+        }
+        return -1; // 超出边界
+    }
+
+    // 根据提供的位置，判断是否在单行道的入口处
+    bool isEnteringSingleLane(int laneId, const Point2d& entryPoint) {
+        if (singleLaneLocks.find(laneId) != singleLaneLocks.end()) {
+            const SingleLaneLock& lock = singleLaneLocks[laneId];
+            // 不对死路进行特殊处理
+            if(entryPoint == lock.startPos || entryPoint == lock.endPos)
+                return true;
+        }
+        else {
+            LOGE("尝试从singleLaneLocks获取不存在的锁的情况 laneId: ", laneId);
+        }
+        return false;
+    }
+    // 提供单行路的进入点，检查单行路是否被锁定
+    bool isLocked(int laneId, const Point2d& entryPoint) {
+        if (singleLaneLocks.find(laneId) != singleLaneLocks.end()) {
+            const SingleLaneLock& lock = singleLaneLocks[laneId];
+            if (lock.isDeadEnd()) {
+                // 对于死路，只检查startLock
+                return lock.startLock;
+            } 
+            else {
+                // 检查进入方向是否被加锁
+                if (lock.startPos == entryPoint && lock.startLock)
+                    return true;
+                if (lock.endPos == entryPoint && lock.endLock)
+                    return true;
+            }
+        }
+        else {
+            LOGE("尝试从singleLaneLocks获取不存在的锁的情况 laneId: ", laneId);
+        }
+        return false;
+    }
+
+    SingleLaneLock& getLock(int laneId) {
+        return singleLaneLocks[laneId];
     }
 
     void init(const Map& map){

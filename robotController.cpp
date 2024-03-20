@@ -66,11 +66,15 @@ std::set<RobotController::CollisionEvent>
 RobotController::detectNextFrameConflict(const Map &map, SingleLaneManger &singleLaneManger)
 {
     std::set<RobotController::CollisionEvent> collision; // 使用 set 保证输出的机器人对不重复
-    for(const Robot &robot1 : robots){
-        for(const Robot &robot2 : robots){
-            if(robot1.id == robot2.id)
-                continue;
+    for(size_t i = 0; i < robots.size(); ++i){
+        const Robot& robot1 = robots[i];
+        for(size_t j = i + 1; j < robots.size(); ++j){
+            const Robot& robot2 = robots[j];
 
+            int currentSingleLaneID1 = singleLaneManger.getSingleLaneId(robot1.pos);
+            int nextFrameSingleLaneID1 = singleLaneManger.getSingleLaneId(robot1.nextPos);
+            int currentSingleLaneID2 = singleLaneManger.getSingleLaneId(robot2.pos);
+            int nextFrameSingleLaneID2 = singleLaneManger.getSingleLaneId(robot2.nextPos);
             // 检查下一帧前往位置是否相同，移动机器人撞上静止机器人也在这种情况内
             if(robot1.nextPos == robot2.nextPos){
                 CollisionEvent event(robot1.id, robot2.id, CollisionEvent::TargetOverlap);
@@ -81,10 +85,24 @@ RobotController::detectNextFrameConflict(const Map &map, SingleLaneManger &singl
                 CollisionEvent event(robot1.id, robot2.id, CollisionEvent::SwapPositions);
                 collision.insert(event);
             }
-            // 检查单行路情况
-            // else if(map.s){
-
-            // }
+            // 检查机器人下一帧是否尝试同时相向进入单行道，同时从同一位置进入单行道已经被 TargetOverlap 排除
+            else if(nextFrameSingleLaneID1 >=1 &&
+                    currentSingleLaneID1 == 0 &&
+                    currentSingleLaneID2 == 0 &&
+                    nextFrameSingleLaneID1 == nextFrameSingleLaneID2 &&
+                    singleLaneManger.isEnteringSingleLane(nextFrameSingleLaneID1, robot1.nextPos) &&
+                    singleLaneManger.isEnteringSingleLane(nextFrameSingleLaneID2, robot2.nextPos)){
+                CollisionEvent event(robot1.id, robot2.id, CollisionEvent::HeadOnAttempt);
+                collision.insert(event);
+            }
+            // 检查机器人下一帧是否尝试从大片空地进入加锁的单行道
+            else if(nextFrameSingleLaneID1 >=1 && 
+                    currentSingleLaneID1 == 0 && 
+                    singleLaneManger.isLocked(nextFrameSingleLaneID1, robot1.nextPos)){
+                // const SingleLaneLock& lock = singleLaneManger.getLock(nextFrameSingleLaneID);
+                CollisionEvent event(robot1.id, CollisionEvent::EntryAttemptWhileOccupied);
+                collision.insert(event);
+            }
         }
     }
     return collision;

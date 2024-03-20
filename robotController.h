@@ -11,9 +11,16 @@ public:
     struct CollisionEvent 
     {
         int robotId1; // 第一个机器人的ID
-        int robotId2; // 第二个机器人的ID
-        enum CollisionType { TargetOverlap, SwapPositions } type; // 碰撞类型
+        int robotId2; // 第二个机器人的ID，如果事件只涉及一个机器人，则此ID可以设置为-1
+        enum CollisionType { 
+            TargetOverlap,  // 目标重叠
+            SwapPositions,  // 交换位置
+            HeadOnAttempt,  // 两个机器人从对立方向尝试进入单行路
+            EntryAttemptWhileOccupied // 单行道已被占据，另一机器人尝试进入导致冲突
+        } type; // 碰撞类型
         
+        CollisionEvent(int id1, CollisionType t)
+            : robotId1(id1), robotId2(-1), type(t) {}
         CollisionEvent(int id1, int id2, CollisionType t)
             : robotId1(std::min(id1, id2)), robotId2(std::max(id1, id2)), type(t) {}
         bool operator<(const CollisionEvent &rhs) const {
@@ -61,7 +68,7 @@ private:
     // 调用寻路算法
     void runPathfinding(const Map &map, Robot &robot);
 
-    // 检测机器人之间是否冲突，输出冲突的机器人 ID 对
+    // 检测机器人之间是否冲突，输出冲突的机器人 ID (对)，不考虑地图障碍物的情况
     std::set<CollisionEvent> detectNextFrameConflict(const Map &map, SingleLaneManger &singleLaneManger);
 
     // 尝试为所有机器人分配新状态解决冲突

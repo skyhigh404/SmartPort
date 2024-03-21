@@ -14,9 +14,13 @@ std::vector<bool> Berth::available_berths = std::vector<bool>(BERTHNUMS,true);  
 int CURRENT_FRAME = 0;  //当前帧数
 int canUnload(Berth& berth, Point2d pos) {
     int x = pos.x-berth.pos.x, y=pos.y-berth.pos.y;
-    if (x<0 || x>3 || y<0 || y>3) {LOGI("越界",pos,' ',berth.pos);return 0;}
+    if (x<0 || x>3 || y<0 || y>3) {
+        // LOGI("越界",pos,' ',berth.pos);
+        return 0;
+    }
     // if (berth.storageSlots[x][y]== -1) {LOGI("可放貨");return 1;}
-    else return 1;
+    else 
+        return 1;
 }
 
 void GameManager::initializeGame()
@@ -151,7 +155,10 @@ void GameManager::initializeGame()
     //     int laneId = pair.first;
     //     const SingleLaneLock& lock = pair.second;
     //     LOGI("ID: ",laneId, " startPos: ", lock.startPos, ", endPos: ", lock.endPos);
-        
+    //     // LOGI("-----------------------------------------单行路路径:");
+    //     // for(auto &point : this->singleLaneManager.singleLanes[laneId]){
+    //     //     LOGI(point);
+    //     // }
     // }
     // LOGI(this->gameMap.drawMap(nullptr, nullptr, nullptr, nullptr, nullptr));
     // LOGI("Log berth 0 BFS map.");
@@ -309,29 +316,30 @@ void GameManager::robotControl()
                 continue;
             }
         }
-        else if(robot.status==MOVING_TO_BERTH && robot.targetid!=-1 && robot.pos == robot.destination) {
+        // else if(robot.status==MOVING_TO_BERTH && robot.targetid!=-1 && robot.pos == robot.destination) {
+        else if(robot.status==MOVING_TO_BERTH && robot.targetid!=-1) {
             Berth &berth = berths[robot.targetid];
             // LOGI(robot);
             if (canUnload(berth, robot.pos)) {
                 LOGI("機器人",robot.id,"放貨 ");
                 commandManager.addRobotCommand(robot.pull());
                 int x = robot.pos.x-berth.pos.x, y=robot.pos.y-berth.pos.y;
-                berth.storageSlots[x][y] = goods[robot.carryingItemId].id;
-                berth.reached_goods.push_back(goods[robot.carryingItemId]);
+                // berth.storageSlots[x][y] = goods[robot.carryingItemId].id;
+                if(currentFrame < 15000 - berth.time){
+                    Berth::maxLoadGoodNum += 1;
+                    totalGetGoodsValue += goods[robot.carryingItemId].value;
+                    berth.reached_goods.push_back(goods[robot.carryingItemId]);
+                    goods[robot.carryingItemId].status = 3;
+                }
                 goods[robot.carryingItemId].status = 3;
                 robot.status = MOVING_TO_GOODS;
                 robot.carryingItem = 0;
                 robot.carryingItemId = -1;
                 robot.targetid = -1;
-// LOGI("测试。。。");
-                if(currentFrame < 15000 - berth.time){
-                    Berth::maxLoadGoodNum += 1;
-                    totalGetGoodsValue += goods[robot.carryingItemId].value;
-                }
-                
+                robot.path = Path();
             }
             else {
-                robot.targetid = -1;
+                // robot.targetid = -1;
             }
         }
     }
@@ -601,7 +609,7 @@ void GameManager::RobotControl()
                     commandManager.addRobotCommand(robots[i].pull());
                     // 货物 泊位 状态更新 todo
                     int x = robot.pos.x-berth.pos.x, y=robot.pos.y-berth.pos.y;
-                    berth.storageSlots[x][y] = goods[robot.carryingItemId].id;
+                    // berth.storageSlots[x][y] = goods[robot.carryingItemId].id;
                     berth.reached_goods.push_back(goods[robot.carryingItemId]);
 
 
@@ -648,7 +656,7 @@ void GameManager::update()
 
     if(shipDebugOutput){LOGI("船只开始调度");};
     auto ship_start = std::chrono::high_resolution_clock::now();
-    std::vector<std::pair<int, Action>> ShipActions = this->ShipScheduler->scheduleShips(ships, berths, goods, robots,this->RobotScheduler->bestBerthIndex,this->currentFrame, shipDebugOutput);
+    std::vector<std::pair<int, Action>> ShipActions = this->ShipScheduler->scheduleShips(ships, berths, goods, robots,this->RobotScheduler->bestBerthIndex,this->gameMap,this->currentFrame, shipDebugOutput);
     auto ship_end = std::chrono::high_resolution_clock::now();
     LOGI("调度船只时长:",std::chrono::duration_cast<std::chrono::milliseconds>(ship_end - ship_start).count(),"ms");
 
@@ -674,7 +682,7 @@ void GameManager::update()
     if(currentFrame>=14000 && currentFrame <= 14005){
         LOGI("skipFrame: ", skipFrame, ", totalGetGoodsValue: ", totalGetGoodsValue);
     }
-    if(currentFrame >=14990 && currentFrame <= 14999){
+    if(currentFrame >=14990 && currentFrame <= 15000){
         LOGI("游戏结束，泊位剩余情况：");
         for(auto &berth : berths){
             // if(debug){LOGI("计算泊位收益-----");berth.info();}
@@ -684,7 +692,7 @@ void GameManager::update()
         for(auto & berth : berths){
             berth.info();
         }
-        LOGI("游戏结束，泊位剩余情况：");
+        LOGI("游戏结束，船只剩余情况：");
         for(auto &ship : ships){
             ship.info();
         }

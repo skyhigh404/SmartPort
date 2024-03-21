@@ -26,8 +26,8 @@ public:
     static int deliverGoodNum;  //送达货物数量
     static std::vector<bool> available_berths;
 
-    float canGoScale = 0.2; // < 可以去虚拟点的剩余容量比例
-    float canMoveScale = 0.2;   // > 可以移动泊位的剩余容量比例
+    float canGoScale = 0.1; // < 可以去虚拟点的剩余容量比例
+    float canMoveScale = 0.1;   // > 可以移动泊位的剩余容量比例
 
     Berth(int id, Point2d pos, int time, int velocity)
         : id(id), pos(pos), time(time), velocity(velocity), stockpile(0), stockpileValue(0)
@@ -99,7 +99,7 @@ public:
     // 是否必须要去虚拟点, +5帧缓冲时间
     // otherTime表示需要预留的时间
     bool mustGo(int remainder,int otherTime = 0){
-        if(remainder - time - otherTime <= 2 && remainder - time - otherTime >= -2){
+        if(remainder - time - otherTime <= 2 && remainder - time - otherTime >= -1){
             return true;
         }
         return false;

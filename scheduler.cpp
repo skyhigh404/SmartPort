@@ -3,6 +3,86 @@
 #include "log.h"
 
 using std::vector;
+// Point2d computeCentroid(const std::vector<Berth>& cluster) {
+//     Point2d centroid = Point2d(0, 0);
+//     for (const Berth& berth : cluster) {
+//         centroid.x += berth.pos.x;
+//         centroid.y += berth.pos.y;
+//     }
+//     centroid.x /= cluster.size();
+//     centroid.y /= cluster.size();
+//     return centroid;
+// }
+
+// std::vector<std::vector<Berth>> kMeans(const std::vector<Berth>& berths, Map &map, int k, int maxIterations) {
+//     std::vector<Point2d> centroids;
+//     std::vector<std::vector<Berth>> clusters(k);
+
+//     // 初始化聚类中心点
+//     for (int i = 0; i < k; ++i) {
+//         centroids.push_back(berths[i].pos);
+//     }
+
+//     // 迭代更新聚类
+//     for (int iter = 0; iter < maxIterations; ++iter) {
+//         // 清空聚类
+//         for (auto& cluster : clusters) {
+//             cluster.clear();
+//         }
+
+//         // 将每个点分配到最近的聚类
+//         for (const Berth& berth : berths) {
+//             int closestCentroidIdx = 0;
+//             int minDistance = map.berthDistanceMap.at(berth.id)[centroids[0].x][centroids[0].y];
+//             for (int i = 1; i < k; ++i) {
+//                 int d = map.berthDistanceMap.at(berth.id)[centroids[i].x][centroids[i].y];
+//                 if (d < minDistance) {
+//                     minDistance = d;
+//                     closestCentroidIdx = i;
+//                 }
+//             }
+//             clusters[closestCentroidIdx].push_back(berth);
+//         }
+
+//         // 更新聚类中心点
+//         for (int i = 0; i < k; ++i) {
+//             centroids[i] = computeCentroid(clusters[i]);
+//         }
+//     }
+
+//     return clusters;
+// }
+
+// vector<vector<Berth>> ClusteringBerths(vector<Berth> &berths, Map &map)
+// {
+//     return kMeans(berths, map, 5, 10);
+//     vector<vector<Berth>> result;
+//     vector<bool> clustered(berths.size(), false);
+//     // 连通性聚类
+//     for (int i=0;i<berths.size();i++) {
+//         Berth& berth = berths[i];
+//         if (!clustered[i]) {
+//             vector<Berth> anotherClass;
+//             for (int j=i+1;j<berths.size();j++) {
+//                 if (map.berthDistanceMap.at(i)[berth.pos.x][berth.pos.y] != INT_MAX) {
+//                     anotherClass.push_back(berths[j]);
+//                     clustered[j] = true;
+//                 }
+//             }
+//             result.push_back(anotherClass);
+//         }
+//     }
+
+//     int class_num = result.size();
+//     // 距离聚类
+//     if (class_num==5) return result; // 正好5（=船数量）类
+//     else if (class_num<5) {
+//         int max = 0, argmax = -1;
+//         // 找类内距最大的类进行拆分
+//         for (int i=0;i<result.size();i++) if (result[i].size()>max) {max=result[i].size(); argmax=i;}
+
+//     }
+// }
 
 int dist(Point2d a, Point2d b) {return abs(a.x-b.x)+abs(a.y-b.y);}
 int WhereIsRobot(Robot& robot, std::vector<Berth> &berths, const Map &map)
@@ -480,6 +560,22 @@ void Scheduler::calCostAndBestBerthIndes(const Map &map, std::vector<Goods> &goo
     // LOGI("cal end:",bestBerthIndex.size(),' ',cost2berths.size());
 }
 
+// 返回berths.size()+1维的向量，前berths.size()表示各泊位的价值，最后一位表示总价值
+vector<float> SimpleTransportStrategy::BerthsValue(const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths)
+{
+    vector<float> berthsValue(berths.size(), 0);
+    float totalGoodsValue = 0;
+    for (auto& good:goods) {
+        if (good.status==0) {
+            Berth& berth = berths[bestBerthIndex[good.id][0]];
+            berthsValue[berth.id] += good.value*1.0 / map.berthDistanceMap.at(berth.id)[good.pos.x][good.pos.y] * good.TTL>500?1.5:1 ;
+            totalGoodsValue += good.value*1.0 / map.berthDistanceMap.at(berth.id)[good.pos.x][good.pos.y] * good.TTL>500?1.5:1 ;
+        }
+    }
+    berthsValue.push_back(totalGoodsValue);
+    return berthsValue;
+}
+
 Action SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths, bool debug)
 {
     if (debug) LOGI("调度开始:goodsize:",goods.size(),". 机器人id：",robot.id);
@@ -575,12 +671,14 @@ Action SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std:
     std::string profit_output="";
     // 计算机器人将货物送达泊位的耗时
     std::vector<float> profits(goods.size(), 0);
+    vector<float> berthsValue = BerthsValue(map, goods, berths);
     // LOGI(goods.size());
     for (int j = 0; j < goods.size(); j++)  {
         long long timeToGoods = cost2goods[j];
         // int timeToBerths = cost2berths[j][bestBerthIndex[goods[j].id]];
         long long timeToBerths = cost2berths[j][bestBerthIndex[goods[j].id][0]];
         // profit_output += "(timetogood:" + std::to_string(timeToGoods) + ",timetoberths:" + std::to_string(timeToBerths) + ") ";
+        if (timeToBerths==INT_MAX || timeToGoods==INT_MAX) continue;
         
         bool canReach = false;
         for (int k=0;k<berths.size();k++) {
@@ -589,15 +687,41 @@ Action SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std:
         }
         if (!canReach) continue;
 
-        if (timeToBerths==INT_MAX || timeToGoods==INT_MAX) continue;
-        profits[j] = goods[j].value*1.0 / (timeToGoods+timeToBerths);
+        // if (timeToGoods > 200) continue;
+        profits[j] = goods[j].value*1.0 / (1*timeToGoods+timeToBerths);
         if (goods[j].TTL<=500 && !enterFinal) profits[j] *= 1.5;
-        // profit_output += "(timetogood:" + std::to_string(timeToGoods) + ",timetoberths:" + std::to_string(timeToBerths) + ",profit:" + std::to_string(profits[j]) + ") ";
+        // if (berthsValue[bestBerthIndex[goods[j].id][0]] > berthsValue[berths.size()]/berths.size() && !enterFinal) profits[j] *= 1.5;
+
+        profit_output += "(timetogood:" + std::to_string(timeToGoods) + ",timetoberths:" + std::to_string(timeToBerths) + ",value:" + std::to_string(goods[j].value) + ",profit:" + std::to_string(profits[j]) + ") ";
         // LOGI("货物",j,"收益为：",profits[j]);
     }
     end = std::chrono::steady_clock::now();
     LOGI("衡量收益时间: ",std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()," ms");
     // LOGI(profit_output);
+
+    // 预估接下来n步的收益
+    // int n = 1;
+    // std::vector<float> profits_future(goods.size(), 0);
+    // for (int i =0 ;i<goods.size();i++) {
+    //     if (profits[i]==0) continue;
+    //     int berthID = bestBerthIndex[i][0], nextberthID=bestBerthIndex[i][0];
+    //     int cost_total = 0;
+    //     for (int k=0;k<n;k++) {
+    //         float profits_k = 0;
+    //         float value_k = 0;
+    //         int cost_k = 0;
+    //         berthID = nextberthID;
+    //         for (int j=0;j<goods.size();j++) {
+    //             if (profits[j]==0) continue;
+    //             // int timeToGood=cost2berths[j][berthID], timeToBerth=cost2berths[j][bestBerthIndex[j][0]];
+    //             float profit_tmp = goods[j].value*1.0 / (cost2berths[j][berthID]+cost2berths[j][bestBerthIndex[j][0]]);
+    //             if (profit_tmp > profits_k) {profits_k = profit_tmp;nextberthID=bestBerthIndex[j][0]; value_k = goods[j].value; cost_k=cost2berths[j][berthID]+cost2berths[j][bestBerthIndex[j][0]];}
+    //         }
+    //         profits_future[i] += value_k;
+    //         cost_total += cost_k;
+    //     }
+    //     profits_future[i] /= cost_total;
+    // }
     
     if (debug) LOGI("开始分配货物");
 
@@ -608,6 +732,7 @@ Action SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std:
         indices[j] = j;
     }
     std::sort(indices.begin(), indices.end(), [&](int a, int b) {
+        // return profits[a]+0.2*profits_future[a] > profits[b]+0.2*profits_future[b]; // 根据第二个维度进行降序排序
         return profits[a] > profits[b]; // 根据第二个维度进行降序排序
     });
     vector<float> profits_sorted;
@@ -642,7 +767,7 @@ Action SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std:
 }
 
 // 根据时间排序unreachedGood
-std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleShips(std::vector<Ship>& ships, std::vector<Berth>& berths,std::vector<Goods>& goods,std::vector<Robot> &robots,std::vector<vector<int>> bestBerthIndex,int currentFrame,bool debug)
+std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleShips(std::vector<Ship>& ships, std::vector<Berth>& berths,std::vector<Goods>& goods,std::vector<Robot> &robots,std::vector<vector<int>> bestBerthIndex,Map &map,int currentFrame,bool debug)
 {
     // todo 根据路径代价计算未到达货物的收益 + 船只在装货时也可以进行抉择
     countGoodInBerth(robots,berths,goods);
@@ -901,7 +1026,7 @@ ActionType SimpleTransportStrategy::scheudleNormalShip(Ship &ship,Berth &berth,s
 }
 
 // 调度船只
-std::vector<std::pair<int, Action>>  FinalTransportStrategy::scheduleShips(std::vector<Ship> &ships, std::vector<Berth> &berths,std::vector<Goods>& goods,std::vector<Robot> &robots,std::vector<vector<int>> bestBerthIndex,int currentFrame,bool debug){
+std::vector<std::pair<int, Action>>  FinalTransportStrategy::scheduleShips(std::vector<Ship> &ships, std::vector<Berth> &berths,std::vector<Goods>& goods,std::vector<Robot> &robots,std::vector<vector<int>> bestBerthIndex,Map &map,int currentFrame,bool debug){
     // 设置五个唯一泊位
     calculateBestBerths(ships,berths,goods,bestBerthIndex,debug);
     if(debug) ("分配完泊位");
@@ -1071,3 +1196,135 @@ void FinalTransportStrategy::calculateBestBerths(std::vector<Ship> &ships, std::
     }
 }
 
+// 调度船只
+std::vector<std::pair<int, Action>>  FinalClusterTransportStrategy::scheduleShips(std::vector<Ship> &ships, std::vector<Berth> &berths,std::vector<Goods>& goods,std::vector<Robot> &robots,std::vector<vector<int>> bestBerthIndex,Map &map,int currentFrame,bool debug){
+    // 聚簇获得五个分配的泊位
+    calculateBestBerths(ships,berths,goods,bestBerthIndex,map,debug);
+    if(debug) ("分配完泊位");
+    int remainder = 15000 - currentFrame;
+
+    std::vector<std::pair<int, Action>> shipActions;
+    // 只有游戏快结束时才判断
+    // 计算泊位的溢出货物量，如果 < 0，则不让机器人送货过来
+    if( remainder >= maxTime && remainder <= maxTime * 2){
+        LOGI("判断时间：",15000 - maxTime * 2,"," , 15000 - maxTime);
+        for (std::unordered_map<int, int>::iterator it = berth2Ship.begin(); it != berth2Ship.end(); ++it) {
+            int shipId = berth2Ship[it->first] == -1 ? shipInBerth(berths[it->first],ships) : berth2Ship[it->first];
+            if(shipId != -1){
+                if(ships[shipId].now_capacity <= berths[it->first].reached_goods.size() && Berth::available_berths[it->first] == true) 
+                {
+                    Berth::available_berths[it->first] = false;
+                    LOGI("当前泊位货物溢出，不用再送货过来：");
+                    ships[shipId].info();
+                    berths[it->first].info();
+                }
+            }
+        }
+    }
+    
+    for(int i=0;i < SHIPNUMS;i++){
+        float nowCapaityProportion = 1.0 * ships[i].now_capacity / ships[i].capacity;
+        switch (ships[i].state)
+        {
+        case 2:
+            // 在泊位外等待，如果当前berth id和分配的id不一致，则调度去指定泊位；否则可以等待
+            if(!inAssignedBerth(ships[i].berthId)){
+                // 分配指定泊位
+                int assignedBerthId = allocationBerth(ships[i].id,ships,berths);
+                shipActions.push_back(std::make_pair(ships[i].id, Action{MOVE_TO_BERTH,Point2d(),assignedBerthId}));
+            }
+            break;
+        case 1:
+            // 货满则出发
+            if (ships[i].berthId != -1 && (ships[i].now_capacity <= 0 || berths[ships[i].berthId].mustGo(remainder))){
+                //装满,去往虚拟点
+                // 进行统计
+                LOGI("货满了或者没时间了，直接去虚拟点：");
+                ships[i].info();
+                berths[ships[i].berthId].info();
+                Berth::deliverGoodNum += (ships[i].capacity - ships[i].now_capacity);
+                ships[i].goStatus();
+                shipActions.push_back(std::make_pair(i, Action{DEPART_BERTH,Point2d(),-1}));
+            }
+            // 在虚拟点，直接出发
+            else if(ships[i].berthId == -1){
+                // 分配指定泊位
+                int assignedBerthId = allocationBerth(ships[i].id,ships,berths);
+                ships[i].berthId = assignedBerthId;
+                LOGI("在虚拟点，直接出发前往泊位：",assignedBerthId);
+                ships[i].info();
+                shipActions.push_back(std::make_pair(ships[i].id, Action{MOVE_TO_BERTH,Point2d(),assignedBerthId}));
+            }
+            else{
+                // 到了终局准备阶段前直接走;一去一回
+                // if(berths[ships[i].berthId].mustGo(remainder,2 * berths[ships[i].berthId].time + maxLoadTime) && nowCapaityProportion < 0.5){
+                if(berths[ships[i].berthId].mustGo(remainder,2 * maxTime + maxLoadTime) && nowCapaityProportion < 0.9){
+                    //装满,去往虚拟点
+                    LOGI("进入终局准备阶段，直接去虚拟点：");
+                    ships[i].info();
+                    berths[ships[i].berthId].info();
+                    Berth::deliverGoodNum += (ships[i].capacity - ships[i].now_capacity);
+                    ships[i].goStatus();
+                    shipActions.push_back(std::make_pair(i, Action{DEPART_BERTH,Point2d(),-1}));
+                }
+                // 在预定泊位上并且还有时间去其他泊位装货
+                else if(inAssignedBerth(ships[i].berthId) && berths[ships[i].berthId].mustGo(remainder,500 * 2 + maxLoadTime * 2)){
+                    // 找到当前 不是预定泊位 && 货物量挺多 && 没有船搬运的泊位
+                    int berthId = findResidueBerth(berths,ships);
+                    if(berthId != -1 && berthId != ships[i].berthId){
+                        LOGI("还有时间，去其他泊位装货：");
+                        ships[i].info();
+                        berths[ships[i].berthId].info();
+                        berths[berthId].info();
+                        // 恢复选定泊位
+                        // berth2Ship[ships[i].berthId] = -1;
+                        // ship2Berth[ships[i].id] = berthId;
+                        ships[i].berthId = berthId;
+                        shipActions.push_back(std::make_pair(ships[i].id, Action{MOVE_TO_BERTH,Point2d(),berthId}));
+                        
+                    }
+                }
+                //  货物数量为0
+                else if(berths[ships[i].berthId].reached_goods.size() == 0){
+                    // 泊位不一致
+                    if(!inAssignedBerth(ships[i].berthId)){
+                        // 剩余货量 >= 70%，去对应泊位;否则去虚拟点
+                        if(nowCapaityProportion < 0.2){
+                            Berth::deliverGoodNum += (ships[i].capacity - ships[i].now_capacity);
+                            LOGI("不在预定泊位上，当前剩余容量:",nowCapaityProportion,",去虚拟点");
+                            ships[i].info();
+                            ships[i].goStatus();
+                            shipActions.push_back(std::make_pair(i, Action{DEPART_BERTH,Point2d(),-1}));
+                        }
+                        else{
+                            int assignedId = allocationBerth(ships[i].id,ships,berths);
+                            LOGI("不在预定泊位上，当前剩余容量:",nowCapaityProportion,",去预定泊位");
+                            ships[i].info();
+                            ships[i].berthId = assignedId;
+                            shipActions.push_back(std::make_pair(ships[i].id, Action{MOVE_TO_BERTH,Point2d(),assignedId}));
+                        }
+                        berths[ships[i].berthId].info();
+                    }
+                    
+                }
+                // 有货拿货
+                else{
+                    int shipment = std::min(static_cast<int>(berths[ships[i].berthId].reached_goods.size()),berths[ships[i].berthId].velocity);
+                    int res = ships[i].loadGoods(shipment); // 装货
+                    berths[ships[i].berthId].reached_goods.erase(berths[ships[i].berthId].reached_goods.begin(),berths[ships[i].berthId].reached_goods.begin() + res);
+                }
+            }
+            break;
+        case 0:
+            break;
+        }
+    }
+    LOGI("成功送达比例：--------------------------------");
+    berths[0].info();
+    if(debug && currentFrame> 14990&& currentFrame < 14995){
+        for (std::unordered_map<int, int>::iterator it = berth2Ship.begin(); it != berth2Ship.end(); ++it) {
+            LOGI("分配的五个泊位：",it->first,",",it->second);
+        }
+    }
+    return shipActions;
+}

@@ -66,12 +66,14 @@ public:
         {
             // 最终帧计算公式
             // todo 可以调参,应该考虑机器人的路途代价
-            // finalFrame = 15000 - 最大的泊位运输时间 * 3 - 最大的船舶容量 / 最小的泊位装货速度（装货时间） * 2 - 缓冲时间
+            // finalFrame = 15000 - 最大的泊位运输时间 * 3 - 最大的船舶容量 / 最小的泊位装货速度（装货时间） * 2 - 船舶移动的运输时间 - 缓冲时间
             
             int maxCapacity = -1,minVelocity = INT_MAX,maxTime = -1;
             for(auto &ship : ships) maxCapacity = std::max(maxCapacity,ship.capacity);
             for(auto &berth : berths) minVelocity = std::min(minVelocity,berth.velocity),maxTime = std::max(maxTime, berth.time);
-            finalFrame = 15000 - maxTime * 3 - static_cast<int>(maxCapacity/minVelocity) * 2; 
+            // finalFrame = 15000 - maxTime * 3 - static_cast<int>(maxCapacity/minVelocity) * 2 - 500; 
+            // finalFrame = 15000 - maxTime * 2 - static_cast<int>(maxCapacity/minVelocity) * 2 ; 
+            finalFrame = 15000 - maxTime * 3 - static_cast<int>(maxCapacity/minVelocity) * 2 - 200; 
         }
         // LOGI("终局帧数：",finalFrame);
         // LOGI("当前帧数：",currentFrame);

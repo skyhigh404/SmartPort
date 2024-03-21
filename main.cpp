@@ -3,6 +3,10 @@
 #include "log.h"
 #include "pathFinder.h"
 #include <chrono>
+
+
+using std::vector;
+
 int main()
 {
 #ifdef DEBUG
@@ -13,9 +17,27 @@ int main()
     SimpleTransportStrategy simpleTransportStrategy;
     ImplicitEnumeration implicitEnumeration;
     FinalTransportStrategy finalTransportStrategy;
+    FinalClusterTransportStrategy finalClusterTransportStrategy;
     gameManager.setShipScheduler(&simpleTransportStrategy);
     gameManager.setRobotScheduler(&simpleTransportStrategy);
     gameManager.initializeGame();
+    // 初始化聚类
+    simpleTransportStrategy.initCluster(gameManager.berths,gameManager.gameMap);
+    finalTransportStrategy.initCluster(gameManager.berths,gameManager.gameMap);
+    implicitEnumeration.initCluster(gameManager.berths,gameManager.gameMap);
+    finalClusterTransportStrategy.initCluster(gameManager.berths,gameManager.gameMap);
+
+    LOGI("init finish");
+
+    // std::vector<std::vector<Berth>> res = ClusteringBerths(gameManager.berths, gameManager.gameMap);
+    // LOGI(res.size());
+    // for (int i=0;i<res.size();i++) {
+    //     LOGI("class ", i, ' ', res[i].size());
+    //     for (int j=0;j<res[i].size();j++) {
+    //         LOGI(res[i][j].pos);
+    //     }
+    // }
+    // return 0;
 
 
     // 测试 A* 算法
@@ -50,9 +72,11 @@ int main()
             {
             case StageType::FINAL:
                 LOGI("进去船只终局调度");
-                gameManager.setShipScheduler(&finalTransportStrategy);
+                // // 货物价值最大化终局调度
+                // gameManager.setShipScheduler(&finalTransportStrategy);
+                // 聚类均衡终局调度
+                gameManager.setShipScheduler(&finalClusterTransportStrategy);
                 break;
-            
             default:
                 break;
             }

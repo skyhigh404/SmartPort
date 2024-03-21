@@ -190,11 +190,13 @@ void Map::addTemporaryObstacle(const Point2d& pos) {
 }
 
 void Map::removeTemporaryObstacle(const Point2d& pos) {
-    auto it = temporaryObstaclesRefCount.find(pos);
-    if (it != temporaryObstaclesRefCount.end()) {
-        if (--it->second <= 0) {
-            temporaryObstaclesRefCount.erase(it);
-            grid[pos.x][pos.y] = MapItemSpace::MapItem::SPACE;  // 恢复为空地
+    if (inBounds(pos)) {
+        auto it = temporaryObstaclesRefCount.find(pos);
+        if (it != temporaryObstaclesRefCount.end()) {
+            if (--it->second <= 0) {
+                temporaryObstaclesRefCount.erase(it);
+                grid[pos.x][pos.y] = MapItemSpace::MapItem::SPACE;  // 恢复为空地
+            }
         }
     }
 }

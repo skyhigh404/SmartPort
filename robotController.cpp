@@ -1,4 +1,5 @@
 #include "robotController.h"
+#include <utility>
 #include <chrono>
 void RobotController::runController(Map &map, const SingleLaneManager &singleLaneManager)
 {
@@ -39,21 +40,10 @@ void RobotController::runController(Map &map, const SingleLaneManager &singleLan
             tryResolveConflict(map, collision);
         }
 
-        // 为需要重新寻路的机器人重新寻路，并设置新的下一帧位置
-        for (int i = 0; i < refindPathFlag.size(); ++i) {
-            if (refindPathFlag[i]){
-                LOGI("重新寻路", robots.at(i));
-                runPathfinding(map, robots.at(i));
-                robots.at(i).updateNextPos();
-            }
-        }
-        // 为停止一帧的机器人设置下一帧为当前帧位置
-        for (int i = 0; i < waitFlag.size(); ++i) {
-            if (waitFlag[i]){
-                LOGI("等待", robots.at(i));
-                stopRobot(robots.at(i));
-            }
-        }
+        // 权衡机器人的规划，设置设定合理的指令
+        rePlanRobotMove(map);
+
+        map.clearTemporaryObstacles();
         // 直至解决冲突
     }
 
@@ -63,6 +53,58 @@ void RobotController::runController(Map &map, const SingleLaneManager &singleLan
     LOGI("robotController 冲突处理时间: ",std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()," ms, i: ", tryTime);
 
     // 返回给 gameManager 以输出所有机器人的行动指令
+}
+
+void RobotController::rePlanRobotMove(Map &map)
+{
+    std::vector<std::pair<int, ResolutionAction>> refindPathActions; // 存储需要重新寻路的动作及其机器人ID
+    // 排序
+    for (auto& [key, value] : robotResolutionActions) {
+        std::vector<ResolutionAction>& actions = value;
+        std::sort(actions.begin(), actions.end(), [](const ResolutionAction& a, const ResolutionAction& b) {
+            return a.method > b.method; // 直接根据枚举值的整数比较进行排序
+        });
+    }
+
+    // 按优先级最高的规划行动
+    // 步骤 1和 2: 遍历所有机器人动作，执行非RefindPath动作，收集RefindPath动作
+    for (const auto& [key, value] : robotResolutionActions) {
+        Robot &robot = robots.at(key);
+        if (value.at(0).method == ResolutionAction::RefindPath) {
+            refindPathActions.emplace_back(key, ResolutionAction::RefindPath);
+            // refindPathActions.emplace_back(key, value);
+        }
+        else if (value.at(0).method == ResolutionAction::Wait) {
+            map.removeTemporaryObstacle(robot.nextPos);
+            stopRobot(robot);
+            map.addTemporaryObstacle(robot.nextPos);
+        }
+        else if (value.at(0).method == ResolutionAction::MoveAside) {
+            map.removeTemporaryObstacle(moveAsideRobot(map, robot));
+            map.addTemporaryObstacle(robot.nextPos);
+        }
+    }
+
+    // 加入所有机器人的当前位置作为障碍
+    // for (const Robot& robot : robots) {
+    //     map.addTemporaryObstacle(robot.pos);
+    // }
+    
+    // if (refindPathActions.size() > 0) {
+    //     LOGI("临时障碍位置");
+    //     for ( const auto &p : map.temporaryObstacles)
+    //         LOGI(p);
+    // }
+
+    // 步骤3: 执行所有收集的RefindPath动作
+    for (auto& pair : refindPathActions) {
+        Robot &robot = robots.at(pair.first);
+        map.removeTemporaryObstacle(robot.nextPos);
+        runPathfinding(map, robot);
+        robot.updateNextPos();
+        map.addTemporaryObstacle(robot.nextPos);
+
+    }
 }
 
 std::set<RobotController::CollisionEvent, RobotController::CollisionEventCompare>
@@ -88,6 +130,14 @@ RobotController::detectNextFrameConflict(const Map &map, const SingleLaneManager
                 CollisionEvent event(robot1.id, robot2.id, CollisionEvent::SwapPositions);
                 collision.insert(event);
             }
+            // 检查机器人下一帧是否尝试进入加锁的单行道
+            else if(nextFrameSingleLaneID1 >=1 && 
+                    currentSingleLaneID1 == 0 && 
+                    singleLaneManager.isLocked(nextFrameSingleLaneID1, robot1.nextPos)){
+                // const SingleLaneLock& lock = singleLaneManager.getLock(nextFrameSingleLaneID);
+                CollisionEvent event(robot1.id, CollisionEvent::EntryAttemptWhileOccupied);
+                collision.insert(event);
+            }
             // 检查机器人下一帧是否尝试同时相向进入单行道，同时从同一位置进入单行道已经被 TargetOverlap 排除
             else if(nextFrameSingleLaneID1 >=1 &&
                     currentSingleLaneID1 == 0 &&
@@ -96,14 +146,6 @@ RobotController::detectNextFrameConflict(const Map &map, const SingleLaneManager
                     singleLaneManager.isEnteringSingleLane(nextFrameSingleLaneID1, robot1.nextPos) &&
                     singleLaneManager.isEnteringSingleLane(nextFrameSingleLaneID2, robot2.nextPos)){
                 CollisionEvent event(robot1.id, robot2.id, CollisionEvent::HeadOnAttempt);
-                collision.insert(event);
-            }
-            // 检查机器人下一帧是否尝试进入加锁的单行道
-            else if(nextFrameSingleLaneID1 >=1 && 
-                    currentSingleLaneID1 == 0 && 
-                    singleLaneManager.isLocked(nextFrameSingleLaneID1, robot1.nextPos)){
-                // const SingleLaneLock& lock = singleLaneManager.getLock(nextFrameSingleLaneID);
-                CollisionEvent event(robot1.id, CollisionEvent::EntryAttemptWhileOccupied);
                 collision.insert(event);
             }
         }
@@ -236,13 +278,15 @@ void RobotController::tryResolveConflict(Map &map, const CollisionEvent &event)
         // robot1 和 robot2 处在单形道上要怎么解决
         // 是否考虑了所有情况
     }
-    // 机器人下一帧尝试同时相向进入单行道，让优先级低的等待 TODO: 什么情况重新寻路更优
+    // 机器人下一帧尝试同时相向进入单行道，让优先级低的重新寻路等待 TODO: 什么情况重新寻路更优
     else if(event.type == CollisionEvent::CollisionType::HeadOnAttempt){
+        // makeRobotRefindPath(decideWhoWaits(robot1, robot2));
         makeRobotWait(decideWhoWaits(robot1, robot2));
         LOGI("robot1 和 robot2 HeadOnAttempt: ", robot1, ", ", robot2);
     }
     // 机器人下一帧尝试进入加锁的单行道，event只包含一个机器人ID
     else if(event.type == CollisionEvent::CollisionType::EntryAttemptWhileOccupied){
+        // makeRobotRefindPath(robot1);
         makeRobotWait(robot1);
         LOGI("robot EntryAttemptWhileOccupied: ", robot1);
     }
@@ -257,69 +301,56 @@ const Robot & RobotController::decideWhoWaits(const Robot &robot1, const Robot &
 
 void RobotController::decideWhoToWaitAndRefindWhenTargetOverlap(Map &map, Robot &robot1, Robot &robot2)
 {
-        // 首先获取两个机器人周围可移动的位置
-    const Path robot1Neighbors = map.neighbors(robot1.pos);
-    const Path robot2Neighbors = map.neighbors(robot2.pos);
-    LOGI("robo1 旁边空位: ", robot1Neighbors.size(), robot1);
-    LOGI("robo2 旁边空位: ", robot2Neighbors.size(), robot2);
+    // 首先获取两个机器人周围可移动的位置
+    // const Path robot1Neighbors = map.neighbors(robot1.pos);
+    // const Path robot2Neighbors = map.neighbors(robot2.pos);
+    // LOGI("robo1 旁边空位: ", robot1Neighbors.size(), "; ", robot1);
+    // LOGI("robo2 旁边空位: ", robot2Neighbors.size(), "; ", robot2);
 
-    // 选择拥有更多移动空间的机器人作为第一移动者
-    Robot* firstMover = robot1Neighbors.size() > robot2Neighbors.size() ? &robot1 : &robot2;
-    Robot* secondMover = firstMover == &robot1 ? &robot2 : &robot1;
+    // // 选择拥有更多移动空间的机器人让路
+    // if (robot1Neighbors.size() > robot2Neighbors.size()) {
+    //     LOGI("临时移动, 移动空间: ", robot1Neighbors.size(), " ", robot1);
+    //     makeRobotMoveToTempPos(robot1);
+    //     return;
+    // }
+    // else if (robot2Neighbors.size() > 0) {
+    //     LOGI("临时移动, 移动空间: ", robot2Neighbors.size(), " ", robot2);
+    //     makeRobotMoveToTempPos(robot2);
+    //     return;
+    // }
 
-    const Path& firstMoverNeighbors = firstMover == &robot1 ? robot1Neighbors : robot2Neighbors;
-    const Path& secondMoverNeighbors = firstMover == &robot1 ? robot2Neighbors : robot1Neighbors;
 
-    // 让可移动空间大的机器人往可移动位置移动一格
-    // 尝试移动第一移动者
-    for (const Point2d &pos : firstMoverNeighbors) {
-        if (pos != secondMover->nextPos) {
-            firstMover->moveToTemporaryPosition(pos);
-            LOGI("临时移动, 移动空间: ", firstMoverNeighbors.size(), ", 移动位置: ", pos, " ", *firstMover);
-            return; // 成功移动后立即返回
-        }
-    }
-
-    // 如果第一移动者不能移动，尝试移动第二移动者
-    for (const Point2d &pos : secondMoverNeighbors) {
-        if (pos != firstMover->nextPos) {
-            LOGI("临时移动, 移动空间: ", firstMoverNeighbors.size(), ", 移动位置: ", pos, " ", *secondMover);
-            secondMover->moveToTemporaryPosition(pos);
-            return; // 成功移动后立即返回
-        }
-    }
-
-    // 如果两个机器人都不能移动
-    makeRobotWait(robot1);
-    makeRobotWait(robot2);
-    LOGE("解决死锁失败");
+    // // 如果两个机器人都不能移动
+    // makeRobotWait(robot1);
+    // makeRobotWait(robot2);
+    // LOGE("解决死锁失败");
 
     // 有可能有某个机器人占了它的终点，只能等待
-    // bool robot1DstReachable = robot1.destination != robot2.pos && map.passable(robot1.destination);
-    // bool robot2DstReachable = robot2.destination != robot1.pos && map.passable(robot2.destination);
-    // if(!robot1DstReachable && !robot2DstReachable){
-    //     makeRobotWait(robot1);
-    //     makeRobotWait(robot2);
-    // }
-    // else if(!robot1DstReachable && robot2DstReachable){
-    //     makeRobotWait(robot1);
-    //     map.addTemporaryObstacle(robot1.pos);
-    //     makeRobotRefindPath(robot2);
-    // }
-    // else if(!robot2DstReachable && robot1DstReachable){
-    //     makeRobotWait(robot2);
-    //     map.addTemporaryObstacle(robot2.pos);
-    //     makeRobotRefindPath(robot1);
-    // }
-    // else if(robot2DstReachable && robot1DstReachable){
-    //     // TODO:临时解决方案，不一定让 robot1 等待
-    //     makeRobotWait(robot1);
-    //     map.addTemporaryObstacle(robot1.pos);
-    //     makeRobotRefindPath(robot2);
-    // }
-    // else {
-    //     LOGE("decideWhoToWaitAndRefindWhenTargetOverlap 未考虑的情况: ", robot1, robot2);
-    // }
+    bool robot1DstReachable = robot1.destination != robot2.pos && map.passable(robot1.destination);
+    bool robot2DstReachable = robot2.destination != robot1.pos && map.passable(robot2.destination);
+    if(!robot1DstReachable && !robot2DstReachable){
+        makeRobotWait(robot1);
+        makeRobotWait(robot2);
+    }
+    else if(!robot1DstReachable && robot2DstReachable){
+        makeRobotWait(robot1);
+        map.addTemporaryObstacle(robot1.pos);
+        makeRobotRefindPath(robot2);
+    }
+    else if(!robot2DstReachable && robot1DstReachable){
+        makeRobotWait(robot2);
+        map.addTemporaryObstacle(robot2.pos);
+        makeRobotRefindPath(robot1);
+    }
+    else if(robot2DstReachable && robot1DstReachable){
+        // TODO:临时解决方案，不一定让 robot1 等待
+        makeRobotWait(robot1);
+        map.addTemporaryObstacle(robot1.pos);
+        makeRobotRefindPath(robot2);
+    }
+    else {
+        LOGE("decideWhoToWaitAndRefindWhenTargetOverlap 未考虑的情况: ", robot1, robot2);
+    }
 }
 
 void RobotController::makeRobotWait(const Robot &robot)
@@ -359,34 +390,22 @@ void RobotController::makeRobotMoveToTempPos(const Robot &robot)
 
 void RobotController::resolveDeadlocks(Map &map, Robot &robot1, Robot &robot2)
 {
-    // 首先获取两个机器人周围可移动的位置
     const Path robot1Neighbors = map.neighbors(robot1.pos);
     const Path robot2Neighbors = map.neighbors(robot2.pos);
+    LOGI("resolveDeadlocks");
+    LOGI("robo1 旁边空位: ", robot1Neighbors.size(), " ",robot1);
+    LOGI("robo2 旁边空位: ", robot2Neighbors.size(), " ", robot2);
 
-    // 选择拥有更多移动空间的机器人作为第一移动者
-    Robot* firstMover = robot1Neighbors.size() > robot2Neighbors.size() ? &robot1 : &robot2;
-    Robot* secondMover = firstMover == &robot1 ? &robot2 : &robot1;
-
-    const Path& firstMoverNeighbors = firstMover == &robot1 ? robot1Neighbors : robot2Neighbors;
-    const Path& secondMoverNeighbors = firstMover == &robot1 ? robot2Neighbors : robot1Neighbors;
-
-    // 让可移动空间大的机器人往可移动位置移动一格
-    // 尝试移动第一移动者
-    for (const Point2d &pos : firstMoverNeighbors) {
-        if (pos != secondMover->pos) {
-            firstMover->moveToTemporaryPosition(pos);
-            LOGI("临时移动, 移动空间: ", firstMoverNeighbors.size(), ", 移动位置: ", pos, " ", *firstMover);
-            return; // 成功移动后立即返回
-        }
+    // 选择拥有更多移动空间的机器人让路
+    if (robot1Neighbors.size() > robot2Neighbors.size() && robot1Neighbors.size() > 0) {
+        LOGI("临时移动, 移动空间: ", robot1Neighbors.size(), " ", robot1);
+        makeRobotMoveToTempPos(robot1);
+        return;
     }
-
-    // 如果第一移动者不能移动，尝试移动第二移动者
-    for (const Point2d &pos : secondMoverNeighbors) {
-        if (pos != firstMover->pos) {
-            LOGI("临时移动, 移动空间: ", firstMoverNeighbors.size(), ", 移动位置: ", pos, " ", *secondMover);
-            secondMover->moveToTemporaryPosition(pos);
-            return; // 成功移动后立即返回
-        }
+    else if (robot2Neighbors.size() > 0) {
+        LOGI("临时移动, 移动空间: ", robot2Neighbors.size(), " ", robot2);
+        makeRobotMoveToTempPos(robot2);
+        return;
     }
 
     // 如果两个机器人都不能移动
@@ -414,6 +433,33 @@ void RobotController::runPathfinding(const Map &map, Robot &robot)
 void RobotController::stopRobot(Robot &robot)
 {
     robot.nextPos = robot.pos;
+}
+Point2d RobotController::moveAsideRobot(const Map &map, Robot &robot)
+{
+    Point2d lastNextPos;
+    for (const Point2d &pos : map.neighbors(robot.pos)) {
+        bool isPositionOccupied = false;
+        // 检查候选位置是否与其他机器人的当前位置重合
+        for (const Robot &r : robots) {
+            if (robot.id == r.id)
+                continue;
+            if (pos == r.pos){
+                isPositionOccupied = true;
+                LOGI("临时移动位置与其他机器人坐标重合: ", pos);
+                LOGI("robot1: ", robot);
+                LOGI( "robot 2: ", r);
+                break;
+            }
+        }
+
+        if (!isPositionOccupied) {
+        // 如果该机器人本来在正常前进，那么该机器人的下一帧位置已经被设置为障碍物了，因此不会移动往下一帧的一个位置
+            lastNextPos = robot.nextPos;
+            robot.moveToTemporaryPosition(pos);
+            break;
+        }
+    }
+    return lastNextPos;
 }
 
 

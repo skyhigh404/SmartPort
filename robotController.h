@@ -41,10 +41,10 @@ public:
     struct ResolutionAction
     {
         enum Method  {
-            Continue,
-            Wait,
+            Continue,   // 继续移动，目前未使用
+            Wait,       // 等待
             MoveAside,  // 往空位移动一格以让路
-            RefindPath
+            RefindPath  // 重新寻路
         } method;
 
         // Point2d moveTo; // 只有在MoveAside时使用
@@ -81,6 +81,8 @@ private:
 
     // 尝试为所有机器人分配新状态解决冲突
     void tryResolveConflict(Map &map, const CollisionEvent &event);
+    // 根据机器人的 robotResolutionActions 权衡合理的规划逻辑
+    void rePlanRobotMove(Map &map);
 
     // 解决SwapPositions死锁的逻辑，尝试让一个机器人移动往一个可行的点以让出终点
     void resolveDeadlocks(Map &map, Robot &robot1, Robot &robot2);
@@ -97,6 +99,8 @@ private:
 
     // 让一个机器人等待
     void stopRobot(Robot &robot);
+    // 让一个机器人移动往除了下一帧外的另一个位置
+    Point2d moveAsideRobot(const Map &map, Robot &robot);
 
     void decideWhoToWaitAndRefindWhenTargetOverlap(Map &map, Robot &robot1, Robot &robot2);
 

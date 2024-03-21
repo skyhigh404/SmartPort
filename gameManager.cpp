@@ -313,7 +313,8 @@ void GameManager::robotControl()
                 continue;
             }
         }
-        else if(robot.status==MOVING_TO_BERTH && robot.targetid!=-1 && robot.pos == robot.destination) {
+        // else if(robot.status==MOVING_TO_BERTH && robot.targetid!=-1 && robot.pos == robot.destination) {
+        else if(robot.status==MOVING_TO_BERTH && robot.targetid!=-1) {
             Berth &berth = berths[robot.targetid];
             // LOGI(robot);
             if (canUnload(berth, robot.pos)) {
@@ -332,9 +333,10 @@ void GameManager::robotControl()
                 robot.carryingItem = 0;
                 robot.carryingItemId = -1;
                 robot.targetid = -1;
+                robot.path = Path();
             }
             else {
-                robot.targetid = -1;
+                // robot.targetid = -1;
             }
         }
     }

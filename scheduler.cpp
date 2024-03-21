@@ -560,6 +560,22 @@ void Scheduler::calCostAndBestBerthIndes(const Map &map, std::vector<Goods> &goo
     // LOGI("cal end:",bestBerthIndex.size(),' ',cost2berths.size());
 }
 
+// 返回berths.size()+1维的向量，前berths.size()表示各泊位的价值，最后一位表示总价值
+vector<float> SimpleTransportStrategy::BerthsValue(const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths)
+{
+    vector<float> berthsValue(berths.size(), 0);
+    float totalGoodsValue = 0;
+    for (auto& good:goods) {
+        if (good.status==0) {
+            Berth& berth = berths[bestBerthIndex[good.id][0]];
+            berthsValue[berth.id] += good.value*1.0 / map.berthDistanceMap.at(berth.id)[good.pos.x][good.pos.y] * good.TTL>500?1.5:1 ;
+            totalGoodsValue += good.value*1.0 / map.berthDistanceMap.at(berth.id)[good.pos.x][good.pos.y] * good.TTL>500?1.5:1 ;
+        }
+    }
+    berthsValue.push_back(totalGoodsValue);
+    return berthsValue;
+}
+
 Action SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths, bool debug)
 {
     if (debug) LOGI("调度开始:goodsize:",goods.size(),". 机器人id：",robot.id);
@@ -655,12 +671,14 @@ Action SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std:
     std::string profit_output="";
     // 计算机器人将货物送达泊位的耗时
     std::vector<float> profits(goods.size(), 0);
+    vector<float> berthsValue = BerthsValue(map, goods, berths);
     // LOGI(goods.size());
     for (int j = 0; j < goods.size(); j++)  {
         long long timeToGoods = cost2goods[j];
         // int timeToBerths = cost2berths[j][bestBerthIndex[goods[j].id]];
         long long timeToBerths = cost2berths[j][bestBerthIndex[goods[j].id][0]];
         // profit_output += "(timetogood:" + std::to_string(timeToGoods) + ",timetoberths:" + std::to_string(timeToBerths) + ") ";
+        if (timeToBerths==INT_MAX || timeToGoods==INT_MAX) continue;
         
         bool canReach = false;
         for (int k=0;k<berths.size();k++) {
@@ -669,15 +687,41 @@ Action SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std:
         }
         if (!canReach) continue;
 
-        if (timeToBerths==INT_MAX || timeToGoods==INT_MAX) continue;
-        profits[j] = goods[j].value*1.0 / (timeToGoods+timeToBerths);
+        // if (timeToGoods > 200) continue;
+        profits[j] = goods[j].value*1.0 / (1*timeToGoods+timeToBerths);
         if (goods[j].TTL<=500 && !enterFinal) profits[j] *= 1.5;
-        // profit_output += "(timetogood:" + std::to_string(timeToGoods) + ",timetoberths:" + std::to_string(timeToBerths) + ",profit:" + std::to_string(profits[j]) + ") ";
+        // if (berthsValue[bestBerthIndex[goods[j].id][0]] > berthsValue[berths.size()]/berths.size() && !enterFinal) profits[j] *= 1.5;
+
+        profit_output += "(timetogood:" + std::to_string(timeToGoods) + ",timetoberths:" + std::to_string(timeToBerths) + ",value:" + std::to_string(goods[j].value) + ",profit:" + std::to_string(profits[j]) + ") ";
         // LOGI("货物",j,"收益为：",profits[j]);
     }
     end = std::chrono::steady_clock::now();
     LOGI("衡量收益时间: ",std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()," ms");
     // LOGI(profit_output);
+
+    // 预估接下来n步的收益
+    // int n = 1;
+    // std::vector<float> profits_future(goods.size(), 0);
+    // for (int i =0 ;i<goods.size();i++) {
+    //     if (profits[i]==0) continue;
+    //     int berthID = bestBerthIndex[i][0], nextberthID=bestBerthIndex[i][0];
+    //     int cost_total = 0;
+    //     for (int k=0;k<n;k++) {
+    //         float profits_k = 0;
+    //         float value_k = 0;
+    //         int cost_k = 0;
+    //         berthID = nextberthID;
+    //         for (int j=0;j<goods.size();j++) {
+    //             if (profits[j]==0) continue;
+    //             // int timeToGood=cost2berths[j][berthID], timeToBerth=cost2berths[j][bestBerthIndex[j][0]];
+    //             float profit_tmp = goods[j].value*1.0 / (cost2berths[j][berthID]+cost2berths[j][bestBerthIndex[j][0]]);
+    //             if (profit_tmp > profits_k) {profits_k = profit_tmp;nextberthID=bestBerthIndex[j][0]; value_k = goods[j].value; cost_k=cost2berths[j][berthID]+cost2berths[j][bestBerthIndex[j][0]];}
+    //         }
+    //         profits_future[i] += value_k;
+    //         cost_total += cost_k;
+    //     }
+    //     profits_future[i] /= cost_total;
+    // }
     
     if (debug) LOGI("开始分配货物");
 
@@ -688,6 +732,7 @@ Action SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std:
         indices[j] = j;
     }
     std::sort(indices.begin(), indices.end(), [&](int a, int b) {
+        // return profits[a]+0.2*profits_future[a] > profits[b]+0.2*profits_future[b]; // 根据第二个维度进行降序排序
         return profits[a] > profits[b]; // 根据第二个维度进行降序排序
     });
     vector<float> profits_sorted;

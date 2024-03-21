@@ -25,6 +25,7 @@ public:
     vector<vector<int>> cost2berths; // (gs,bs)
     vector<vector<int>> bestBerthIndex; // (gs,bs)
     std::vector<std::vector<Berth>> clusters;   // 每个簇对应的泊位
+    vector<int> assignment; // 机器人被分配到的泊位类
     // 去哪里
     vector<bool> picked;
     vector<int> scheduleResult;
@@ -49,6 +50,53 @@ public:
     vector<int> getResult() {return scheduleResult;}
 
     Scheduler(): cost2berths(),bestBerthIndex(),scheduleResult(),bestValue(0),enterFinal(false) {}
+
+    void assignRobots(vector<Robot>& robots, Map& map) {
+        vector<bool> assigned(robots.size(), false);
+        LOGI("run");
+        for (int i=0;i<clusters.size();i++) {
+            int mini_dist = INT_MAX, argmin = -1;
+            for (int j=0;j<robots.size();j++) {
+                if (assigned[j]) continue;
+                Robot& robot = robots[j];
+                int dist = INT_MAX;
+                for (int k=0;k<clusters[i].size();k++) {
+                    if (dist > map.berthDistanceMap.at(clusters[i][k].id)[robot.pos.x][robot.pos.y]) {
+                        dist = map.berthDistanceMap.at(clusters[i][k].id)[robot.pos.x][robot.pos.y];
+                    }
+                }
+                if (dist<mini_dist) {
+                    mini_dist = dist;
+                    argmin = robot.id;
+                }
+            }
+            LOGI("assign:", argmin);
+            assigned[argmin] = true;
+            assignment[argmin] = i;
+        }
+        LOGI("run");
+
+        for (int j=0;j<robots.size();j++) {
+            if (assigned[j]) continue;
+            Robot& robot = robots[j];
+            int mini_dist = INT_MAX, argmin = 0;
+            for (int i=0;i<clusters.size();i++) {
+                int dist = INT_MAX;
+                for (int k=0;k<clusters[i].size();k++) {
+                    if (dist<map.berthDistanceMap.at(clusters[i][k].id)[robot.pos.x][robot.pos.y]) {
+                        dist = map.berthDistanceMap.at(clusters[i][k].id)[robot.pos.x][robot.pos.y];
+                    }
+                }
+                if (dist<mini_dist) {
+                    mini_dist = dist;
+                    argmin = i;
+                }
+            }
+            assigned[robot.id] = true;
+            assignment[robot.id] = argmin;
+        }
+        return;
+    }
 
     void initCluster(std::vector<Berth> &berths,Map &map){
         ClusteringBerths(berths,map);
@@ -148,16 +196,16 @@ public:
             }
         }
 
-        for (int i=0;i<clusters.size();i++) {
-            LOGI("class ", i, ' ', clusters[i].size());
-            for (int j=0;j<clusters[i].size();j++) {
-                LOGI(clusters[i][j].pos);
-            }
-        }
+        // for (int i=0;i<clusters.size();i++) {
+        //     LOGI("class ", i, ' ', clusters[i].size());
+        //     for (int j=0;j<clusters[i].size();j++) {
+        //         LOGI(clusters[i][j].pos);
+        //     }
+        // }
 
         // 距离聚类
         while (clusters.size()<5) {
-            LOGI(clusters.size());
+            // LOGI(clusters.size());
             vector<vector<vector<int>>> inner_dist_grid(clusters.size());
             int max = 0, argmax = -1;
             // 找类内距最大的类进行拆分
@@ -177,13 +225,13 @@ public:
             clusters.push_back(ret[0]);
             clusters.push_back(ret[1]);
 
-            LOGI("split");
-            for (int i=0;i<clusters.size();i++) {
-                LOGI("class ", i, ' ', clusters[i].size());
-                for (int j=0;j<clusters[i].size();j++) {
-                    LOGI(clusters[i][j].pos);
-                }
-            }
+            // LOGI("split");
+            // for (int i=0;i<clusters.size();i++) {
+            //     LOGI("class ", i, ' ', clusters[i].size());
+            //     for (int j=0;j<clusters[i].size();j++) {
+            //         LOGI(clusters[i][j].pos);
+            //     }
+            // }
         }
     }
 };

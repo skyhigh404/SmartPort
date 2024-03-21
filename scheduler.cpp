@@ -1231,8 +1231,12 @@ std::vector<std::pair<int, Action>>  FinalClusterTransportStrategy::scheduleShip
                         ships[i].info();
                         berths[ships[i].berthId].info();
                         berths[berthId].info();
+                        // 恢复选定泊位
+                        // berth2Ship[ships[i].berthId] = -1;
+                        // ship2Berth[ships[i].id] = berthId;
                         ships[i].berthId = berthId;
                         shipActions.push_back(std::make_pair(ships[i].id, Action{MOVE_TO_BERTH,Point2d(),berthId}));
+                        
                     }
                 }
                 //  货物数量为0

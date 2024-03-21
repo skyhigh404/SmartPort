@@ -24,6 +24,7 @@ private:
 public:
     vector<vector<int>> cost2berths; // (gs,bs)
     vector<vector<int>> bestBerthIndex; // (gs,bs)
+    std::vector<std::vector<Berth>> clusters;   // 每个簇对应的泊位
     // 去哪里
     vector<bool> picked;
     vector<int> scheduleResult;
@@ -48,267 +49,9 @@ public:
     vector<int> getResult() {return scheduleResult;}
 
     Scheduler(): cost2berths(),bestBerthIndex(),scheduleResult(),bestValue(0),enterFinal(false) {}
-};
 
-class SimpleTransportStrategy : public Scheduler
-{
-public:
-
-    Action scheduleRobot(Robot &robot, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths, bool debug=false) override;
-    std::vector<std::pair<int, Action>>  scheduleRobots(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths) override;
-    void  scheduleRobots(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths, vector<int>& array, int idx) override {}
-    void LPscheduleRobots(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths, vector<int>& array, int idx) override {}
-    
-
-    std::vector<std::pair<int, Action>>  scheduleShips(std::vector<Ship> &ships, std::vector<Berth> &berths,std::vector<Goods>& goods,std::vector<Robot> &robots,std::vector<vector<int>> bestBerthIndex,Map &map,int currentFrame,bool debug=false) override;
-    int shipNumInBerth(const Berth& berth,const std::vector<Ship>& ships) ;
-    void countGoodInBerth(std::vector<Robot> &robots,std::vector<Berth> &berths,std::vector<Goods> goods);
-    void calculateBerthIncome(std::vector<Berth> &berths) ;
-    ActionType scheudleNormalShip(Ship &ship,Berth &berth,std::vector<Robot> robots);
-
-    SimpleTransportStrategy(): Scheduler() {}
-
-    StageType getSchedulerType( )override{
-        return StageType::SIMPLE;
-    }
-};
-
-class FinalTransportStrategy : public Scheduler
-{
-private:
-    bool hasInit = false;   // 标志是否初始化
-    std::unordered_map<int,int> ship2Berth; //船只对应的泊位id
-    std::unordered_map<int,int> berth2Ship; //泊位对应的船只id
-
-    int maxCapacity = -1;
-    int minVelocity = INT_MAX;
-    int maxTime = -1;
-    int maxLoadTime;
-    
-public:
-
-    FinalTransportStrategy(){
-        for(int i =0;i < SHIPNUMS;i++){
-            ship2Berth[i] = -1;
-        }
-    }
-
-    Action scheduleRobot(Robot &robot, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths, bool debug=false) override { return Action();};
-    std::vector<std::pair<int, Action>>  scheduleRobots(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths)override{return std::vector<std::pair<int, Action>>();}
-    void  scheduleRobots(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths, vector<int>& array, int idx)override{}
-    void LPscheduleRobots(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths, vector<int>& array, int idx)override{}
-
-    StageType getSchedulerType( )override{
-        return StageType::FINAL;
-    }
-
-    // 调度船只
-    std::vector<std::pair<int, Action>> scheduleShips(std::vector<Ship> &ships, std::vector<Berth> &berths,std::vector<Goods>& goods,std::vector<Robot> &robots,std::vector<vector<int>> bestBerthIndex,Map &map,int currentFrame,bool debug=false)override;
-    // 计算最优的五个泊位，并给对应的availiable_berths赋值
-    void calculateBestBerths(std::vector<Ship> &ships, std::vector<Berth> &berths,std::vector<Goods>& goods, vector<vector<int>> bestBerthIndex,bool debug=false);
-
-    // 功能函数
-    int shipNumInBerth(const Berth& berth,const std::vector<Ship>& ships)
-    {
-        int num = 0;
-        for(const auto& ship : ships){
-            if(ship.berthId == berth.id){
-                num++;
-            }
-        }
-        return num;
-    }
-
-    // 给船分配空闲泊位id并返回
-    int allocationBerth(int shipId,std::vector<Ship> & ships,std::vector<Berth> &berths){
-        if(ship2Berth[shipId] == -1){
-            // 遍历找到空闲的泊位id
-            // todo 优化空间：找到货物量和船的capacity相匹配的组合；或者如果有船在泊位外等待，则不让他继续走
-            for (std::unordered_map<int, int>::iterator it = berth2Ship.begin(); it != berth2Ship.end(); ++it) {
-                // 当前有位置则不分配
-                if(it->second == -1 && shipNumInBerth(berths[it->first],ships) == 0){
-                    berth2Ship[it->first] = shipId;
-                    ship2Berth[shipId] = it->first;
-                    return ship2Berth[shipId];
-                }
-            }
-            assert(ship2Berth[shipId] != -1);
-            return -1;
-        }
-        else{
-            return ship2Berth[shipId];
-        }
-    }   
-
-    bool inAssignedBerth(int berthId){
-        if(berth2Ship.count(berthId)== 0){
-            return false;
-        }
-        else{
-            return true;
-        }
-    }
-
-};
-
-
-// 聚类版终局调度
-class FinalClusterTransportStrategy : public Scheduler
-{
-private:
-    bool hasInit = false;   // 标志是否初始化
-    std::unordered_map<int,int> ship2Berth; //船只对应的泊位id
-    std::unordered_map<int,int> berth2Ship; //泊位对应的船只id
-    std::vector<std::vector<Berth>> clusters;   // 每个簇对应的泊位
-
-    int maxCapacity = -1;
-    int minVelocity = INT_MAX;
-    int maxTime = -1;
-    int maxLoadTime;
-    
-public:
-
-    FinalClusterTransportStrategy(){
-        for(int i =0;i < SHIPNUMS;i++){
-            ship2Berth[i] = -1;
-        }
-    }
-
-    Action scheduleRobot(Robot &robot, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths, bool debug=false) override { return Action();};
-    std::vector<std::pair<int, Action>>  scheduleRobots(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths)override{return std::vector<std::pair<int, Action>>();}
-    void  scheduleRobots(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths, vector<int>& array, int idx)override{}
-    void LPscheduleRobots(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths, vector<int>& array, int idx)override{}
-
-    StageType getSchedulerType( )override{
-        return StageType::FINAL;
-    }
-
-    // 调度船只
-    std::vector<std::pair<int, Action>> scheduleShips(std::vector<Ship> &ships, std::vector<Berth> &berths,std::vector<Goods>& goods,std::vector<Robot> &robots,std::vector<vector<int>> bestBerthIndex,Map &map,int currentFrame,bool debug=false)override;
-    
-    // 依次计算每个类中最优的一个泊位，并存在berth2Ship中
-    void calculateBestBerths(std::vector<Ship> &ships, std::vector<Berth> &berths,std::vector<Goods>& goods, vector<vector<int>> bestBerthIndex,Map &map,bool debug=false){
-        if(!hasInit){
-            // 进行聚类
-            LOGI("泊位聚类完毕");
-            // 依次对每个类做价值排序，并选出唯一的泊位
-            for(auto &berth : berths){
-                // if(debug){LOGI("计算泊位收益-----");berth.info();}
-                berth.totalValue = 0;
-                for(auto & good : berth.reached_goods) berth.totalValue += good.value;
-                berth.shipInBerthNum = shipNumInBerth(berth,ships);
-            }
-
-            // 遍历货物，找到status = 0 和status = 1的货物，找到离他最近的泊位
-            // int index = 0;
-            // while(index < goods.size() && goods[index].TTL != -1 && goods[index].TTL != INT_MAX){index++;}
-            // for(index;index < bestBerthIndex.size();index++){
-            //     if(goods[index].status == 0 || goods[index].status == 1){
-            //         berths[bestBerthIndex[index][0]].totalValue += goods[index].value;
-            //     }
-            // }
-
-            ClusteringBerths(berths,map);
-            for(std::vector<Berth> cluster : clusters){
-                // 依次对每一类的泊位进行排序
-                std::vector<Berth> berths_copy(cluster);
-                std::sort(berths_copy.begin(), berths_copy.end(),[](Berth& a,Berth& b){
-                    // 如果泊位上有船，则优先级最低
-                    // todo 如果一个泊位上货物很多很多，要改成“溢出货量”降序排列
-                    if(a.shipInBerthNum != b.shipInBerthNum) return a.shipInBerthNum < b.shipInBerthNum;
-                    return a.totalValue > b.totalValue;
-                });
-                // 选排序第一作为该簇的最终泊位
-                berth2Ship[berths_copy[0].id] = -1;
-                for(int i = 1;i < berths_copy.size(); i++){
-                    // 设置不可用
-                    Berth::available_berths[berths_copy[i].id] = false;
-                }
-            }
-            if(debug){
-                for (std::unordered_map<int, int>::iterator it = berth2Ship.begin(); it != berth2Ship.end(); ++it) {
-                    LOGI("终局选定泊位：",it->first,"，船只：",it->second);
-                    berths[it->first].info();
-                }
-            }
-            //初始化
-            for(auto &ship : ships) maxCapacity = std::max(maxCapacity,ship.capacity);
-            for(auto &berth : berths) minVelocity = std::min(minVelocity,berth.velocity),maxTime = std::max(maxTime, berth.time);
-            maxLoadTime = maxCapacity / minVelocity;
-            hasInit = true;
-        }
-    }
-
-    int findResidueBerth(std::vector<Berth> & berths,std::vector<Ship> & ships){
-        // 找到当前 不是预定泊位 && 货物量挺多 && 没有船搬运的泊位
-        int maxLoadValue = 0;
-        int maxLoadNum = 0;
-        int berthId = -1;
-        for(Berth &berth : berths){
-            if(!inAssignedBerth(berth.id) && shipNumInBerth(berth,ships) == 0){
-                // toso 可调参
-                if(berth.reached_goods.size() > maxLoadNum && berth.reached_goods.size() > 5){
-                    berthId = berth.id;
-                }
-            }
-        }
-        return berthId;
-    }
-
-    // 功能函数
-    int shipNumInBerth(const Berth& berth,const std::vector<Ship>& ships)
-    {
-        int num = 0;
-        for(const auto& ship : ships){
-            // 即使是去泊位路上，也算是该泊位分配了该船
-            if(ship.berthId == berth.id){
-                num++;
-            }
-        }
-        return num;
-    }
-
-    // 寻找泊位所在船只
-    int shipInBerth(const Berth& berth,const std::vector<Ship>& ships)
-    {
-        int berthId = -1;
-        for(const auto& ship : ships){
-            // 即使是去泊位路上，也算是该泊位分配了该船
-            if(ship.berthId == berth.id && ship.state == 1){
-                berthId = ship.id;
-            }
-        }
-        return berthId;
-    }
-
-    // 给船分配空闲泊位id并返回
-    int allocationBerth(int shipId,std::vector<Ship> & ships,std::vector<Berth> &berths){
-        if(ship2Berth[shipId] == -1){
-            // 遍历找到空闲的泊位id
-            // todo 优化空间：找到货物量和船的capacity相匹配的组合；或者如果有船在泊位外等待，则不让他继续走
-            for (std::unordered_map<int, int>::iterator it = berth2Ship.begin(); it != berth2Ship.end(); ++it) {
-                // 当前有位置则不分配
-                if(it->second == -1 && shipNumInBerth(berths[it->first],ships) == 0){
-                    berth2Ship[it->first] = shipId;
-                    ship2Berth[shipId] = it->first;
-                    return ship2Berth[shipId];
-                }
-            }
-            assert(ship2Berth[shipId] != -1);
-            return -1;
-        }
-        else{
-            return ship2Berth[shipId];
-        }
-    }   
-
-    bool inAssignedBerth(int berthId){
-        if(berth2Ship.count(berthId)== 0){
-            return false;
-        }
-        else{
-            return true;
-        }
+    void initCluster(std::vector<Berth> &berths,Map &map){
+        ClusteringBerths(berths,map);
     }
 
     vector<vector<int>> inner_dist(vector<Berth> berths, Map &map)
@@ -443,6 +186,270 @@ public:
             }
         }
     }
+};
+
+class SimpleTransportStrategy : public Scheduler
+{
+public:
+
+    Action scheduleRobot(Robot &robot, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths, bool debug=false) override;
+    std::vector<std::pair<int, Action>>  scheduleRobots(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths) override;
+    void  scheduleRobots(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths, vector<int>& array, int idx) override {}
+    void LPscheduleRobots(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths, vector<int>& array, int idx) override {}
+    
+
+    std::vector<std::pair<int, Action>>  scheduleShips(std::vector<Ship> &ships, std::vector<Berth> &berths,std::vector<Goods>& goods,std::vector<Robot> &robots,std::vector<vector<int>> bestBerthIndex,Map &map,int currentFrame,bool debug=false) override;
+    int shipNumInBerth(const Berth& berth,const std::vector<Ship>& ships) ;
+    void countGoodInBerth(std::vector<Robot> &robots,std::vector<Berth> &berths,std::vector<Goods> goods);
+    void calculateBerthIncome(std::vector<Berth> &berths) ;
+    ActionType scheudleNormalShip(Ship &ship,Berth &berth,std::vector<Robot> robots);
+
+    SimpleTransportStrategy(): Scheduler() {}
+
+    StageType getSchedulerType( )override{
+        return StageType::SIMPLE;
+    }
+};
+
+class FinalTransportStrategy : public Scheduler
+{
+private:
+    bool hasInit = false;   // 标志是否初始化
+    std::unordered_map<int,int> ship2Berth; //船只对应的泊位id
+    std::unordered_map<int,int> berth2Ship; //泊位对应的船只id
+
+    int maxCapacity = -1;
+    int minVelocity = INT_MAX;
+    int maxTime = -1;
+    int maxLoadTime;
+    
+public:
+
+    FinalTransportStrategy(){
+        for(int i =0;i < SHIPNUMS;i++){
+            ship2Berth[i] = -1;
+        }
+    }
+
+    Action scheduleRobot(Robot &robot, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths, bool debug=false) override { return Action();};
+    std::vector<std::pair<int, Action>>  scheduleRobots(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths)override{return std::vector<std::pair<int, Action>>();}
+    void  scheduleRobots(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths, vector<int>& array, int idx)override{}
+    void LPscheduleRobots(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths, vector<int>& array, int idx)override{}
+
+    StageType getSchedulerType( )override{
+        return StageType::FINAL;
+    }
+
+    // 调度船只
+    std::vector<std::pair<int, Action>> scheduleShips(std::vector<Ship> &ships, std::vector<Berth> &berths,std::vector<Goods>& goods,std::vector<Robot> &robots,std::vector<vector<int>> bestBerthIndex,Map &map,int currentFrame,bool debug=false)override;
+    // 计算最优的五个泊位，并给对应的availiable_berths赋值
+    void calculateBestBerths(std::vector<Ship> &ships, std::vector<Berth> &berths,std::vector<Goods>& goods, vector<vector<int>> bestBerthIndex,bool debug=false);
+
+    // 功能函数
+    int shipNumInBerth(const Berth& berth,const std::vector<Ship>& ships)
+    {
+        int num = 0;
+        for(const auto& ship : ships){
+            if(ship.berthId == berth.id){
+                num++;
+            }
+        }
+        return num;
+    }
+
+    // 给船分配空闲泊位id并返回
+    int allocationBerth(int shipId,std::vector<Ship> & ships,std::vector<Berth> &berths){
+        if(ship2Berth[shipId] == -1){
+            // 遍历找到空闲的泊位id
+            // todo 优化空间：找到货物量和船的capacity相匹配的组合；或者如果有船在泊位外等待，则不让他继续走
+            for (std::unordered_map<int, int>::iterator it = berth2Ship.begin(); it != berth2Ship.end(); ++it) {
+                // 当前有位置则不分配
+                if(it->second == -1 && shipNumInBerth(berths[it->first],ships) == 0){
+                    berth2Ship[it->first] = shipId;
+                    ship2Berth[shipId] = it->first;
+                    return ship2Berth[shipId];
+                }
+            }
+            assert(ship2Berth[shipId] != -1);
+            return -1;
+        }
+        else{
+            return ship2Berth[shipId];
+        }
+    }   
+
+    bool inAssignedBerth(int berthId){
+        if(berth2Ship.count(berthId)== 0){
+            return false;
+        }
+        else{
+            return true;
+        }
+    }
+
+};
+
+
+// 聚类版终局调度
+class FinalClusterTransportStrategy : public Scheduler
+{
+private:
+    bool hasInit = false;   // 标志是否初始化
+    std::unordered_map<int,int> ship2Berth; //船只对应的泊位id
+    std::unordered_map<int,int> berth2Ship; //泊位对应的船只id
+    // std::vector<std::vector<Berth>> clusters;   // 每个簇对应的泊位
+
+    int maxCapacity = -1;
+    int minVelocity = INT_MAX;
+    int maxTime = -1;
+    int maxLoadTime;
+    
+public:
+
+    FinalClusterTransportStrategy(){
+        for(int i =0;i < SHIPNUMS;i++){
+            ship2Berth[i] = -1;
+        }
+    }
+
+    Action scheduleRobot(Robot &robot, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths, bool debug=false) override { return Action();};
+    std::vector<std::pair<int, Action>>  scheduleRobots(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths)override{return std::vector<std::pair<int, Action>>();}
+    void  scheduleRobots(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths, vector<int>& array, int idx)override{}
+    void LPscheduleRobots(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths, vector<int>& array, int idx)override{}
+
+    StageType getSchedulerType( )override{
+        return StageType::FINAL;
+    }
+
+    // 调度船只
+    std::vector<std::pair<int, Action>> scheduleShips(std::vector<Ship> &ships, std::vector<Berth> &berths,std::vector<Goods>& goods,std::vector<Robot> &robots,std::vector<vector<int>> bestBerthIndex,Map &map,int currentFrame,bool debug=false)override;
+    
+    // 依次计算每个类中最优的一个泊位，并存在berth2Ship中
+    void calculateBestBerths(std::vector<Ship> &ships, std::vector<Berth> &berths,std::vector<Goods>& goods, vector<vector<int>> bestBerthIndex,Map &map,bool debug=false){
+        if(!hasInit){
+            // 进行聚类
+            LOGI("泊位聚类完毕");
+            // 依次对每个类做价值排序，并选出唯一的泊位
+            for(auto &berth : berths){
+                // if(debug){LOGI("计算泊位收益-----");berth.info();}
+                berth.totalValue = 0;
+                for(auto & good : berth.reached_goods) berth.totalValue += good.value;
+                berth.shipInBerthNum = shipNumInBerth(berth,ships);
+            }
+
+            // 遍历货物，找到status = 0 和status = 1的货物，找到离他最近的泊位
+            // int index = 0;
+            // while(index < goods.size() && goods[index].TTL != -1 && goods[index].TTL != INT_MAX){index++;}
+            // for(index;index < bestBerthIndex.size();index++){
+            //     if(goods[index].status == 0 || goods[index].status == 1){
+            //         berths[bestBerthIndex[index][0]].totalValue += goods[index].value;
+            //     }
+            // }
+
+            // ClusteringBerths(berths,map);
+            for(std::vector<Berth> cluster : clusters){
+                // 依次对每一类的泊位进行排序
+                std::vector<Berth> berths_copy(cluster);
+                std::sort(berths_copy.begin(), berths_copy.end(),[](Berth& a,Berth& b){
+                    // 如果泊位上有船，则优先级最低
+                    // todo 如果一个泊位上货物很多很多，要改成“溢出货量”降序排列
+                    if(a.shipInBerthNum != b.shipInBerthNum) return a.shipInBerthNum < b.shipInBerthNum;
+                    return a.totalValue > b.totalValue;
+                });
+                // 选排序第一作为该簇的最终泊位
+                berth2Ship[berths_copy[0].id] = -1;
+                for(int i = 1;i < berths_copy.size(); i++){
+                    // 设置不可用
+                    Berth::available_berths[berths_copy[i].id] = false;
+                }
+            }
+            if(debug){
+                for (std::unordered_map<int, int>::iterator it = berth2Ship.begin(); it != berth2Ship.end(); ++it) {
+                    LOGI("终局选定泊位：",it->first,"，船只：",it->second);
+                    berths[it->first].info();
+                }
+            }
+            //初始化
+            for(auto &ship : ships) maxCapacity = std::max(maxCapacity,ship.capacity);
+            for(auto &berth : berths) minVelocity = std::min(minVelocity,berth.velocity),maxTime = std::max(maxTime, berth.time);
+            maxLoadTime = maxCapacity / minVelocity;
+            hasInit = true;
+        }
+    }
+
+    int findResidueBerth(std::vector<Berth> & berths,std::vector<Ship> & ships){
+        // 找到当前 不是预定泊位 && 货物量挺多 && 没有船搬运的泊位
+        int maxLoadValue = 0;
+        int maxLoadNum = 0;
+        int berthId = -1;
+        for(Berth &berth : berths){
+            if(!inAssignedBerth(berth.id) && shipNumInBerth(berth,ships) == 0){
+                // toso 可调参
+                if(berth.reached_goods.size() > maxLoadNum && berth.reached_goods.size() > 5){
+                    berthId = berth.id;
+                }
+            }
+        }
+        return berthId;
+    }
+
+    // 功能函数
+    int shipNumInBerth(const Berth& berth,const std::vector<Ship>& ships)
+    {
+        int num = 0;
+        for(const auto& ship : ships){
+            // 即使是去泊位路上，也算是该泊位分配了该船
+            if(ship.berthId == berth.id){
+                num++;
+            }
+        }
+        return num;
+    }
+
+    // 寻找泊位所在船只
+    int shipInBerth(const Berth& berth,const std::vector<Ship>& ships)
+    {
+        int berthId = -1;
+        for(const auto& ship : ships){
+            // 即使是去泊位路上，也算是该泊位分配了该船
+            if(ship.berthId == berth.id && ship.state == 1){
+                berthId = ship.id;
+            }
+        }
+        return berthId;
+    }
+
+    // 给船分配空闲泊位id并返回
+    int allocationBerth(int shipId,std::vector<Ship> & ships,std::vector<Berth> &berths){
+        if(ship2Berth[shipId] == -1){
+            // 遍历找到空闲的泊位id
+            // todo 优化空间：找到货物量和船的capacity相匹配的组合；或者如果有船在泊位外等待，则不让他继续走
+            for (std::unordered_map<int, int>::iterator it = berth2Ship.begin(); it != berth2Ship.end(); ++it) {
+                // 当前有位置则不分配
+                if(it->second == -1 && shipNumInBerth(berths[it->first],ships) == 0){
+                    berth2Ship[it->first] = shipId;
+                    ship2Berth[shipId] = it->first;
+                    return ship2Berth[shipId];
+                }
+            }
+            assert(ship2Berth[shipId] != -1);
+            return -1;
+        }
+        else{
+            return ship2Berth[shipId];
+        }
+    }   
+
+    bool inAssignedBerth(int berthId){
+        if(berth2Ship.count(berthId)== 0){
+            return false;
+        }
+        else{
+            return true;
+        }
+    }
+
+
 
 };
 

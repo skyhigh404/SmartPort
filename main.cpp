@@ -21,6 +21,12 @@ int main()
     gameManager.setShipScheduler(&simpleTransportStrategy);
     gameManager.setRobotScheduler(&simpleTransportStrategy);
     gameManager.initializeGame();
+    // 初始化聚类
+    simpleTransportStrategy.initCluster(gameManager.berths,gameManager.gameMap);
+    finalTransportStrategy.initCluster(gameManager.berths,gameManager.gameMap);
+    implicitEnumeration.initCluster(gameManager.berths,gameManager.gameMap);
+    finalClusterTransportStrategy.initCluster(gameManager.berths,gameManager.gameMap);
+
     LOGI("init finish");
 
     // std::vector<std::vector<Berth>> res = ClusteringBerths(gameManager.berths, gameManager.gameMap);

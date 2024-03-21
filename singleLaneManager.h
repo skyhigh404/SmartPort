@@ -251,6 +251,9 @@ struct SingleLaneLock
 {
     Point2d startPos;
     Point2d endPos;
+    Point2d entrance;   //startPos的出口
+    Point2d exit;   //endPos的出口
+
     bool startLock;
     bool endLock;
     int count;

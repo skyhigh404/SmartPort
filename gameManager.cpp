@@ -331,6 +331,7 @@ void GameManager::robotControl()
                     berth.reached_goods.push_back(goods[robot.carryingItemId]);
                     goods[robot.carryingItemId].status = 3;
                 }
+                LOGI("机器人效率统计, 当前时间, ",currentFrame,", robotID, ", robot.id, ", goodValue, ", goods[robot.carryingItemId].value, ", berthID, ", berth.id);
                 goods[robot.carryingItemId].status = 3;
                 robot.status = MOVING_TO_GOODS;
                 robot.carryingItem = 0;

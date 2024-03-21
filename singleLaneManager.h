@@ -251,8 +251,8 @@ struct SingleLaneLock
 {
     Point2d startPos;
     Point2d endPos;
-    Point2d entrance;   //startPos的出口
-    Point2d exit;   //endPos的出口
+    Point2d entrance;   //startPos往外扩展一格
+    Point2d exit;   //endPos的往外扩展一格
 
     bool startLock;
     bool endLock;
@@ -567,6 +567,9 @@ public:
                             for(auto& point : path){
                                 singleLaneMap[point.x][point.y] = laneId;
                             }   
+                            // 初始化单行路的出口和入口情况
+                            singleLaneLocks[laneId].entrance = getExport(singleLaneLocks[laneId].startPos);
+                            singleLaneLocks[laneId].exit = getExport(singleLaneLocks[laneId].endPos);
                         }
                     }
                     if (path.size() >= 2) {
@@ -590,6 +593,9 @@ public:
                         if(countObstacle(path.back()) == 3){
                             singleLaneLocks[laneId].endPos = {-1,-1};
                         }
+                        // 初始化单行路的出口和入口情况
+                        singleLaneLocks[laneId].entrance = getExport(singleLaneLocks[laneId].startPos);
+                        singleLaneLocks[laneId].exit = getExport(singleLaneLocks[laneId].endPos);
                     }
                 }
                 auto end = std::chrono::steady_clock::now();
@@ -598,6 +604,23 @@ public:
             }
         }
         LOGI("寻找单行路循环完毕！");
+    }   
+
+    // 传入单行路起点|终点坐标，返回出口/入口坐标
+    Point2d getExport(Point2d & point){
+        std::vector<Point2d> temp;
+        temp.push_back(Point2d(point.x - 1,point.y));
+        temp.push_back(Point2d(point.x + 1,point.y));
+        temp.push_back(Point2d(point.x,point.y - 1));
+        temp.push_back(Point2d(point.x,point.y + 1));
+        int num = 0;
+        for(auto& item : temp){
+            if(isValid(item) && singleLaneMap[item.x][item.y] == 0){
+                // singleLaneMap[item.x][item.y] = -2;
+                return item;
+            }
+        }
+        return Point2d(-1,-1);
     }
 
 };

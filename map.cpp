@@ -185,6 +185,17 @@ void Map::addTemporaryObstacle(const Point2d& pos) {
         }
         grid[pos.x][pos.y] = MapItemSpace::MapItem::ROBOT; // 标记为障碍物
         temporaryObstacles.push_back(pos); // 添加到临时障碍物列表
+        temporaryObstaclesRefCount[pos]++;
+    }
+}
+
+void Map::removeTemporaryObstacle(const Point2d& pos) {
+    auto it = temporaryObstaclesRefCount.find(pos);
+    if (it != temporaryObstaclesRefCount.end()) {
+        if (--it->second <= 0) {
+            temporaryObstaclesRefCount.erase(it);
+            grid[pos.x][pos.y] = MapItemSpace::MapItem::SPACE;  // 恢复为空地
+        }
     }
 }
 
@@ -196,6 +207,7 @@ void Map::clearTemporaryObstacles() {
         }
     }
     temporaryObstacles.clear(); // 清空临时障碍物列表
+    temporaryObstaclesRefCount.clear();
 }
 
 std::vector<Point2d> Map::getNearbyTemporaryObstacles(const Point2d& robotPos, int n) const {

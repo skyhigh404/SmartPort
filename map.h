@@ -28,6 +28,7 @@ public:
     std::unordered_map<int, std::vector<std::vector<int>>> berthDistanceMap;
     std::vector<std::reference_wrapper<Point2d>> robotPosition; // 实时记录机器人位置
     std::vector<Point2d> temporaryObstacles; // 临时障碍物的位置
+    std::unordered_map<Point2d, int> temporaryObstaclesRefCount;    // 对障碍物进行计数
 
     static std::array<Point2d, 4> DIRS;
 
@@ -113,6 +114,7 @@ public:
     std::vector<Point2d> isCollisionRisk(int robotID, int framesAhead) const;
     // 添加临时障碍物，即机器人
     void addTemporaryObstacle(const Point2d& pos);
+    void removeTemporaryObstacle(const Point2d& pos);
     void clearTemporaryObstacles();
     std::vector<Point2d> getNearbyTemporaryObstacles(const Point2d& robotPos, int n) const;
 };

@@ -142,20 +142,17 @@ void GameManager::initializeGame()
     }
     
     int findTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-    LOGI("单行路初始化处理时间：",findTime,"ms");
+    // LOGI("单行路初始化处理时间：",findTime,"ms");
     // 打印单行路
     LOGI("单行路数量：",this->singleLaneManager.singleLanes.size());
-    LOGI(Map::drawMap(this->singleLaneManager.singleLaneMap,3));
-    LOGI("输出单行路锁信息");
-    for (const auto& pair : this->singleLaneManager.singleLaneLocks) {
-        int laneId = pair.first;
-        const SingleLaneLock& lock = pair.second;
-        LOGI("ID: ",laneId, " startPos: ", lock.startPos, ", endPos: ", lock.endPos);
-        // LOGI("-----------------------------------------单行路路径:");
-        // for(auto &point : this->singleLaneManager.singleLanes[laneId]){
-        //     LOGI(point);
-        // }
-    }
+    // LOGI(Map::drawMap(this->singleLaneManager.singleLaneMap,3));
+    // LOGI("输出单行路锁信息");
+    // for (const auto& pair : this->singleLaneManager.singleLaneLocks) {
+    //     int laneId = pair.first;
+    //     const SingleLaneLock& lock = pair.second;
+    //     LOGI("ID: ",laneId, " startPos: ", lock.startPos, ", endPos: ", lock.endPos);
+        
+    // }
     // LOGI(this->gameMap.drawMap(nullptr, nullptr, nullptr, nullptr, nullptr));
     // LOGI("Log berth 0 BFS map.");
     // LOGI(Map::drawMap(this->gameMap.berthDistanceMap[9],12));
@@ -164,7 +161,6 @@ void GameManager::initializeGame()
 
 void GameManager::processFrameData()
 {
-    LOGI("processFrameData.");
     int newItemCount;
     int goodsX, goodsY, value;
     int carrying, robotX, robotY, robotState;
@@ -239,9 +235,9 @@ void GameManager::processFrameData()
         cin >> shipState >> berthId;
         this->ships[i].state = shipState;
         this->ships[i].berthId = berthId;
-        if(ships[i].state == 0 && ships[i].berthId != -1){
-            LOGW("船只状态：",ships[i].state,",船只泊位：",ships[i].berthId);
-        }
+        // if(ships[i].state == 0 && ships[i].berthId != -1){
+        //     LOGW("船只状态：",ships[i].state,",船只泊位：",ships[i].berthId);
+        // }
     }
     // 确认已接收完本帧的所有数据
     string ok;
@@ -421,7 +417,7 @@ void GameManager::robotControl()
     robotController->runController(gameMap, this->singleLaneManager);
     // LOGI("機器人尋路完畢");
     // 维护单行路的锁
-    // updateSingleLaneLocks();
+    updateSingleLaneLocks();
     
     // 输出指令
     for (Robot& robot : robots) {
@@ -637,7 +633,7 @@ void GameManager::update()
     auto start = std::chrono::steady_clock::now();
     
     bool robotDebugOutput = false;
-    bool shipDebugOutput = true;
+    bool shipDebugOutput = false;
 
     // robots[3].findPath(gameMap,Point2d(133,99));
     // robots[6].findPath(gameMap,Point2d(142,112));

@@ -58,7 +58,7 @@ public:
     std::vector<std::pair<int, Action>>  scheduleRobots(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths) override;
     void  scheduleRobots(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths, vector<int>& array, int idx) override {}
     void LPscheduleRobots(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths, vector<int>& array, int idx) override {}
-    
+    vector<float> BerthsValue(const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths);
 
     std::vector<std::pair<int, Action>>  scheduleShips(std::vector<Ship> &ships, std::vector<Berth> &berths,std::vector<Goods>& goods,std::vector<Robot> &robots,std::vector<vector<int>> bestBerthIndex,Map &map,int currentFrame,bool debug=false) override;
     int shipNumInBerth(const Berth& berth,const std::vector<Ship>& ships) ;

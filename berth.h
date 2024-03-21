@@ -99,7 +99,7 @@ public:
     // 是否必须要去虚拟点, +5帧缓冲时间
     // otherTime表示需要预留的时间
     bool mustGo(int remainder,int otherTime = 0){
-        if(remainder - time - otherTime <= 2 && remainder - time - otherTime >= -2){
+        if(remainder - time - otherTime <= 2 && remainder - time - otherTime >= -1){
             return true;
         }
         return false;

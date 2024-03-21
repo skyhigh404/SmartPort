@@ -200,13 +200,13 @@ public:
             }
 
             // 遍历货物，找到status = 0 和status = 1的货物，找到离他最近的泊位
-            int index = 0;
-            while(index < goods.size() && goods[index].TTL != -1 && goods[index].TTL != INT_MAX){index++;}
-            for(index;index < bestBerthIndex.size();index++){
-                if(goods[index].status == 0 || goods[index].status == 1){
-                    berths[bestBerthIndex[index][0]].totalValue += goods[index].value;
-                }
-            }
+            // int index = 0;
+            // while(index < goods.size() && goods[index].TTL != -1 && goods[index].TTL != INT_MAX){index++;}
+            // for(index;index < bestBerthIndex.size();index++){
+            //     if(goods[index].status == 0 || goods[index].status == 1){
+            //         berths[bestBerthIndex[index][0]].totalValue += goods[index].value;
+            //     }
+            // }
 
             ClusteringBerths(berths,map);
             for(std::vector<Berth> cluster : clusters){
@@ -239,6 +239,22 @@ public:
         }
     }
 
+    int findResidueBerth(std::vector<Berth> & berths,std::vector<Ship> & ships){
+        // 找到当前 不是预定泊位 && 货物量挺多 && 没有船搬运的泊位
+        int maxLoadValue = 0;
+        int maxLoadNum = 0;
+        int berthId = -1;
+        for(Berth &berth : berths){
+            if(!inAssignedBerth(berth.id) && shipNumInBerth(berth,ships) == 0){
+                // toso 可调参
+                if(berth.reached_goods.size() > maxLoadNum && berth.reached_goods.size() > 5){
+                    berthId = berth.id;
+                }
+            }
+        }
+        return berthId;
+    }
+
     // 功能函数
     int shipNumInBerth(const Berth& berth,const std::vector<Ship>& ships)
     {
@@ -250,6 +266,19 @@ public:
             }
         }
         return num;
+    }
+
+    // 寻找泊位所在船只
+    int shipInBerth(const Berth& berth,const std::vector<Ship>& ships)
+    {
+        int berthId = -1;
+        for(const auto& ship : ships){
+            // 即使是去泊位路上，也算是该泊位分配了该船
+            if(ship.berthId == berth.id && ship.state == 1){
+                berthId = ship.id;
+            }
+        }
+        return berthId;
     }
 
     // 给船分配空闲泊位id并返回

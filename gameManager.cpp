@@ -677,7 +677,7 @@ void GameManager::update()
     if(currentFrame>=14000 && currentFrame <= 14005){
         LOGI("skipFrame: ", skipFrame, ", totalGetGoodsValue: ", totalGetGoodsValue);
     }
-    if(currentFrame >=14990 && currentFrame <= 14999){
+    if(currentFrame >=14990 && currentFrame <= 15000){
         LOGI("游戏结束，泊位剩余情况：");
         for(auto &berth : berths){
             // if(debug){LOGI("计算泊位收益-----");berth.info();}
@@ -687,7 +687,7 @@ void GameManager::update()
         for(auto & berth : berths){
             berth.info();
         }
-        LOGI("游戏结束，泊位剩余情况：");
+        LOGI("游戏结束，船只剩余情况：");
         for(auto &ship : ships){
             ship.info();
         }

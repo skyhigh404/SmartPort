@@ -1159,6 +1159,24 @@ std::vector<std::pair<int, Action>>  FinalClusterTransportStrategy::scheduleShip
     int remainder = 15000 - currentFrame;
 
     std::vector<std::pair<int, Action>> shipActions;
+    // 只有游戏快结束时才判断
+    // 计算泊位的溢出货物量，如果 < 0，则不让机器人送货过来
+    if( remainder >= maxTime && remainder <= maxTime * 2){
+        LOGI("判断时间：",15000 - maxTime * 2,"," , 15000 - maxTime);
+        for (std::unordered_map<int, int>::iterator it = berth2Ship.begin(); it != berth2Ship.end(); ++it) {
+            int shipId = berth2Ship[it->first] == -1 ? shipInBerth(berths[it->first],ships) : berth2Ship[it->first];
+            if(shipId != -1){
+                if(ships[shipId].now_capacity <= berths[it->first].reached_goods.size() && Berth::available_berths[it->first] == true) 
+                {
+                    Berth::available_berths[it->first] = false;
+                    LOGI("当前泊位货物溢出，不用再送货过来：");
+                    ships[shipId].info();
+                    berths[it->first].info();
+                }
+            }
+        }
+    }
+    
     for(int i=0;i < SHIPNUMS;i++){
         float nowCapaityProportion = 1.0 * ships[i].now_capacity / ships[i].capacity;
         switch (ships[i].state)
@@ -1173,11 +1191,12 @@ std::vector<std::pair<int, Action>>  FinalClusterTransportStrategy::scheduleShip
             break;
         case 1:
             // 货满则出发
-            if (ships[i].berthId != -1 && (ships[i].now_capacity <= 1 || berths[ships[i].berthId].mustGo(remainder))){
+            if (ships[i].berthId != -1 && (ships[i].now_capacity <= 0 || berths[ships[i].berthId].mustGo(remainder))){
                 //装满,去往虚拟点
                 // 进行统计
                 LOGI("货满了或者没时间了，直接去虚拟点：");
                 ships[i].info();
+                berths[ships[i].berthId].info();
                 Berth::deliverGoodNum += (ships[i].capacity - ships[i].now_capacity);
                 ships[i].goStatus();
                 shipActions.push_back(std::make_pair(i, Action{DEPART_BERTH,Point2d(),-1}));
@@ -1194,7 +1213,7 @@ std::vector<std::pair<int, Action>>  FinalClusterTransportStrategy::scheduleShip
             else{
                 // 到了终局准备阶段前直接走;一去一回
                 // if(berths[ships[i].berthId].mustGo(remainder,2 * berths[ships[i].berthId].time + maxLoadTime) && nowCapaityProportion < 0.5){
-                if(berths[ships[i].berthId].mustGo(remainder,2 * maxTime + maxLoadTime) && nowCapaityProportion < 0.5){
+                if(berths[ships[i].berthId].mustGo(remainder,2 * maxTime + maxLoadTime) && nowCapaityProportion < 0.9){
                     //装满,去往虚拟点
                     LOGI("进入终局准备阶段，直接去虚拟点：");
                     ships[i].info();
@@ -1203,12 +1222,25 @@ std::vector<std::pair<int, Action>>  FinalClusterTransportStrategy::scheduleShip
                     ships[i].goStatus();
                     shipActions.push_back(std::make_pair(i, Action{DEPART_BERTH,Point2d(),-1}));
                 }
+                // 在预定泊位上并且还有时间去其他泊位装货
+                else if(inAssignedBerth(ships[i].berthId) && berths[ships[i].berthId].mustGo(remainder,500 * 2 + maxLoadTime * 2)){
+                    // 找到当前 不是预定泊位 && 货物量挺多 && 没有船搬运的泊位
+                    int berthId = findResidueBerth(berths,ships);
+                    if(berthId != -1 && berthId != ships[i].berthId){
+                        LOGI("还有时间，去其他泊位装货：");
+                        ships[i].info();
+                        berths[ships[i].berthId].info();
+                        berths[berthId].info();
+                        ships[i].berthId = berthId;
+                        shipActions.push_back(std::make_pair(ships[i].id, Action{MOVE_TO_BERTH,Point2d(),berthId}));
+                    }
+                }
                 //  货物数量为0
                 else if(berths[ships[i].berthId].reached_goods.size() == 0){
                     // 泊位不一致
                     if(!inAssignedBerth(ships[i].berthId)){
                         // 剩余货量 >= 70%，去对应泊位;否则去虚拟点
-                        if(nowCapaityProportion < 0.7){
+                        if(nowCapaityProportion < 0.2){
                             Berth::deliverGoodNum += (ships[i].capacity - ships[i].now_capacity);
                             LOGI("不在预定泊位上，当前剩余容量:",nowCapaityProportion,",去虚拟点");
                             ships[i].info();

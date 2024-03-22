@@ -272,7 +272,7 @@ void GameManager::processFrameData()
 
 void GameManager::robotControl()
 {
-    bool robotDebugOutput = false;
+    bool robotDebugOutput = true;
     // 机器人状态更新
     for (Robot& robot:robots) {
         if (robot.status==DEATH) continue;
@@ -309,7 +309,7 @@ void GameManager::robotControl()
         if (robot.status==DEATH) continue;
         if (robot.status==MOVING_TO_GOODS && robot.targetid!=-1 && robot.pos == goods[robot.targetid].pos) {
             if (goods[robot.targetid].TTL>0) {
-                                commandManager.addRobotCommand(robot.get());
+                commandManager.addRobotCommand(robot.get());
                 robot.carryingItem = 1;
                 robot.carryingItemId = robot.targetid;
                 robot.status = MOVING_TO_BERTH;
@@ -368,6 +368,9 @@ void GameManager::robotControl()
     }
 
     auto start = std::chrono::steady_clock::now();
+    // 为机器人分配类
+    // this->RobotScheduler->reassignRobots(goods, robots, gameMap, berths);
+
     // 对所有需要调度的机器人进行调度
     for (Robot& robot : robots) {
         if (robot.status==DEATH) continue;

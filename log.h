@@ -26,9 +26,18 @@
 #else
 // 如果没有定义DEBUG，则将LOG宏定义为不执行任何操作的宏
 // 使用do { } while(0)是为了确保宏在使用时的语义正确性，比如在if语句中不会出现语法错误
-#define LOGI(...) do {} while (0)
-#define LOGW(...) do {} while (0)
-#define LOGE(...) do {} while (0)
+#define LOGI(...) \
+    do            \
+    {             \
+    } while (0)
+#define LOGW(...) \
+    do            \
+    {             \
+    } while (0)
+#define LOGE(...) \
+    do            \
+    {             \
+    } while (0)
 
 #endif
 
@@ -94,6 +103,15 @@ public:
         std::ostringstream stream;
         logMessage(stream, args...);
         logWrite(stream.str(), level);
+    }
+
+    template <typename T>
+    static std::string printVector(const std::vector<T> &vec)
+    {
+        std::ostringstream oss;
+        for (const auto &val : vec)
+            oss << val << " ";
+        return oss.str();
     }
 
 private:

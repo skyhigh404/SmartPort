@@ -117,6 +117,7 @@ public:
     void removeTemporaryObstacle(const Point2d& pos);
     void clearTemporaryObstacles();
     std::vector<Point2d> getNearbyTemporaryObstacles(const Point2d& robotPos, int n) const;
+    int getNearestBerthID(const Point2d& pos) const;
 };
 
 std::string printVector(const std::vector<Point2d> &path);

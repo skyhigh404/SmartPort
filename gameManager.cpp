@@ -23,6 +23,9 @@ int canUnload(Berth& berth, Point2d pos) {
         return 1;
 }
 
+std::vector<int> berthDistrubtGoodNumCount(10,0);
+std::vector<int> berthDistrubtGoodValueCount(10,0);
+
 void GameManager::initializeGame()
 {
     // 读取地图
@@ -202,6 +205,11 @@ void GameManager::processFrameData()
     {
         cin >> goodsX >> goodsY >> value;
         this->goods.emplace_back(Point2d(goodsX, goodsY), value, currentFrame);
+        int tempGoodDistrubtID = this->gameMap.getNearestBerthID(Point2d(goodsX, goodsY));
+        if(tempGoodDistrubtID>=0 && tempGoodDistrubtID<10) {
+            berthDistrubtGoodNumCount[tempGoodDistrubtID]++;
+            berthDistrubtGoodValueCount[tempGoodDistrubtID] += value;
+        }
     }
     // 读取机器人状态
     bool flag = false;
@@ -682,6 +690,8 @@ void GameManager::update()
 
     if(currentFrame>=14000 && currentFrame <= 14005){
         LOGI("skipFrame: ", skipFrame, ", totalGetGoodsValue: ", totalGetGoodsValue);
+        LOGI("berthDistrubtGoodNumCount: ",Log::printVector(berthDistrubtGoodNumCount));
+        LOGI("berthDistrubtGoodValueCount: ",Log::printVector(berthDistrubtGoodValueCount));
     }
     if(currentFrame >=14990 && currentFrame <= 15000){
         LOGI("游戏结束，泊位剩余情况：");

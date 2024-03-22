@@ -224,6 +224,21 @@ std::vector<Point2d> Map::getNearbyTemporaryObstacles(const Point2d& robotPos, i
     return nearbyObstacles;
 }
 
+int Map::getNearestBerthID(const Point2d& pos) const
+{
+    int result = -1;
+    int distance = INT_MAX;
+    if(inBounds(pos)) {
+        for (const auto &[ID, map] : berthDistanceMap) {
+            if (map.at(pos.x).at(pos.y) < distance) {
+                distance = map.at(pos.x).at(pos.y);
+                result = ID;
+            }
+        }
+    }
+    return result;
+}
+
 std::string printVector(const std::vector<Point2d> &path)
 {
     std::ostringstream oss;

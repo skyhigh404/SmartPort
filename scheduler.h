@@ -111,7 +111,7 @@ public:
 
     void reassignRobots(vector<Goods>& goods, vector<Robot>& robots, Map& map, std::vector<Berth> &berths) {
         // 根据类收益分配机器人
-        vector<int> assignBound(clusters.size());
+        vector<int> assignBound(clusters.size(), 0);
         for (int i=0;i<assignment.size();i++) assignBound[assignment[i]]++;
 
         // 需要统计（机器人空闲率）和泊位类的价值

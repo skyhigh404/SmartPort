@@ -579,20 +579,6 @@ vector<float> SimpleTransportStrategy::BerthsValue(const Map &map, std::vector<G
 Action SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths, bool debug)
 {
     if (debug) LOGI("调度开始:goodsize:",goods.size(),". 机器人id：",robot.id);
-
-    // vector<vector<int>> cost2berths(goods.size(), vector<int>(berths.size()));
-    // vector<int> bestBerthIndex(goods.size(), -1);
-    // for (int i=0;i<goods.size();i++) {
-    //     int time = INT_MAX;
-    //     for (int j=0;j<berths.size();j++) {
-    //         const std::vector<std::vector<int>> &bfsmap = map.berthDistanceMap.at(berths[j].id);
-    //         cost2berths[i][j] = bfsmap[goods[i].pos.x][goods[i].pos.y];
-    //         if (cost2berths[i][j] < time) {
-    //             time = cost2berths[i][j];
-    //             bestBerthIndex[i] = j;
-    //         }
-    //     }
-    // }
     
     auto start = std::chrono::steady_clock::now();
     calCostAndBestBerthIndes(map, goods, berths);
@@ -629,27 +615,6 @@ Action SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std:
     // }
     end = std::chrono::steady_clock::now();
     LOGI("分配泊位时间: ",std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()," ms");
-    // todo 临时举措
-    // if (robot.carryingItem==1 && bestBerthIndex[robot.carryingItemId]!=-1 && robot.carryingItemId != -1) {
-    //     if (debug) LOGI("分配泊位");
-    //     Berth &berth = berths[bestBerthIndex[robot.carryingItemId]];
-    //     // if (debug) LOGI("泊位已预定货物数量：", berth.reached_goods.size(), ' ', berth.unreached_goods.size());
-    //     robot.targetid = berth.id;
-    //     Point2d dest(0,0);
-    //     // 去曼哈顿距离最近且有空的位置
-    //     for (int i=3;i>=0;i--) {
-    //         for (int j=3;j>=0;j--) {
-    //             if (berth.storageSlots[i][j]==-1) {
-    //                 dest = Point2d(berth.pos.x+i, berth.pos.y+j);
-    //                 if(debug){LOGI("分配泊位位置：",dest);}
-    //                 return Action{MOVE_TO_BERTH, dest, berth.id};
-    //                 break;
-    //             }
-    //         }
-    //     }
-    //     if(debug) LOGI("分配泊位失败");
-    //     return Action{FAIL, Point2d(0,0), 0};
-    // }
 
     start = std::chrono::steady_clock::now();
     if (debug) LOGI("计算到货物路径");

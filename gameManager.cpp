@@ -369,7 +369,7 @@ void GameManager::robotControl()
 
     auto start = std::chrono::steady_clock::now();
     // 为机器人分配类
-    this->RobotScheduler->reassignRobots(goods, robots, gameMap, berths);
+    // this->RobotScheduler->reassignRobots(goods, robots, gameMap, berths);
 
     // 对所有需要调度的机器人进行调度
     for (Robot& robot : robots) {

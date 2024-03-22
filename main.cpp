@@ -26,10 +26,10 @@ int main()
     finalTransportStrategy.initCluster(gameManager.berths,gameManager.gameMap);
     implicitEnumeration.initCluster(gameManager.berths,gameManager.gameMap);
     finalClusterTransportStrategy.initCluster(gameManager.berths,gameManager.gameMap);
-    // simpleTransportStrategy.assignRobots(gameManager.robots, gameManager.gameMap);
+    simpleTransportStrategy.assignRobots(gameManager.robots, gameManager.gameMap);
     // LOGI("1");
     // for (int i=0;i<gameManager.robots.size();i++) {
-    //     LOGI(simpleTransportStrategy.assignment[i]);
+    //     LOGI("机器人",i,"分配到类",simpleTransportStrategy.assignment[i]);
     // }
     // return 0;
 

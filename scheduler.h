@@ -6,6 +6,7 @@
 #include "ship.h"
 #include "berth.h"
 #include "utils.h"
+#include <numeric>
 
 
 
@@ -52,11 +53,16 @@ public:
 
     Scheduler(): cost2berths(),bestBerthIndex(),scheduleResult(),bestValue(0),enterFinal(false) {assignment=vector<int>(10,-1);berthCluster=vector<int>(10,-1);}
 
-    void assignRobots(vector<Robot>& robots, Map& map) {
+    void assignRobots(vector<Robot>& robots, Map& map, vector<int> assignBound=vector<int>()) {
         vector<bool> assigned(robots.size(), false);
+        if (assignBound.empty()) {
+            assignBound = vector<int>(clusters.size());
+            for (int i=0;i<clusters.size();i++) assignBound[i] = clusters[i].size();
+        }
         vector<int> assignNum(clusters.size(), 0);
         // 先每个类分配一个机器人
         for (int i=0;i<clusters.size();i++) {
+            if (assignNum[i] >= assignBound[i]) continue;
             int mini_dist = INT_MAX, argmin = -1;
             for (int j=0;j<robots.size();j++) {
                 if (assigned[j]) continue;
@@ -84,7 +90,8 @@ public:
             int mini_dist = INT_MAX, argmin = -1;
             for (int i=0;i<clusters.size();i++) {
                 int dist = INT_MAX;
-                if (assignNum[i] >= clusters[i].size()) {continue;} // 每个类有多少个泊位，则至多分配多少个机器人
+                if (assignNum[i] >= assignBound[i]) continue; // 每个类有多少个泊位，则至多分配多少个机器人
+                // if (assignNum[i] >= clusters[i].size()) {continue;} // 每个类有多少个泊位，则至多分配多少个机器人
                 for (int k=0;k<clusters[i].size();k++) {
                     if (dist > map.berthDistanceMap.at(clusters[i][k].id)[robot.pos.x][robot.pos.y]) {
                         dist = map.berthDistanceMap.at(clusters[i][k].id)[robot.pos.x][robot.pos.y];
@@ -100,6 +107,44 @@ public:
             assignNum[argmin]++;
         }
         return;
+    }
+
+    void reassignRobots(vector<Goods>& goods, vector<Robot>& robots, Map& map, std::vector<Berth> &berths) {
+        // 根据类收益分配机器人
+        vector<int> assignBound(clusters.size());
+        for (int i=0;i<assignment.size();i++) assignBound[assignment[i]]++;
+
+        // 需要统计（机器人空闲率）和泊位类的价值
+        vector<int> clusterValue(clusters.size(), 0);
+        calCostAndBestBerthIndes(map, goods, berths);
+        for (auto& good:goods) {
+            if (good.status==0) {
+                clusterValue[berthCluster[bestBerthIndex[good.id][0]]] += good.value / cost2berths[good.id][bestBerthIndex[good.id][0]];
+            }
+        }
+        int clusterValue_avg = std::accumulate(clusterValue.begin(), clusterValue.end(), 0.0) / clusterValue.size();
+
+        // 将机器人从价值低的类中释放
+        int freeRobotNum = 0;
+        for (int i=0;i<clusters.size();i++) {
+            if (freeRobotNum>=3) break;
+            if (clusterValue[i] < 0.6*clusterValue_avg && assignBound[i]>0) {
+                assignBound[i]--;
+                freeRobotNum++;
+            }
+        }
+
+        // 将自由机器人分配给高价值类
+        while(freeRobotNum > 0) {
+            auto max_iter = std::max_element(clusterValue.begin(), clusterValue.end());
+            size_t max_index = std::distance(clusterValue.begin(), max_iter);
+            assignBound[max_index]++;
+            freeRobotNum--;
+            clusterValue[max_index] = 0; // 此类不再参与分配
+        }
+        if (freeRobotNum==0) return;
+
+        assignRobots(robots, map, assignBound);
     }
 
     void initCluster(std::vector<Berth> &berths,Map &map){

@@ -689,7 +689,7 @@ Action SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std:
 
         // if (timeToGoods > 200) continue;
         profits[j] = goods[j].value*1.0 / (1*timeToGoods+timeToBerths);
-        if (goods[j].TTL<=500 && !enterFinal) profits[j] *= 1.5;
+        if (goods[j].TTL<=500 && !enterFinal) profits[j] *= 1.2;
         // if (berthsValue[bestBerthIndex[goods[j].id][0]] > berthsValue[berths.size()]/berths.size() && !enterFinal) profits[j] *= 1.5;
 
         profit_output += "(timetogood:" + std::to_string(timeToGoods) + ",timetoberths:" + std::to_string(timeToBerths) + ",value:" + std::to_string(goods[j].value) + ",profit:" + std::to_string(profits[j]) + ") ";

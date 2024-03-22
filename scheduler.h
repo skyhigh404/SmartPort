@@ -25,6 +25,7 @@ public:
     vector<vector<int>> cost2berths; // (gs,bs)
     vector<vector<int>> bestBerthIndex; // (gs,bs)
     std::vector<std::vector<Berth>> clusters;   // 每个簇对应的泊位
+    vector<int> berthCluster;
     vector<int> assignment; // 机器人被分配到的泊位类
     // 去哪里
     vector<bool> picked;
@@ -49,11 +50,12 @@ public:
     void calCostAndBestBerthIndes(const Map &map, std::vector<Goods> &goods, std::vector<Berth> &berths);
     vector<int> getResult() {return scheduleResult;}
 
-    Scheduler(): cost2berths(),bestBerthIndex(),scheduleResult(),bestValue(0),enterFinal(false) {}
+    Scheduler(): cost2berths(),bestBerthIndex(),scheduleResult(),bestValue(0),enterFinal(false) {assignment=vector<int>(10,-1);berthCluster=vector<int>(10,-1);}
 
     void assignRobots(vector<Robot>& robots, Map& map) {
         vector<bool> assigned(robots.size(), false);
-        LOGI("run");
+        vector<int> assignNum(clusters.size(), 0);
+        // 先每个类分配一个机器人
         for (int i=0;i<clusters.size();i++) {
             int mini_dist = INT_MAX, argmin = -1;
             for (int j=0;j<robots.size();j++) {
@@ -70,20 +72,21 @@ public:
                     argmin = robot.id;
                 }
             }
-            LOGI("assign:", argmin);
             assigned[argmin] = true;
             assignment[argmin] = i;
+            assignNum[i]++;
         }
-        LOGI("run");
 
+        // 再根据机器人离类的距离分配机器人到哪个类去
         for (int j=0;j<robots.size();j++) {
             if (assigned[j]) continue;
             Robot& robot = robots[j];
-            int mini_dist = INT_MAX, argmin = 0;
+            int mini_dist = INT_MAX, argmin = -1;
             for (int i=0;i<clusters.size();i++) {
                 int dist = INT_MAX;
+                if (assignNum[i] >= clusters[i].size()) {continue;} // 每个类有多少个泊位，则至多分配多少个机器人
                 for (int k=0;k<clusters[i].size();k++) {
-                    if (dist<map.berthDistanceMap.at(clusters[i][k].id)[robot.pos.x][robot.pos.y]) {
+                    if (dist > map.berthDistanceMap.at(clusters[i][k].id)[robot.pos.x][robot.pos.y]) {
                         dist = map.berthDistanceMap.at(clusters[i][k].id)[robot.pos.x][robot.pos.y];
                     }
                 }
@@ -94,12 +97,18 @@ public:
             }
             assigned[robot.id] = true;
             assignment[robot.id] = argmin;
+            assignNum[argmin]++;
         }
         return;
     }
 
     void initCluster(std::vector<Berth> &berths,Map &map){
         ClusteringBerths(berths,map);
+        for (int i=0;i<clusters.size();i++) {
+            for (int j=0;j<clusters[i].size();j++) {
+                berthCluster[clusters[i][j].id] = i;
+            }
+        }
     }
 
     vector<vector<int>> inner_dist(vector<Berth> berths, Map &map)

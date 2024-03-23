@@ -26,6 +26,8 @@ int main()
     finalTransportStrategy.initCluster(gameManager.berths,gameManager.gameMap);
     implicitEnumeration.initCluster(gameManager.berths,gameManager.gameMap);
     finalClusterTransportStrategy.initCluster(gameManager.berths,gameManager.gameMap);
+    
+    simpleTransportStrategy.setParameter();
 
     vector<int> assignBound;
     // 迷宫

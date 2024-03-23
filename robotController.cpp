@@ -138,11 +138,6 @@ RobotController::detectNextFrameConflict(const Map &map, const SingleLaneManager
             int currentSingleLaneID2 = singleLaneManager.getSingleLaneId(robot2.pos);
             int nextFrameSingleLaneID2 = singleLaneManager.getSingleLaneId(robot2.nextPos);
 
-            if(CURRENT_FRAME>= 590 && CURRENT_FRAME <=620){
-                LOGI("robo1: ", robot1, " currentSingleLaneID1:", currentSingleLaneID1,", nextFrameSingleLaneID1:",nextFrameSingleLaneID1);
-                LOGI("robo2: ", robot2, " currentSingleLaneID2:", currentSingleLaneID2,", nextFrameSingleLaneID2:",nextFrameSingleLaneID2);
-            }
-
             // 检查下一帧前往位置是否相同，移动机器人撞上静止机器人也在这种情况内
             if(robot1.nextPos == robot2.nextPos){
                 CollisionEvent event(robot1.id, robot2.id, CollisionEvent::TargetOverlap);

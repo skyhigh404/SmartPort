@@ -854,8 +854,8 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleShips(std:
     // todo 考虑运输完成船只从虚拟点返回泊位的时间
     for (auto& ship : freeShips) {
         for (auto& berth : berths_copy) {
-            // 一个泊位最多三只船
-            if (ship.now_capacity <= berth.residue_num && shipNumInBerth(berth,ships) <= 1) {
+            // 一个泊位最多n艘船
+            if (ship.now_capacity <= berth.residue_num && shipNumInBerth(berth,ships) < Berth::MAX_SHIP_NUM) {
                 // 分配的最优目标是当前泊位，则不移动
                 if(ship.berthId == berth.id){
                     break;

@@ -169,7 +169,7 @@ void GameManager::initializeGame()
     }
     assert(MAP_INDEX != MapFlag::ERROR);
     LOGI("地图序号：",MAP_INDEX);
-    // LOGI(Map::drawMap(this->singleLaneManager.singleLaneMap,3));
+    // LOGI(Map::drawMap(this->singleLaneManager.singleLaneMap,5));
     // LOGI("输出单行路锁信息");
     // for (const auto& pair : this->singleLaneManager.singleLaneLocks) {
     //     int laneId = pair.first;

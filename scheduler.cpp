@@ -719,7 +719,7 @@ Action SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std:
         int timeToBerths = cost2berths[good.id][bestBerthIndex[good.id][0]];
         if (timeToBerths==INT_MAX || timeToGoods==INT_MAX) continue;
         // LOGI("货物id：",good.id,"货物状态：",good.status,"货物收益：",profits[good.id]);
-        if (!enterFinal && berthCluster[berthsIndex]!=assignment[robot.id]) continue;
+        if (dynamicSchedule && !enterFinal && berthCluster[berthsIndex]!=assignment[robot.id]) continue;
         if (good.status==0 && profits[good.id]>0 && good.TTL+10>=timeToGoods) {
         // if (good.status==0 && profits[good.id]>0 && good.TTL+10>=timeToGoods) {
             LOGI("分配货物",goods[goodsIndex].id,",给机器人：",robot.id,"机器人状态：",robot.state);

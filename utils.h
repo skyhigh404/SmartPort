@@ -6,7 +6,7 @@
 #include <vector>
 #include <climits>
 
-#define DEBUG
+// #define DEBUG
 
 const int MAPROWS = 200, MAPCOLS = 200;
 const int ROBOTNUMS = 10, SHIPNUMS = 5, BERTHNUMS = 10;

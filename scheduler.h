@@ -28,6 +28,7 @@ public:
     int TTL_Bound;
     double BerthValue_profit;
     bool reassign;
+    bool dynamicSchedule;
     void setParameter() {
         switch (MAP_INDEX)
         {
@@ -36,6 +37,8 @@ public:
             TTL_Bound = 500;
             BerthValue_profit = 1;
             reassign = true;
+            dynamicSchedule = true;
+            LOGI("MAP_NORMAL");
             break;
 
         case MapFlag::LABYRINTH:
@@ -43,6 +46,8 @@ public:
             TTL_Bound = 400;
             BerthValue_profit = 1;
             reassign = false;
+            dynamicSchedule = true;
+            LOGI("MAP_LABYRINTH");
             break;
 
         case MapFlag::UNKNOWN:
@@ -50,6 +55,8 @@ public:
             TTL_Bound = 500;
             BerthValue_profit = 1;
             reassign = false;
+            dynamicSchedule = false;
+            LOGI("MAP_UNKNOWN");
             break;
         }
     }

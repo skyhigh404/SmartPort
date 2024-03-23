@@ -32,12 +32,15 @@ void GameManager::initializeGame()
 {
     // 读取地图
     string map_data;
+    string diagonal;    //对角线字符串
+    string diagonalMap1 = ".........................................................................BBBB*********.....**.****.********BB...........................................................................................";
     int robot_id = 0;
     for (int i = 0; i < MAPROWS; ++i)
     {
         cin >> map_data;
         for (int j = 0; j < MAPCOLS; ++j)
         {
+            if(i == j) diagonal += map_data[j];
             switch (map_data[j])
             {
             case '.':
@@ -158,7 +161,15 @@ void GameManager::initializeGame()
     switch (singleLaneSize)
     {
     case 53:
-        MAP_INDEX = MapFlag::NORMAL;   // 正常图，图2
+        // LOGI("对角线字符串数量：",diagonal.size()," ",diagonalMap1.size());
+        // 如果字符不一致，则是图三
+        for(int i = 0;i < diagonal.size(); i++){
+            if(diagonal[i] != diagonalMap1[i]){
+                MAP_INDEX = MapFlag::UNKNOWN;   //未知图，图三
+                break;
+            }
+        }
+        if(MAP_INDEX == MapFlag::ERROR) MAP_INDEX = MapFlag::NORMAL;   // 正常图，图2
         break;
     case 962:
         MAP_INDEX = MapFlag::LABYRINTH;   //  迷宫图,图1
@@ -169,7 +180,8 @@ void GameManager::initializeGame()
     }
     assert(MAP_INDEX != MapFlag::ERROR);
     LOGI("地图序号：",MAP_INDEX);
-    // LOGI(Map::drawMap(this->singleLaneManager.singleLaneMap,5));
+    // LOGI("对角线字符串：",diagonal);
+    // LOGI(Map::drawMap(this->singleLaneManager.singleLaneMap,3));
     // LOGI("输出单行路锁信息");
     // for (const auto& pair : this->singleLaneManager.singleLaneLocks) {
     //     int laneId = pair.first;
@@ -389,11 +401,10 @@ void GameManager::robotControl()
     // if (MAP_INDEX==2) { // 为正常图开启动态调度
     // // if (currentFrame-last_assign >= 15) {
     //     // LOGI("MAP2");
-    if (this->RobotScheduler->reassign)
+    if (this->RobotScheduler->reassign && this->RobotScheduler->dynamicSchedule)
         this->RobotScheduler->reassignRobots(goods, robots, gameMap, berths);
     //     // last_assign = currentFrame;
     // }
-
     // 对所有需要调度的机器人进行调度
     for (Robot& robot : robots) {
         if (robot.status==DEATH) continue;

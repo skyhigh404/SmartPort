@@ -288,7 +288,11 @@ struct SingleLaneLock
             endLock = false;
         }
         else if (count < 0) {
+            startLock = false;
+            endLock = false;
+            // 机器人可能就出生在单行道内
             LOGE("错误的释放单行路锁, count: ", count);
+            count = 0;
         }
     }
 };

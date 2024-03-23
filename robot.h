@@ -77,8 +77,7 @@ public:
         path.push_back(pos);
         // 让机器人让路后多停一帧
         path.push_back(tempPos);
-        //  机器人避让：
-        // path.push_back(tempPos);
+        path.push_back(tempPos);
         nextPos = tempPos;
     }
 

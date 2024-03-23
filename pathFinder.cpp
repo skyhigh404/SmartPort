@@ -59,7 +59,7 @@ void AStarPathfinder::aStarSearch(const Graph &graph,
         calTime += 4;
         for (const Location &next : graph.neighbors(current))
         {
-            int new_cost = cost_so_far[current] + graph.cost(current, next);
+            int new_cost = cost_so_far[current] + graph.pathFinderCost(current, next);
             if (cost_so_far.find(next) == cost_so_far.end() || new_cost < cost_so_far[next])
             {
                 cost_so_far[next] = new_cost;

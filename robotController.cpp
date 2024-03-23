@@ -334,18 +334,18 @@ void RobotController::decideWhoToWaitAndRefindWhenTargetOverlap(Map &map, Robot 
     LOGI("robo2 旁边空位: ", robot2Neighbors.size(), "; ", robot2);
 
     // 机器人避让：选择让已经避让过的机器人继续避让
-    if(robot1.avoidNum > robot2.avoidNum){
-        LOGI("继续避让, ",robot1);
-        makeRobotMoveToTempPos(robot1);
-        return;
-    }
-    else if(robot1.avoidNum <robot2.avoidNum){
-        LOGI("继续避让, ",robot2);
-        makeRobotMoveToTempPos(robot2);
-        return;
-    }
+    // if(robot1.avoidNum > robot2.avoidNum){
+    //     LOGI("继续避让, ",robot1);
+    //     makeRobotMoveToTempPos(robot1);
+    //     return;
+    // }
+    // else if(robot1.avoidNum < robot2.avoidNum){
+    //     LOGI("继续避让, ",robot2);
+    //     makeRobotMoveToTempPos(robot2);
+    //     return;
+    // }
 
-    // 选择拥有更多移动空间的机器人让路
+    // 否则选择拥有更多移动空间的机器人让路
     if (robot1Neighbors.size() > robot2Neighbors.size()) {
         LOGI("临时移动, 移动空间: ", robot1Neighbors.size(), " ", robot1);
         makeRobotMoveToTempPos(robot1);

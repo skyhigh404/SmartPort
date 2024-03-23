@@ -84,6 +84,13 @@ public:
         return Point2d::calculateManhattanDistance(pos1, pos2);
     }
 
+    inline int pathFinderCost(Point2d current, Point2d next) const
+    {
+        if(getCell(next) == MapItemSpace::MapItem::BERTH)
+            return 0;
+        return Point2d::calculateManhattanDistance(current, next);
+    }
+
     float costCosin(const Point2d &robotPos, const Point2d &goodPos, const Point2d &berthPos, const int berthID)
     {
         int berth2good = berthDistanceMap.at(berthID)[goodPos.x][goodPos.y];

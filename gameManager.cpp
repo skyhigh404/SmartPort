@@ -721,12 +721,12 @@ void GameManager::updateSingleLaneLocks()
 
         // 即将进入单行道
         if (nextFrameSingleLaneID1 >= 1 && currentSingleLaneID == 0) {
-            LOGI("加锁 laneID: ", nextFrameSingleLaneID1, " robot: ", robot);
+            // LOGI("加锁 laneID: ", nextFrameSingleLaneID1, " robot: ", robot);
             singleLaneManager.lock(nextFrameSingleLaneID1, robot.nextPos);
         }
         // 即将离开单行道
         else if (nextFrameSingleLaneID1 == 0 && currentSingleLaneID >= 1) {
-            LOGI("释放锁 laneID: ", currentSingleLaneID, " robot: ", robot);
+            // LOGI("释放锁 laneID: ", currentSingleLaneID, " robot: ", robot);
             singleLaneManager.unlock(currentSingleLaneID, robot.pos);
         }
     }

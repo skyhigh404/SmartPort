@@ -74,6 +74,9 @@ public:
 
     void moveToTemporaryPosition(const Point2d &tempPos){
         path.push_back(pos);
+        // 让机器人让路后多停一帧
+        path.push_back(tempPos);
+        path.push_back(tempPos);
         nextPos = tempPos;
     }
 
@@ -201,6 +204,13 @@ public:
             return path.size() < rhs.path.size();
         else
             return id < rhs.id;
+    }
+
+    std::vector<Point2d> getLastPathPoint(size_t n) const {
+        if(n <= path.size())
+            return std::vector<Point2d>(path.end()-n, path.end());
+        else
+            return path;
     }
     
     friend std::ostream &operator<<(std::ostream &os, const Robot &robot) {

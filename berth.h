@@ -26,7 +26,7 @@ public:
     static int deliverGoodNum;  //送达货物数量
     static std::vector<bool> available_berths;
 
-    float canGoScale = 0.1; // < 可以去虚拟点的剩余容量比例
+    float canGoScale = 0.15; // < 可以去虚拟点的剩余容量比例
     float canMoveScale = 0.1;   // > 可以移动泊位的剩余容量比例
 
     Berth(int id, Point2d pos, int time, int velocity)

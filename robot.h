@@ -190,9 +190,11 @@ public:
     }
     
     // 判断优先级，如果优先级更大则返回 true
+    // 位于单行路内或者路口的优先级最高
     // 认定正常运行的，不携带货物的优先级更高，然后是路径更短的优先级更高，最后比较 ID，更小的优先级更高
     bool comparePriority(const Robot &rhs) const
     {
+        // 判断是否在单行路
         if(state != rhs.state)
             return state > rhs.state;
         else if (carryingItem != rhs.carryingItem)

@@ -765,7 +765,7 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleShips(std:
                     ships[i].goStatus();
                     shipActions.push_back(std::make_pair(i, Action{DEPART_BERTH,Point2d(),-1}));
                 }
-                else if(ships[i].now_capacity <= 1){
+                else if(ships[i].now_capacity <= 0){
                     // 装满则发货
                     if(debug){LOGI("装满了，发船（移动）");ships[i].info();berths[ships[i].berthId].info();}
                     Berth::deliverGoodNum += (ships[i].capacity - ships[i].now_capacity);
@@ -854,7 +854,7 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleShips(std:
     for (auto& ship : freeShips) {
         for (auto& berth : berths_copy) {
             // 一个泊位最多三只船
-            if (ship.now_capacity <= berth.residue_num && shipNumInBerth(berth,ships) <= 2) {
+            if (ship.now_capacity <= berth.residue_num && shipNumInBerth(berth,ships) <= 1) {
                 // 分配的最优目标是当前泊位，则不移动
                 if(ship.berthId == berth.id){
                     break;

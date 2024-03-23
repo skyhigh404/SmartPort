@@ -126,13 +126,19 @@ RobotController::detectNextFrameConflict(const Map &map, const SingleLaneManager
     std::set<CollisionEvent, CollisionEventCompare> collision; // 使用 set 保证输出的机器人对不重复
     for(size_t i = 0; i < robots.size(); ++i){
         const Robot& robot1 = robots[i];
+        int currentSingleLaneID1 = singleLaneManager.getSingleLaneId(robot1.pos);
+        int nextFrameSingleLaneID1 = singleLaneManager.getSingleLaneId(robot1.nextPos);
+
         for(size_t j = i + 1; j < robots.size(); ++j){
             const Robot& robot2 = robots[j];
-
-            int currentSingleLaneID1 = singleLaneManager.getSingleLaneId(robot1.pos);
-            int nextFrameSingleLaneID1 = singleLaneManager.getSingleLaneId(robot1.nextPos);
             int currentSingleLaneID2 = singleLaneManager.getSingleLaneId(robot2.pos);
             int nextFrameSingleLaneID2 = singleLaneManager.getSingleLaneId(robot2.nextPos);
+
+            if(CURRENT_FRAME>= 590 && CURRENT_FRAME <=620){
+                LOGI("robo1: ", robot1, " currentSingleLaneID1:", currentSingleLaneID1,", nextFrameSingleLaneID1:",nextFrameSingleLaneID1);
+                LOGI("robo2: ", robot2, " currentSingleLaneID2:", currentSingleLaneID2,", nextFrameSingleLaneID2:",nextFrameSingleLaneID2);
+            }
+
             // 检查下一帧前往位置是否相同，移动机器人撞上静止机器人也在这种情况内
             if(robot1.nextPos == robot2.nextPos){
                 CollisionEvent event(robot1.id, robot2.id, CollisionEvent::TargetOverlap);
@@ -161,6 +167,16 @@ RobotController::detectNextFrameConflict(const Map &map, const SingleLaneManager
                 CollisionEvent event(robot1.id, robot2.id, CollisionEvent::HeadOnAttempt);
                 collision.insert(event);
             }
+        }
+
+        // id 为最后一个时单独进行一次判断
+        if( i == robots.size()-1 &&
+            nextFrameSingleLaneID1 >=1 && 
+            currentSingleLaneID1 == 0 && 
+            singleLaneManager.isLocked(nextFrameSingleLaneID1, robot1.nextPos)){
+            // const SingleLaneLock& lock = singleLaneManager.getLock(nextFrameSingleLaneID);
+            CollisionEvent event(robot1.id, CollisionEvent::EntryAttemptWhileOccupied);
+            collision.insert(event);
         }
     }
     return collision;

@@ -12,6 +12,8 @@ int Berth::maxLoadGoodNum = 0;
 int Berth::deliverGoodNum = 0;
 std::vector<bool> Berth::available_berths = std::vector<bool>(BERTHNUMS,true);  //  泊位是否可获取，用于终局调度
 int CURRENT_FRAME = 0;  //当前帧数
+int MAP_INDEX = -1;  //地图序号:1表示图一迷宫图，2表示图2正常图，3表示未知图
+int last_assign = 0;
 int canUnload(Berth& berth, Point2d pos) {
     int x = pos.x-berth.pos.x, y=pos.y-berth.pos.y;
     if (x<0 || x>3 || y<0 || y>3) {
@@ -152,6 +154,20 @@ void GameManager::initializeGame()
     // LOGI("单行路初始化处理时间：",findTime,"ms");
     // 打印单行路
     LOGI("单行路数量：",this->singleLaneManager.singleLanes.size());
+    int singleLaneSize = this->singleLaneManager.singleLanes.size();
+    switch (singleLaneSize)
+    {
+    case 53:
+        MAP_INDEX = 2;   // 正常图，图2
+        break;
+    case 962:
+        MAP_INDEX = 1;   //  迷宫图,图1
+        break;
+    default:
+        MAP_INDEX = 3;   //未知图，图三
+        break;
+    }
+    LOGI("地图序号：",MAP_INDEX);
     // LOGI(Map::drawMap(this->singleLaneManager.singleLaneMap,3));
     // LOGI("输出单行路锁信息");
     // for (const auto& pair : this->singleLaneManager.singleLaneLocks) {
@@ -369,8 +385,12 @@ void GameManager::robotControl()
 
     auto start = std::chrono::steady_clock::now();
     // 为机器人分配类
-    // this->RobotScheduler->reassignRobots(goods, robots, gameMap, berths);
-
+    // if (MAP_INDEX==2) { // 为正常图开启动态调度
+    // // if (currentFrame-last_assign >= 15) {
+    //     // LOGI("MAP2");
+    //     this->RobotScheduler->reassignRobots(goods, robots, gameMap, berths);
+    //     // last_assign = currentFrame;
+    // }
     // 对所有需要调度的机器人进行调度
     for (Robot& robot : robots) {
         if (robot.status==DEATH) continue;

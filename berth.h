@@ -28,7 +28,7 @@ public:
 
     float canGoScale = 0.15; // < 可以去虚拟点的剩余容量比例
     float canMoveScale = 0.1;   // > 可以移动泊位的剩余容量比例
-    const static int  MAX_SHIP_NUM = 1;   //一个泊位最多几艘船
+    const static int  MAX_SHIP_NUM = 2;   //一个泊位最多几艘船
 
     Berth(int id, Point2d pos, int time, int velocity)
         : id(id), pos(pos), time(time), velocity(velocity), stockpile(0), stockpileValue(0)

@@ -27,6 +27,7 @@ public:
     double TTL_profit;
     int TTL_Bound;
     double BerthValue_profit;
+    bool reassign;
     void setParameter() {
         switch (MAP_INDEX)
         {
@@ -34,18 +35,21 @@ public:
             TTL_profit = 1.2;
             TTL_Bound = 500;
             BerthValue_profit = 1;
+            reassign = true;
             break;
 
         case MapFlag::LABYRINTH:
             TTL_profit = 1.5;
             TTL_Bound = 400;
             BerthValue_profit = 1;
+            reassign = false;
             break;
 
         case MapFlag::UNKNOWN:
             TTL_profit = 1.2;
             TTL_Bound = 500;
             BerthValue_profit = 1;
+            reassign = false;
             break;
         }
     }

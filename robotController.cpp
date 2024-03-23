@@ -88,9 +88,13 @@ void RobotController::rePlanRobotMove(Map &map)
             if(asidePos != Point2d()) {
                 map.removeTemporaryObstacle(asidePos);
                 map.addTemporaryObstacle(robot.nextPos);
+                // 机器人避让：避让次数 + 1
+                robot.avoidNum += 1;
             }
             else {
                 LOGI("移动到空白点失败");
+                // 机器人避让：避让次数 - 1
+                robot.avoidNum = 0;
                 map.removeTemporaryObstacle(robot.nextPos);
                 stopRobot(robot);
                 map.addTemporaryObstacle(robot.nextPos);
@@ -333,6 +337,18 @@ void RobotController::decideWhoToWaitAndRefindWhenTargetOverlap(Map &map, Robot 
     const Path robot2Neighbors = map.neighbors(robot2.pos);
     LOGI("robo1 旁边空位: ", robot1Neighbors.size(), "; ", robot1);
     LOGI("robo2 旁边空位: ", robot2Neighbors.size(), "; ", robot2);
+
+    // 机器人避让：选择让已经避让过的机器人继续避让
+    if(robot1.avoidNum > robot2.avoidNum){
+        LOGI("继续避让, ",robot1);
+        makeRobotMoveToTempPos(robot1);
+        return;
+    }
+    else if(robot1.avoidNum <robot2.avoidNum){
+        LOGI("继续避让, ",robot2);
+        makeRobotMoveToTempPos(robot2);
+        return;
+    }
 
     // 选择拥有更多移动空间的机器人让路
     if (robot1Neighbors.size() > robot2Neighbors.size()) {

@@ -33,6 +33,7 @@ public:
     Point2d destination; // 机器人当前的目的地
     Point2d nextPos;
     std::vector<Point2d> path; // 机器人即将要走的路径
+    int avoidNum = 0;   //  避让的次数
 private:
     // DStarPathfinder pathFinder; // 每个机器人都要存储寻路状态
     AStarPathfinder pathFinder;
@@ -76,7 +77,8 @@ public:
         path.push_back(pos);
         // 让机器人让路后多停一帧
         path.push_back(tempPos);
-        path.push_back(tempPos);
+        //  机器人避让：
+        // path.push_back(tempPos);
         nextPos = tempPos;
     }
 

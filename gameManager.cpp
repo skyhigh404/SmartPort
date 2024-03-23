@@ -12,7 +12,7 @@ int Berth::maxLoadGoodNum = 0;
 int Berth::deliverGoodNum = 0;
 std::vector<bool> Berth::available_berths = std::vector<bool>(BERTHNUMS,true);  //  泊位是否可获取，用于终局调度
 int CURRENT_FRAME = 0;  //当前帧数
-int MAP_INDEX = -1;  //地图序号:1表示图一迷宫图，2表示图2正常图，3表示未知图
+MapFlag MAP_INDEX = MapFlag::ERROR;  // LABYRINTH: 图二、迷宫;NORMAL:图一、正常图;UNKNOWN；图三未知图;ERROR :默认值
 int last_assign = 0;
 int canUnload(Berth& berth, Point2d pos) {
     int x = pos.x-berth.pos.x, y=pos.y-berth.pos.y;
@@ -158,15 +158,16 @@ void GameManager::initializeGame()
     switch (singleLaneSize)
     {
     case 53:
-        MAP_INDEX = 2;   // 正常图，图2
+        MAP_INDEX = MapFlag::NORMAL;   // 正常图，图2
         break;
     case 962:
-        MAP_INDEX = 1;   //  迷宫图,图1
+        MAP_INDEX = MapFlag::LABYRINTH;   //  迷宫图,图1
         break;
     default:
-        MAP_INDEX = 3;   //未知图，图三
+        MAP_INDEX = MapFlag::UNKNOWN;   //未知图，图三
         break;
     }
+    assert(MAP_INDEX != MapFlag::ERROR);
     LOGI("地图序号：",MAP_INDEX);
     // LOGI(Map::drawMap(this->singleLaneManager.singleLaneMap,3));
     // LOGI("输出单行路锁信息");

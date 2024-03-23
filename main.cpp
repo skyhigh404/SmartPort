@@ -29,10 +29,10 @@ int main()
 
     vector<int> assignBound;
     // 迷宫
-    if (MAP_INDEX==1) {
+    if (MAP_INDEX==MapFlag::LABYRINTH) {
         assignBound = {1,2,3,2,2};
     }
-    else if (MAP_INDEX==2) {
+    else if (MAP_INDEX==MapFlag::NORMAL) {
         assignBound = {2,4,1,1,2};
     }
     else assignBound.clear();

@@ -19,6 +19,16 @@ namespace MapItemSpace
     };
 }
 
+extern int CURRENT_FRAME;
+enum MapFlag{
+    LABYRINTH,  // 图二、迷宫
+    NORMAL, // 图一、正常图
+    UNKNOWN, //图三未知图
+    ERROR   // 默认值
+};
+
+extern MapFlag MAP_INDEX;
+
 class Map
 {
     // 地图坐标系原点在左上角，往下为 X 轴正方向，往右为 Y 轴正方向

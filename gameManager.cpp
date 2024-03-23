@@ -392,6 +392,7 @@ void GameManager::robotControl()
     //     this->RobotScheduler->reassignRobots(goods, robots, gameMap, berths);
     //     // last_assign = currentFrame;
     // }
+
     // 对所有需要调度的机器人进行调度
     for (Robot& robot : robots) {
         if (robot.status==DEATH) continue;

@@ -23,6 +23,34 @@ class Scheduler
 {
 private:
 public:
+    // 调参
+    double TTL_profit;
+    int TTL_Bound;
+    double BerthValue_profit;
+    void setParameter() {
+        switch (MAP_INDEX)
+        {
+        case MapFlag::NORMAL:
+            TTL_profit = 1.2;
+            TTL_Bound = 500;
+            BerthValue_profit = 1;
+            break;
+
+        case MapFlag::LABYRINTH:
+            TTL_profit = 1.5;
+            TTL_Bound = 400;
+            BerthValue_profit = 1;
+            break;
+
+        case MapFlag::UNKNOWN:
+            TTL_profit = 1.2;
+            TTL_Bound = 500;
+            BerthValue_profit = 1;
+            break;
+        }
+    }
+
+
     vector<vector<int>> cost2berths; // (gs,bs)
     vector<vector<int>> bestBerthIndex; // (gs,bs)
     std::vector<std::vector<Berth>> clusters;   // 每个簇对应的泊位

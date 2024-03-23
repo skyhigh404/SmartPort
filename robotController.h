@@ -104,6 +104,9 @@ private:
 
     void decideWhoToWaitAndRefindWhenTargetOverlap(Map &map, Robot &robot1, Robot &robot2);
 
+    // 判断点是否在运行轨迹内
+    bool pointInTrajectory(const Point2d &pos, const std::vector<Point2d> traj);
+
     
 private:
     // std::unordered_map<int, Action> robotAction;

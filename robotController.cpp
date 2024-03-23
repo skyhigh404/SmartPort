@@ -14,7 +14,9 @@ void RobotController::runController(Map &map, const SingleLaneManager &singleLan
         }
     }
     auto end = std::chrono::steady_clock::now();
-    LOGI("robotController 尋路时间: ",std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()," ms");
+    int countTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    if(countTime > 10)
+        LOGI("robotController 尋路时间: ",countTime," ms");
 
     // 更新所有机器人下一步位置
     for (Robot &robot : robots)
@@ -50,7 +52,9 @@ void RobotController::runController(Map &map, const SingleLaneManager &singleLan
     // for(const auto &robot : robots)
     //     LOGI(robot);
     end = std::chrono::steady_clock::now();
-    LOGI("robotController 冲突处理时间: ",std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()," ms, i: ", tryTime);
+    countTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    if(countTime > 10)
+        LOGI("robotController 冲突处理时间: ",countTime," ms, i: ", tryTime);
 
     // 返回给 gameManager 以输出所有机器人的行动指令
 }
@@ -82,7 +86,7 @@ void RobotController::rePlanRobotMove(Map &map)
         else if (value.at(0).method == ResolutionAction::MoveAside) {
             Point2d asidePos = moveAsideRobot(map, robot);
             if(asidePos != Point2d()) {
-                map.removeTemporaryObstacle(moveAsideRobot(map, robot));
+                map.removeTemporaryObstacle(asidePos);
                 map.addTemporaryObstacle(robot.nextPos);
             }
             else {
@@ -320,11 +324,18 @@ void RobotController::decideWhoToWaitAndRefindWhenTargetOverlap(Map &map, Robot 
         makeRobotMoveToTempPos(robot1);
         return;
     }
-    else if (robot2Neighbors.size() > 0) {
+    else if (robot2Neighbors.size() > robot1Neighbors.size()) {
         LOGI("临时移动, 移动空间: ", robot2Neighbors.size(), " ", robot2);
         makeRobotMoveToTempPos(robot2);
         return;
     }
+    else if (robot2Neighbors.size() == robot1Neighbors.size() && robot1Neighbors.size() >= 1) {
+        LOGI("临时移动, 移动空间: ", robot2Neighbors.size(), " ", robot2);
+        // 让优先级低的让路
+        makeRobotMoveToTempPos(decideWhoWaits(robot1, robot2));
+        return;
+    }
+    
 
 
     // 如果两个机器人都不能移动
@@ -446,15 +457,18 @@ Point2d RobotController::moveAsideRobot(const Map &map, Robot &robot)
     Point2d lastNextPos;
     for (const Point2d &pos : map.neighbors(robot.pos)) {
         bool isPositionOccupied = false;
-        // 检查候选位置是否与其他机器人的当前位置重合
-        for (const Robot &r : robots) {
+        // 检查候选位置是否与其他机器人未来几帧的位置重合
+        for (const Robot &r : robots) 
+        {
             if (robot.id == r.id)
                 continue;
-            if (pos == r.pos){
+            
+            std::vector<Point2d> robotTrajectory = r.getLastPathPoint(5);
+            robotTrajectory.push_back(r.pos);
+            // LOGI("pos: ",pos,", robotTrajectory.size: ", robotTrajectory.size());
+            // 如果有冲突，当前候选位置不可用
+            if (pointInTrajectory(pos, robotTrajectory)){
                 isPositionOccupied = true;
-                LOGI("临时移动位置与其他机器人坐标重合: ", pos);
-                LOGI("robot1: ", robot);
-                LOGI("robot 2: ", r);
                 break;
             }
         }
@@ -470,6 +484,16 @@ Point2d RobotController::moveAsideRobot(const Map &map, Robot &robot)
     return lastNextPos;
 }
 
+bool RobotController::pointInTrajectory(const Point2d &pos, const std::vector<Point2d> traj)
+{
+    // LOGI("pointInTrajectory");
+    for (const Point2d &p : traj) {
+        // LOGI(pos,"--", p);
+        if (pos == p)
+            return true;
+    }
+    return false;
+}
 
 bool RobotController::needPathfinding(const Robot &robot)
 {

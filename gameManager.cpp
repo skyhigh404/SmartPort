@@ -386,12 +386,12 @@ void GameManager::robotControl()
 
     auto start = std::chrono::steady_clock::now();
     // 为机器人分配类
-    if (MAP_INDEX==2) { // 为正常图开启动态调度
-    // if (currentFrame-last_assign >= 15) {
-        // LOGI("MAP2");
-        this->RobotScheduler->reassignRobots(goods, robots, gameMap, berths);
-        // last_assign = currentFrame;
-    }
+    // if (MAP_INDEX==2) { // 为正常图开启动态调度
+    // // if (currentFrame-last_assign >= 15) {
+    //     // LOGI("MAP2");
+    //     this->RobotScheduler->reassignRobots(goods, robots, gameMap, berths);
+    //     // last_assign = currentFrame;
+    // }
     // 对所有需要调度的机器人进行调度
     for (Robot& robot : robots) {
         if (robot.status==DEATH) continue;
@@ -742,12 +742,12 @@ void GameManager::updateSingleLaneLocks()
 
         // 即将进入单行道
         if (nextFrameSingleLaneID1 >= 1 && currentSingleLaneID == 0) {
-            LOGI("加锁 laneID: ", nextFrameSingleLaneID1, " robot: ", robot);
+            // LOGI("加锁 laneID: ", nextFrameSingleLaneID1, " robot: ", robot);
             singleLaneManager.lock(nextFrameSingleLaneID1, robot.nextPos);
         }
         // 即将离开单行道
         else if (nextFrameSingleLaneID1 == 0 && currentSingleLaneID >= 1) {
-            LOGI("释放锁 laneID: ", currentSingleLaneID, " robot: ", robot);
+            // LOGI("释放锁 laneID: ", currentSingleLaneID, " robot: ", robot);
             singleLaneManager.unlock(currentSingleLaneID, robot.pos);
         }
     }

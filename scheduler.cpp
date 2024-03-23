@@ -654,8 +654,9 @@ Action SimpleTransportStrategy::scheduleRobot(Robot &robot, const Map &map, std:
 
         // if (timeToGoods > 200) continue;
         profits[j] = goods[j].value*1.0 / (1*timeToGoods+timeToBerths);
-        if (goods[j].TTL<=500 && !enterFinal) profits[j] *= 1.2;
-        // if (berthsValue[bestBerthIndex[goods[j].id][0]] > berthsValue[berths.size()]/berths.size() && !enterFinal) profits[j] *= 1.5;
+        // LOGI("输出变量：",TTL_Bound, ' ', TTL_profit, ' ', BerthValue_profit);
+        if (goods[j].TTL<=TTL_Bound && !enterFinal) profits[j] *= TTL_profit;
+        if (berthsValue[bestBerthIndex[goods[j].id][0]] > berthsValue[berths.size()]/berths.size() && !enterFinal) profits[j] *= BerthValue_profit;
 
         profit_output += "(timetogood:" + std::to_string(timeToGoods) + ",timetoberths:" + std::to_string(timeToBerths) + ",value:" + std::to_string(goods[j].value) + ",profit:" + std::to_string(profits[j]) + ") ";
         // LOGI("货物",j,"收益为：",profits[j]);

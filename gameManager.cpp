@@ -389,9 +389,11 @@ void GameManager::robotControl()
     // if (MAP_INDEX==2) { // 为正常图开启动态调度
     // // if (currentFrame-last_assign >= 15) {
     //     // LOGI("MAP2");
-    //     this->RobotScheduler->reassignRobots(goods, robots, gameMap, berths);
+    if (this->RobotScheduler->reassign)
+        this->RobotScheduler->reassignRobots(goods, robots, gameMap, berths);
     //     // last_assign = currentFrame;
     // }
+
     // 对所有需要调度的机器人进行调度
     for (Robot& robot : robots) {
         if (robot.status==DEATH) continue;

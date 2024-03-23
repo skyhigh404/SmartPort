@@ -33,7 +33,7 @@ int main()
         assignBound = {1,2,3,2,2};
     }
     else if (MAP_INDEX==2) {
-        assignBound = {2,4,1,1,2};
+        assignBound = {2,3,1,1,3};
     }
     else assignBound.clear();
     // assignBound.clear();

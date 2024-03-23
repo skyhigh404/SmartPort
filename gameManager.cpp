@@ -385,12 +385,12 @@ void GameManager::robotControl()
 
     auto start = std::chrono::steady_clock::now();
     // 为机器人分配类
-    if (MAP_INDEX==2) { // 为正常图开启动态调度
-    // if (currentFrame-last_assign >= 15) {
-        // LOGI("MAP2");
-        this->RobotScheduler->reassignRobots(goods, robots, gameMap, berths);
-        // last_assign = currentFrame;
-    }
+    // if (MAP_INDEX==2) { // 为正常图开启动态调度
+    // // if (currentFrame-last_assign >= 15) {
+    //     // LOGI("MAP2");
+    //     this->RobotScheduler->reassignRobots(goods, robots, gameMap, berths);
+    //     // last_assign = currentFrame;
+    // }
     // 对所有需要调度的机器人进行调度
     for (Robot& robot : robots) {
         if (robot.status==DEATH) continue;

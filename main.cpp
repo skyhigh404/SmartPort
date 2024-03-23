@@ -26,11 +26,30 @@ int main()
     finalTransportStrategy.initCluster(gameManager.berths,gameManager.gameMap);
     implicitEnumeration.initCluster(gameManager.berths,gameManager.gameMap);
     finalClusterTransportStrategy.initCluster(gameManager.berths,gameManager.gameMap);
-    simpleTransportStrategy.assignRobots(gameManager.robots, gameManager.gameMap);
+
+    vector<int> assignBound;
+    // 迷宫
+    if (MAP_INDEX==1) {
+        assignBound = {1,2,3,2,2};
+    }
+    else if (MAP_INDEX==2) {
+        assignBound = {2,4,1,1,2};
+    }
+    else assignBound.clear();
+    // assignBound.clear();
+    simpleTransportStrategy.assignRobots(gameManager.robots, gameManager.gameMap, assignBound);
     // LOGI("1");
-    // for (int i=0;i<gameManager.robots.size();i++) {
-    //     LOGI("机器人",i,"分配到类",simpleTransportStrategy.assignment[i]);
-    // }
+    for (int i=0;i<gameManager.RobotScheduler->clusters.size();i++) {
+        LOGI("类",i,"包含以下泊位：");
+        std::string op = "泊位id：";
+        for (int j=0;j<gameManager.RobotScheduler->clusters[i].size();j++) {
+            op += std::to_string(gameManager.RobotScheduler->clusters[i][j].id) + " ";
+        }
+        LOGI(op);
+    }
+    for (int i=0;i<gameManager.robots.size();i++) {
+        LOGI("机器人",i,"分配到类",simpleTransportStrategy.assignment[i]);
+    }
     // return 0;
 
     LOGI("init finish");

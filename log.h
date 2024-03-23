@@ -48,6 +48,7 @@ enum class LogLevel
     ERROR
 };
 extern int CURRENT_FRAME;
+extern int MAP_INDEX;
 
 class Log
 {

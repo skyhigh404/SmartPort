@@ -127,8 +127,8 @@ public:
         // 将机器人从价值低的类中释放
         int freeRobotNum = 0;
         for (int i=0;i<clusters.size();i++) {
-            if (freeRobotNum>=3) break;
-            if (clusterValue[i] < 0.6*clusterValue_avg && assignBound[i]>0) {
+            if (freeRobotNum>=2) break;
+            if (clusterValue[i] < 0.8*clusterValue_avg && assignBound[i]>0) {
                 assignBound[i]--;
                 freeRobotNum++;
             }
@@ -137,7 +137,7 @@ public:
         // 将自由机器人分配给高价值类
         while(freeRobotNum > 0) {
             auto max_iter = std::max_element(clusterValue.begin(), clusterValue.end());
-            size_t max_index = std::distance(clusterValue.begin(), max_iter);
+            int max_index = std::distance(clusterValue.begin(), max_iter);
             assignBound[max_index]++;
             freeRobotNum--;
             clusterValue[max_index] = 0; // 此类不再参与分配
@@ -541,11 +541,11 @@ public:
                 berth2Ship[berths_copy[0].id] = -1;
                 for(int i = 1;i < berths_copy.size(); i++){
                     // 设置不可用
-                    // Berth::available_berths[berths_copy[i].id] = false;
-                    if(shipNumInBerth(berths_copy[i],ships) == 0){
-                        Berth::available_berths[berths_copy[i].id] = false;
-                        LOGI("落选泊位没船，禁用");
-                    }
+                    Berth::available_berths[berths_copy[i].id] = false;
+                    // if(shipNumInBerth(berths_copy[i],ships) == 0){
+                    //     Berth::available_berths[berths_copy[i].id] = false;
+                    //     LOGI("落选泊位没船，禁用");
+                    // }
                     LOGI("落选泊位：",shipNumInBerth(berths_copy[i],ships));
                     berths[berths_copy[i].id].info();
                 }

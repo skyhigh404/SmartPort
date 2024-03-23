@@ -12,7 +12,7 @@ int Berth::maxLoadGoodNum = 0;
 int Berth::deliverGoodNum = 0;
 std::vector<bool> Berth::available_berths = std::vector<bool>(BERTHNUMS,true);  //  泊位是否可获取，用于终局调度
 int CURRENT_FRAME = 0;  //当前帧数
-int MAP_INDEX = -1;  //地图序号
+int MAP_INDEX = -1;  //地图序号:1表示图一迷宫图，2表示图2正常图，3表示未知图
 int canUnload(Berth& berth, Point2d pos) {
     int x = pos.x-berth.pos.x, y=pos.y-berth.pos.y;
     if (x<0 || x>3 || y<0 || y>3) {

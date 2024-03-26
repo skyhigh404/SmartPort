@@ -34,7 +34,7 @@ public:
         {
         case MapFlag::NORMAL:
             TTL_profit = 1.2;
-            TTL_Bound = 500;
+            TTL_Bound = 996;
             BerthValue_profit = 1;
             reassign = true;
             dynamicSchedule = true;
@@ -51,8 +51,8 @@ public:
             break;
 
         case MapFlag::UNKNOWN:
-            TTL_profit = 1.2;
-            TTL_Bound = 500;
+            TTL_profit = 2;
+            TTL_Bound = 251;
             BerthValue_profit = 1;
             reassign = false;
             dynamicSchedule = false;

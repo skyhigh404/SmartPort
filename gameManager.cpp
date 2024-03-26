@@ -6,7 +6,7 @@
 #include <chrono>
 
 using namespace std;
-int Goods::number = 0;
+int Goods::count = 0;
 int Berth::totalLoadGoodnum = 0;
 int Berth::maxLoadGoodNum = 0;
 int Berth::deliverGoodNum = 0;
@@ -229,6 +229,7 @@ void GameManager::processFrameData()
         }
     }
     // 读取新增货物
+    // TODO: 使用Map::computePointToBerthsDistances计算货物到泊位距离
     cin >> newItemCount;
     while (newItemCount--)
     {

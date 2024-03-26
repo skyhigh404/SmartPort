@@ -143,7 +143,7 @@ std::string Map::drawMap(std::vector<std::vector<int>> map, int field_width)
     return result;
 }
 
-bool Map::isBerthReachable(BerthID id, Point2d position)
+bool Map::isBerthReachable(BerthID id, Point2d &position) const
 {
     if (berthDistanceMap.at(id)[position.x][position.y] != INT_MAX)
         return true;
@@ -237,6 +237,23 @@ int Map::getNearestBerthID(const Point2d& pos) const
         }
     }
     return result;
+}
+
+std::vector<std::pair<int, int>> Map::computePointToBerthsDistances(Point2d &position) const
+{
+    // TODO:
+    std::vector<std::pair<int, int>> result;
+    
+}
+
+float Map::costCosin(const Point2d &robotPos, const Point2d &goodPos, const Point2d &berthPos, const int berthID)
+{
+    int berth2good = berthDistanceMap.at(berthID)[goodPos.x][goodPos.y];
+    int berth2robot = berthDistanceMap.at(berthID)[robotPos.x][robotPos.y];
+
+    float cosin = Vec2f::cosineOf2Vec(Vec2f(berthPos, robotPos), Vec2f(berthPos, goodPos));
+    int cost = static_cast<int>(std::sqrt(berth2good * berth2good + berth2robot * berth2robot - 2 * berth2good * berth2robot * cosin));
+    return cost;
 }
 
 std::string printVector(const std::vector<Point2d> &path)

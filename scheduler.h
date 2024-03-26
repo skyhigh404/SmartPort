@@ -1,12 +1,13 @@
 #pragma once
 #include <vector>
+#include <numeric>
 #include "goods.h"
 #include "map.h"
 #include "robot.h"
 #include "ship.h"
 #include "berth.h"
+#include "params.h"
 #include "utils.h"
-#include <numeric>
 
 enum StageType
 {
@@ -28,7 +29,7 @@ class RobotScheduler
                    int currentFrame
                    ) = 0;
     // 设置参数，参数定义在子类里
-    virtual void setParameter() = 0;
+    virtual void setParameter(const Params &params) = 0;
     virtual ~RobotScheduler() {}
 };
 
@@ -44,7 +45,7 @@ class ShipScheduler
                   int currentFrame
                   ) = 0;
     // 设置参数，参数定义在子类里
-    virtual void setParameter() = 0;
+    virtual void setParameter(const Params &params) = 0;
     virtual ~ShipScheduler() {}
 };
 

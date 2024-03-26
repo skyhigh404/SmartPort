@@ -8,16 +8,50 @@
 #include "utils.h"
 #include <numeric>
 
-
-
-using std::vector;
-
 enum StageType
 {
     SIMPLE,
     // FINAL_READY,
     FINAL
 };
+
+using std::vector;
+
+class RobotScheduler
+{
+    // 总的调度函数，在子类里进一步封装实现
+    virtual std::vector<std::pair<int, RobotActionSpace::RobotAction>> 
+    scheduleRobots(Map &map, 
+                   std::vector<Robot> &robots, 
+                   std::vector<Goods> &goods, 
+                   std::vector<Berth> &berths,
+                   int currentFrame
+                   ) = 0;
+    // 设置参数，参数定义在子类里
+    virtual void setParameter() = 0;
+    virtual ~RobotScheduler() {}
+};
+
+class ShipScheduler
+{
+    // 总的调度函数，在子类里进一步封装实现
+    virtual std::vector<std::pair<int, ShipActionSpace::ShipAction>> 
+    scheduleShips(Map &map,
+                  std::vector<Ship> &ships,
+                  std::vector<Berth> &berths,
+                  std::vector<Goods>& goods,
+                  std::vector<Robot> &robots,
+                  int currentFrame
+                  ) = 0;
+    // 设置参数，参数定义在子类里
+    virtual void setParameter() = 0;
+    virtual ~ShipScheduler() {}
+};
+
+// 下面的修改之后全部删除，继承的类在新的文件里编写
+
+
+
 
 class Scheduler
 {

@@ -19,7 +19,6 @@ namespace MapItemSpace
     };
 }
 
-extern int CURRENT_FRAME;
 enum MapFlag{
     LABYRINTH,  // 图二、迷宫
     NORMAL, // 图一、正常图
@@ -102,10 +101,7 @@ public:
                 item != MapItemSpace::MapItem::SEA &&
                 item != MapItemSpace::MapItem::ROBOT);
     }
-    // 判断是否会被机器人占据，如果是则返回 false
-    inline bool dynamicPassable(const Point2d &pos) const{
-        return false;
-    }
+    
     // This outputs a grid. Pass in a distances map if you want to print
     // the distances, or pass in a point_to map if you want to print
     // arrows that point to the parent location, or pass in a path vector

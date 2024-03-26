@@ -48,6 +48,8 @@ enum class LogLevel
     ERROR
 };
 
+extern int CURRENT_FRAME;
+
 class Log
 {
 private:

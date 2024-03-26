@@ -8,32 +8,33 @@
 #include "assert.h"
 #include "log.h"
 
+// 指示机器人当前的状态
 enum RobotStatus
 {
-    IDLE,
-    MOVING_TO_GOODS,
-    MOVING_TO_BERTH,
-    UNLOADING,
-    DEATH,
-    DIZZY
+    IDLE,            // 机器人处于空闲状态，等待新的任务分配
+    MOVING_TO_GOODS, // 机器人正在移动至指定货物位置。
+    MOVING_TO_BERTH, // 机器人正在移动至指定泊位。
+    UNLOADING,       // 机器人正在卸载货物。
+    DEATH,           // 机器人无法工作。
+    DIZZY            // 机器人发生碰撞，处于一种临时混乱状态。
 };
 
 class Robot
 {
 public:
     // 判题器输入数据
-    int id;
-    Point2d pos;
+    int id;           // 机器人 ID
+    Point2d pos;      // 机器人目前位置
     int carryingItem; // 0 表示未携带物品，1 表示携带物品
     int state;        // 0 表示恢复状态，1 表示正常运行状态
 public:
     RobotStatus status;
-    int carryingItemId; // 携带的物品id
-    int targetid;
-    Point2d destination; // 机器人当前的目的地
-    Point2d nextPos;
-    std::vector<Point2d> path; // 机器人即将要走的路径
-    int avoidNum = 0;   //  避让的次数
+    int carryingItemId;        // 携带的物品 ID
+    int targetid;              // 机器人目标货物或泊位的 ID
+    Point2d destination;       // 机器人的目的地
+    Point2d nextPos;           // 机器人下一帧前往的位置
+    std::vector<Point2d> path; // 机器人运行路径
+    int avoidNum = 0;          //  避让的次数
 private:
     // DStarPathfinder pathFinder; // 每个机器人都要存储寻路状态
     AStarPathfinder pathFinder;
@@ -47,18 +48,20 @@ public:
           status(IDLE),
           carryingItemId(-1),
           targetid(-1),
-          nextPos(-1,-1)
+          nextPos(-1, -1)
     {
     }
 
     void updatePath()
     {
         // 正常移动
-        if(nextPos == pos && !path.empty() && nextPos==path.back()){
+        if (nextPos == pos && !path.empty() && nextPos == path.back())
+        {
             path.pop_back();
         }
         // 没有移动到预定位置
-        else if(nextPos != Point2d(-1,-1) && nextPos != pos){
+        else if (nextPos != Point2d(-1, -1) && nextPos != pos)
+        {
             LOGW(id, " 没有移动到预定位置, current pos: ", pos, " next pos: ", nextPos);
         }
     }
@@ -73,7 +76,8 @@ public:
             nextPos = pos;
     }
 
-    void moveToTemporaryPosition(const Point2d &tempPos){
+    void moveToTemporaryPosition(const Point2d &tempPos)
+    {
         path.push_back(pos);
         // 让机器人让路后多停一帧
         path.push_back(tempPos);
@@ -107,21 +111,10 @@ public:
 
     std::string movetoNextPosition()
     {
-        if(nextPos != Point2d(-1, -1) && Point2d::calculateManhattanDistance(nextPos, pos) <= 1)
+        if (nextPos != Point2d(-1, -1) && Point2d::calculateManhattanDistance(nextPos, pos) <= 1)
             return move(nextPos);
-        LOGW("robot ",id, " from: ",pos , " to ", nextPos);
+        LOGW("robot ", id, " from: ", pos, " to ", nextPos);
         return "";
-    }
-
-    std::string moveWithPath()
-    {
-        if (!path.empty())
-        {
-            // A* 算法输出的路径是逆序存储的，以提高弹出效率
-            nextPos = this->path.back();
-            return move(nextPos);
-        }
-        return std::string("");
     }
 
     std::string get()
@@ -142,11 +135,13 @@ public:
     {
         destination = dst;
         std::variant<Path, PathfindingFailureReason> path = pathFinder.findPath(pos, destination, map);
-        if (std::holds_alternative<Path>(path)){
+        if (std::holds_alternative<Path>(path))
+        {
             this->path = std::get<Path>(path);
             return true;
         }
-        else {
+        else
+        {
             return false;
         }
         // if(pathFinder.sameGoal(destination)){
@@ -192,14 +187,14 @@ public:
         else
             return false;
     }
-    
+
     // 判断优先级，如果优先级更大则返回 true
     // 位于单行路内或者路口的优先级最高
     // 认定正常运行的，不携带货物的优先级更高，然后是路径更短的优先级更高，最后比较 ID，更小的优先级更高
     bool comparePriority(const Robot &rhs) const
     {
         // 判断是否在单行路
-        if(state != rhs.state)
+        if (state != rhs.state)
             return state > rhs.state;
         else if (carryingItem != rhs.carryingItem)
             return carryingItem < rhs.carryingItem;
@@ -209,16 +204,19 @@ public:
             return id < rhs.id;
     }
 
-    std::vector<Point2d> getLastPathPoint(size_t n) const {
-        if(n <= path.size())
-            return std::vector<Point2d>(path.end()-n, path.end());
+    std::vector<Point2d> getLastPathPoint(size_t n) const
+    {
+        if (n <= path.size())
+            return std::vector<Point2d>(path.end() - n, path.end());
         else
             return path;
     }
-    
-    friend std::ostream &operator<<(std::ostream &os, const Robot &robot) {
+
+    friend std::ostream &operator<<(std::ostream &os, const Robot &robot)
+    {
         os << "id: " << robot.id << " pos: " << robot.pos << " nextPos: " << robot.nextPos << " dst: " << robot.destination << " path: " << robot.path.size() << ", ";
-        for(int i = (int)robot.path.size()-1; i >= std::max(0, (int)robot.path.size()-3); --i){
+        for (int i = (int)robot.path.size() - 1; i >= std::max(0, (int)robot.path.size() - 3); --i)
+        {
             os << robot.path[i];
         }
         return os;

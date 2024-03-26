@@ -51,7 +51,6 @@ public:
     void processFrameData(); // 处理每帧的输入
     void update();           // 更新
     void outputCommands();   // 输出每帧的控制指令
-    void RobotControl();
     void robotControl();
     void updateSingleLaneLocks();   // 维护单行路的锁
 

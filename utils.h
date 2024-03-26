@@ -66,8 +66,8 @@ struct Point2d
     }
     static bool isIN(Point2d pos, std::vector<Point2d> poss)
     {
-        for(const auto &p : poss)
-            if(p == pos)
+        for (const auto &p : poss)
+            if (p == pos)
                 return true;
         return false;
     }
@@ -199,8 +199,6 @@ struct Vec2f
     }
 };
 
-
-
 enum ActionType
 {
     MOVE_TO_POSITION,
@@ -213,13 +211,57 @@ enum ActionType
     CONTINUE
 };
 
-
 struct Action
 {
     ActionType type;
-    Point2d desination; // 用于移动
-    int targetId;     // 用于标识具体的货物或泊位，根据上下文决定其含义
-    Action(){}
-    Action(ActionType type, Point2d desination, int targetId) : type(type), desination(desination), targetId(targetId){}
-    Action(ActionType type) : type(type), desination(Point2d(-1,-1)), targetId(-1){}
+    Point2d destination; // 用于移动
+    int targetId;        // 用于标识具体的货物或泊位，根据上下文决定其含义
+    Action() {}
+    Action(ActionType type, Point2d destination, int targetId) : type(type), destination(destination), targetId(targetId) {}
+    Action(ActionType type) : type(type), destination(Point2d(-1, -1)), targetId(-1) {}
 };
+namespace RobotActionSpace
+{
+    // 指示机器人下一步应采取的行动
+    enum RobotActionType
+    {
+        // 重新明确调度器指示的机器人下一步应采取的行动，
+        MOVE_TO_TARGET, // 移动到目标位置，需要提供目标位置和 ID，机器人之后进行寻路
+        PERFORM_TASK,   // 执行特定任务（如装卸），系统在开始时自动执行判断
+        FAILURE,        // 表示失败，机器人或系统需要重新评估情况
+        WAIT,           // 等待进一步指令，可以用于当机器人需要暂时停下来等待新的任务分配
+        CONTINUE        // 继续当前操作
+    };
+
+    struct RobotAction
+    {
+        ActionType type;     // 行动类型
+        Point2d destination; // 用于MOVE_TO_TARGET的目的地坐标
+        int targetId;        // 标识具体任务或对象的ID，例如货物ID或泊位ID
+
+        RobotAction() {}
+        RobotAction(ActionType type, Point2d destination, int targetId)
+            : type(type), destination(destination), targetId(targetId) {}
+        RobotAction(ActionType type) : type(type), destination(Point2d(-1, -1)), targetId(-1) {}
+    };
+}
+
+namespace ShipActionSpace
+{
+    enum ShipActionType
+    {
+        MOVE_TO_BERTH,
+        DEPART_BERTH,
+        CONTINUE
+    };
+
+    struct ShipAction
+    {
+        ActionType type;
+        int targetId; // 用于标识具体的货物或泊位，根据上下文决定其含义
+        ShipAction() {}
+        ShipAction(ActionType type, int targetId)
+            : type(type), targetId(targetId) {}
+        ShipAction(ActionType type) : type(type), targetId(-1) {}
+    };
+}

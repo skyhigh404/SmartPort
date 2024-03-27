@@ -16,6 +16,11 @@ enum StageType
     FINAL
 };
 
+enum class SchedulerName
+{
+    Greedy_ROBOT_SCHEDULER,
+};
+
 using std::vector;
 
 class RobotScheduler
@@ -30,6 +35,8 @@ class RobotScheduler
                    ) = 0;
     // 设置参数，参数定义在子类里
     virtual void setParameter(const Params &params) = 0;
+    // 返回调度器名字
+    virtual SchedulerName getSchedulerName() = 0;
     virtual ~RobotScheduler() {}
 };
 
@@ -40,12 +47,14 @@ class ShipScheduler
     scheduleShips(Map &map,
                   std::vector<Ship> &ships,
                   std::vector<Berth> &berths,
-                  std::vector<Goods>& goods,
+                  std::vector<Goods> &goods,
                   std::vector<Robot> &robots,
                   int currentFrame
                   ) = 0;
     // 设置参数，参数定义在子类里
     virtual void setParameter(const Params &params) = 0;
+    // 返回调度器名字
+    virtual SchedulerName getSchedulerName() = 0;
     virtual ~ShipScheduler() {}
 };
 

@@ -271,8 +271,6 @@ void GameManager::processFrameData()
             this->robots[i].carryingItemId = -1;
         }
     }
-    // if(flag)
-        // exit(0);
 
     // 读取船舶状态
     for (int i = 0; i < SHIPNUMS; ++i)

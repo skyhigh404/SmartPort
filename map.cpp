@@ -150,6 +150,10 @@ bool Map::isBerthReachable(BerthID id, Point2d &position) const
     return false;
 }
 
+int Map::getDistanceToBerth(BerthID id, Point2d &position) const
+{
+    return berthDistanceMap.at(id)[position.x][position.y];
+}
 
 
 std::vector<Point2d> Map::isCollisionRisk(int robotID, int framesAhead) const
@@ -239,11 +243,20 @@ int Map::getNearestBerthID(const Point2d& pos) const
     return result;
 }
 
-std::vector<std::pair<int, int>> Map::computePointToBerthsDistances(Point2d &position) const
+std::vector<std::pair<int, int>> Map::computePointToBerthsDistances(Point2d position) const
 {
-    // TODO:
     std::vector<std::pair<int, int>> result;
-    
+    for (const auto& [berthID, map] : berthDistanceMap) {
+        int dist = berthDistanceMap.at(berthID)[position.x][position.y];
+        if (dist != INT_MAX)
+            result.emplace_back(berthID, dist);
+    }
+
+    // 以降序排序距离
+    std::sort(result.begin(), result.end(), [](const std::pair<int, int>& a, const std::pair<int, int>& b) {
+        return a.second > b.second;
+    });
+    return result;
 }
 
 float Map::costCosin(const Point2d &robotPos, const Point2d &goodPos, const Point2d &berthPos, const int berthID)

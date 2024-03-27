@@ -234,7 +234,10 @@ void GameManager::processFrameData()
     while (newItemCount--)
     {
         cin >> goodsX >> goodsY >> value;
-        this->goods.emplace_back(Point2d(goodsX, goodsY), value, currentFrame);
+        Goods good(Point2d(goodsX, goodsY), value, currentFrame);
+        good.distsToBerths = gameMap.computePointToBerthsDistances(Point2d(goodsX, goodsY));
+        this->goods.push_back(good);
+        
         int tempGoodDistrubtID = this->gameMap.getNearestBerthID(Point2d(goodsX, goodsY));
         if(tempGoodDistrubtID>=0 && tempGoodDistrubtID<10) {
             berthDistrubtGoodNumCount[tempGoodDistrubtID]++;

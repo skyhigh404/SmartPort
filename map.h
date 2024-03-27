@@ -122,8 +122,10 @@ public:
     int getNearestBerthID(const Point2d &pos) const;
     // 给定一个坐标和泊位 ID，判断是否可达
     bool isBerthReachable(BerthID id, Point2d &position) const;
+    // 给定一个坐标和泊位 ID，得到泊位距离
+    int getDistanceToBerth(BerthID id, Point2d &position) const;
     // 计算一个点到所有泊位的距离，以降序输出，第一个是泊位 ID，第二个是距离，不包含不可达泊位
-    std::vector<std::pair<int, int>> computePointToBerthsDistances(Point2d &position) const;
+    std::vector<std::pair<int, int>> computePointToBerthsDistances(Point2d position) const;
     // 返回当前节点上下左右的四个可达的邻居
     std::vector<Point2d> neighbors(Point2d id) const;
     // 使用曼哈顿距离计算两个点之间的代价

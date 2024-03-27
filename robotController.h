@@ -69,12 +69,11 @@ private:
     void reset(){
         robotResolutionActions.clear();
     }
+    // 更新地图上的临时障碍物
     void updateTemporaryObstacles(Map &map);
     // 根据动作判断是否需要调用寻路算法
     bool needPathfinding(const Robot &robot);
 
-    // 调用寻路算法
-    void runPathfinding(const Map &map, Robot &robot);
 
     // 检测机器人之间是否冲突，输出冲突的机器人 ID (对)，不考虑地图障碍物的情况
     std::set<CollisionEvent, CollisionEventCompare> detectNextFrameConflict(const Map &map, const SingleLaneManager &singleLaneManager);
@@ -86,9 +85,11 @@ private:
 
     // 解决SwapPositions死锁的逻辑，尝试让一个机器人移动往一个可行的点以让出终点
     void resolveDeadlocks(Map &map, Robot &robot1, Robot &robot2);
-
-    // 根据机器人优先级判断应该等待的机器人的引用，优先级低的应该等待
+    // 处理两个机器人下一帧目标重合的冲突函数
+    void decideWhoToWaitAndRefindWhenTargetOverlap(Map &map, Robot &robot1, Robot &robot2);
+    // 根据机器人优先级判断应该等待的机器人的引用，返回优先级低的机器人
     const Robot & decideWhoWaits(const Robot &robot1, const Robot &robot2);
+
     // 设置标志位，让一个机器人等待
     void makeRobotWait(const Robot &robot);
     // 设置标志位，让一个机器人重新寻路
@@ -96,22 +97,19 @@ private:
     // 设置标志位，让一个机器人移动到临时位置
     void makeRobotMoveToTempPos(const Robot &robot);
 
-
     // 让一个机器人等待
     void stopRobot(Robot &robot);
     // 让一个机器人移动往除了下一帧外的另一个位置
     Point2d moveAsideRobot(const Map &map, Robot &robot);
+    // 让一个机器人寻路
+    void runPathfinding(const Map &map, Robot &robot);
 
-    void decideWhoToWaitAndRefindWhenTargetOverlap(Map &map, Robot &robot1, Robot &robot2);
 
     // 判断点是否在运行轨迹内
     bool pointInTrajectory(const Point2d &pos, const std::vector<Point2d> traj);
 
     
 private:
-    // std::unordered_map<int, Action> robotAction;
     std::vector<Robot> &robots;
-
     std::unordered_map<int, std::vector<ResolutionAction>> robotResolutionActions;
-
 };

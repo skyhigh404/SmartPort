@@ -29,9 +29,11 @@ public:
     int state;        // 0 表示恢复状态，1 表示正常运行状态
 public:
     RobotStatus status;
-    int carryingItemId;        // 携带的物品 ID
-    int targetid;              // 机器人目标货物或泊位的 ID
-    Point2d destination;       // 机器人的目的地
+    int carryingItemId;      // 携带的物品 ID
+    int targetid;            // 机器人目标货物或泊位的 ID
+    Point2d destination;     // 机器人的目的地
+    BerthID assignedBerthID; // 机器人被分配的泊位 ID
+public:
     Point2d nextPos;           // 机器人下一帧前往的位置
     std::vector<Point2d> path; // 机器人运行路径
     int avoidNum = 0;          //  避让的次数

@@ -8,6 +8,9 @@ GreedyRobotScheduler::scheduleRobots(const Map &map,
                                      const int currentFrame)
 {
     using namespace RobotActionSpace;
+
+    countRobotsPerBerth(robots);
+
     std::vector<std::pair<RobotID, RobotAction>> robotActions;
     for (const Robot &robot : robots)
     {
@@ -51,7 +54,11 @@ GreedyRobotScheduler::findGoodsForRobot(const Map &map,
                                         const std::vector<Berth> &berths,
                                         const int currentFrame)
 {
-    // 如果预定了某个货物，需要对货物的状态进行修改，将对货物的状态修改**封装为货物的一个函数**然后调用
+    // 筛选出可用泊位
+    // getAvailableBerths(robot);
+    // 获取可用的货物子集
+    // 注：reference_wrapper封装的元素要用 .get() 获取原对象
+    // std::vector<std::reference_wrapper<Goods>> availableGoods = getAvailableGoods();
 
     // 货物到每个泊位的距离已经在 distsToBerths 中存储，提取第一个距离，该功能封装在一个函数里
 
@@ -60,6 +67,8 @@ GreedyRobotScheduler::findGoodsForRobot(const Map &map,
     // 两个距离相加，得到总的搬运距离
 
     // 输入距离和货物，计算得分，该功能封装在一个函数里
+
+    // 如果预定了某个货物，需要对货物的状态进行修改，将对货物的状态修改**封装为货物的一个函数**然后调用
 
     // 选择得分第一的作为搬运目标，构造 pair 并返回
 }

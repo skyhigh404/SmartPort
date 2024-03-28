@@ -252,9 +252,9 @@ std::vector<std::pair<int, int>> Map::computePointToBerthsDistances(Point2d posi
             result.emplace_back(berthID, dist);
     }
 
-    // 以降序排序距离
+    // 以升序排序距离
     std::sort(result.begin(), result.end(), [](const std::pair<int, int>& a, const std::pair<int, int>& b) {
-        return a.second > b.second;
+        return a.second < b.second;
     });
     return result;
 }

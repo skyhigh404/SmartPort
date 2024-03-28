@@ -24,8 +24,14 @@ private:
     // 需要用到的超参数
     float TTLWeitht;
     // 等等
+    std::vector<std::pair<BerthID, int>> maxRobotsPerBerth; // 记录每个泊位分配机器人的上限
+private:
+    // 辅助变量
+    std::vector<std::pair<BerthID, int>> robotAllocationPerBerth; // 记录每个泊位已经分配了多少机器人
 
 private:
+    // 统计每个泊位分配了多少机器人，维护 robotAllocationPerBerth 变量
+    void countRobotsPerBerth(const std::vector<Robot> &robots);
     // 判断机器人是否需要去拿货物
     bool shouldFetchGoods(const Robot &robot);
     // 判断机器人是否需要去泊位
@@ -43,4 +49,12 @@ private:
     std::pair<RobotID, RobotActionSpace::RobotAction>
     findBerthForRobot(const Robot &robot,
                       const std::vector<Berth> &berths);
+
+    // 根据 robotAllocationPerBerth 以及机器人对泊位的可达性和泊位是否启用，筛选出可用泊位
+    std::vector<BerthID> getAvailableBerths(const Robot &robot);
+
+    // 获取可用的货物子集
+    std::vector<std::reference_wrapper<Goods>>
+    getAvailableGoods(const std::vector<Goods> &goods,
+                      std::vector<BerthID> &berthIDs);
 };

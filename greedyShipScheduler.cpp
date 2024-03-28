@@ -36,7 +36,7 @@ std::vector<std::pair<ShipID, ShipActionSpace::ShipAction>> GreedyShipScheduler:
 // 是否可以中途前往其他泊位（收益更高）
 ShipActionSpace::ShipAction
 GreedyShipScheduler::handleShipOnRoute(const Ship &ship,std::vector<Berth> &berths,std::vector<Goods> &goods){
-    
+    // 暂时不做调度
 }
 
 // 处理船在泊位上的情况
@@ -65,13 +65,13 @@ GreedyShipScheduler::handleShipAtBerth(Ship &ship,std::vector<Berth> &berths,std
 // 处理船在虚拟点的情况
 ShipActionSpace::ShipAction
 handleShipInEnd(const Ship &ship,std::vector<Berth> &berths,std::vector<Goods> &goods){
-    // 分配当前最佳泊位
+    // 寻找当前最优的泊位
 }
 
 // 处理在泊位外等待的情况
 ShipActionSpace::ShipAction
 GreedyShipScheduler::handleShipWaiting(const Ship &ship,std::vector<Berth> &berths,std::vector<Goods> &goods){
-
+    // 寻找当前最优的泊位
 }
 
 

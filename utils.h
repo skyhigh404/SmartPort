@@ -12,6 +12,9 @@ const int MAPROWS = 200, MAPCOLS = 200;
 const int ROBOTNUMS = 10, SHIPNUMS = 5, BERTHNUMS = 10;
 
 using BerthID = int;
+using RobotID = int;
+using ShipID = int;
+using GoodsID = int;
 
 struct Point2d
 {
@@ -226,7 +229,9 @@ namespace RobotActionSpace
     enum RobotActionType
     {
         // 重新明确调度器指示的机器人下一步应采取的行动，
-        MOVE_TO_TARGET, // 移动到目标位置，需要提供目标位置和 ID，机器人之后进行寻路
+        MOVE_TO_BERTH,  // 移动到泊位目标位置，需要提供目标位置和泊位 ID，机器人之后进行寻路
+        MOVE_TO_GOOD,   // 移动到货物目标位置，需要提供目标位置和货物 ID，机器人之后进行寻路
+        MOVE_TO_TARGET, // 移动到目标位置，需要提供目标位置和，机器人之后进行寻路（留做扩展用）
         PERFORM_TASK,   // 执行特定任务（如装卸），系统在开始时自动执行判断，调度函数无需赋值为此项
         FAILURE,        // 表示失败，机器人或系统需要重新评估情况
         WAIT,           // 等待进一步指令，可以用于当机器人需要暂时停下来等待新的任务分配
@@ -235,14 +240,15 @@ namespace RobotActionSpace
 
     struct RobotAction
     {
-        ActionType type;     // 行动类型
+        RobotActionType type;     // 行动类型
         Point2d destination; // 用于MOVE_TO_TARGET的目的地坐标
         int targetId;        // 标识具体任务或对象的ID，例如货物ID或泊位ID
 
-        RobotAction() {}
-        RobotAction(ActionType type, Point2d destination, int targetId)
+        RobotAction(RobotActionType type) : type(type), destination(Point2d(-1, -1)), targetId(-1) {}
+        RobotAction(RobotActionType type, Point2d destination)
+            : type(type), destination(destination), targetId(-1) {}
+        RobotAction(RobotActionType type, Point2d destination, int targetId)
             : type(type), destination(destination), targetId(targetId) {}
-        RobotAction(ActionType type) : type(type), destination(Point2d(-1, -1)), targetId(-1) {}
     };
 }
 
@@ -257,11 +263,10 @@ namespace ShipActionSpace
 
     struct ShipAction
     {
-        ActionType type;
+        ShipActionType type;
         int targetId; // 用于标识具体的货物或泊位，根据上下文决定其含义
-        ShipAction() {}
-        ShipAction(ActionType type, int targetId)
+        ShipAction(ShipActionType type) : type(type), targetId(-1) {}
+        ShipAction(ShipActionType type, int targetId)
             : type(type), targetId(targetId) {}
-        ShipAction(ActionType type) : type(type), targetId(-1) {}
     };
 }

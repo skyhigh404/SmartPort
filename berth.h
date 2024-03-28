@@ -12,9 +12,9 @@ public:
     int velocity; // Velocity(1 <= Velocity <= 5)表示该泊位的装载速度，即每帧可以装载的物品数。
 
 public:
+    // 单个泊位维护的状态变量
     bool isEnabled; // 标识泊位是否启用
     int category;   // 标识该泊位聚类后的类别
-
     int stockpile;                      // 泊位堆积的货物量
     int stockpileValue;                 // 泊位堆积的货物的价值
     std::vector<Goods> reached_goods;   // 堆积货物的列表
@@ -23,16 +23,20 @@ public:
     int totalValue = 0;                 // 泊位当前理论收益，每帧重新计算
     int shipInBerthNum = 0;             // 泊位上船的数量
 
+    // todo ,所有泊位的状态变量，判断是否删除
+    static std::vector<bool> available_berths;
+
     std::vector<std::vector<int>> storageSlots; // 16个格子，-1表示没有机器人，否则表示机器人id
 public:
+    // 统计变量
     static int totalLoadGoodnum; // 总装货的数量
     static int maxLoadGoodNum;   // 理论最大装货数量
     static int deliverGoodNum;   // 送达货物数量
-    static std::vector<bool> available_berths;
 
-    float canGoScale = 0.15;           // < 可以去虚拟点的剩余容量比例
-    float canMoveScale = 0.1;          // > 可以移动泊位的剩余容量比例
-    const static int MAX_SHIP_NUM = 2; // 一个泊位最多几艘船
+    // // todo，泊位超参数，需要搬到shipScheduler
+    // float canGoScale = 0.15;           // < 可以去虚拟点的剩余容量比例
+    // float canMoveScale = 0.1;          // > 可以移动泊位的剩余容量比例
+    // const static int MAX_SHIP_NUM = 2; // 一个泊位最多几艘船
 
     Berth(int id, Point2d pos, int time, int velocity)
         : id(id), pos(pos), time(time), velocity(velocity), stockpile(0), stockpileValue(0)

@@ -764,14 +764,14 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleShips(std:
                 if(berths[ships[i].berthId].mustGo(remainder)){
                     if(debug){LOGI("剩余时间：",remainder,",必须走了：",berths[ships[i].berthId].mustGo(remainder));}
                     Berth::deliverGoodNum += (ships[i].capacity - ships[i].now_capacity);
-                    ships[i].goStatus();
+                    ships[i].reset();
                     shipActions.push_back(std::make_pair(i, Action{DEPART_BERTH,Point2d(),-1}));
                 }
                 else if(ships[i].now_capacity <= 0){
                     // 装满则发货
                     if(debug){LOGI("装满了，发船（移动）");ships[i].info();berths[ships[i].berthId].info();}
                     Berth::deliverGoodNum += (ships[i].capacity - ships[i].now_capacity);
-                    ships[i].goStatus();
+                    ships[i].reset();
                     //装满,去往虚拟点
                     shipActions.push_back(std::make_pair(i, Action{DEPART_BERTH,Point2d(),-1}));
                 }
@@ -789,7 +789,7 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleShips(std:
                     else if(action == DEPART_BERTH){
                         if(debug){LOGI("没货，船载到货，发船（移动）");ships[i].info();berths[ships[i].berthId].info();}
                         Berth::deliverGoodNum += (ships[i].capacity - ships[i].now_capacity);
-                        ships[i].goStatus();
+                        ships[i].reset();
                         shipActions.push_back(std::make_pair(i, Action{DEPART_BERTH,Point2d(),-1}));
                     }
                 }
@@ -856,7 +856,7 @@ std::vector<std::pair<int, Action>>  SimpleTransportStrategy::scheduleShips(std:
     for (auto& ship : freeShips) {
         for (auto& berth : berths_copy) {
             // 一个泊位最多n艘船
-            if (ship.now_capacity <= berth.residue_num && shipNumInBerth(berth,ships) < Berth::MAX_SHIP_NUM) {
+            if (ship.now_capacity <= berth.residue_num && shipNumInBerth(berth,ships) < 2) {
                 // 分配的最优目标是当前泊位，则不移动
                 if(ship.berthId == berth.id){
                     break;
@@ -1026,7 +1026,7 @@ std::vector<std::pair<int, Action>>  FinalTransportStrategy::scheduleShips(std::
                 LOGI("货满了或者没时间了，直接去虚拟点：");
                 ships[i].info();
                 Berth::deliverGoodNum += (ships[i].capacity - ships[i].now_capacity);
-                ships[i].goStatus();
+                ships[i].reset();
                 shipActions.push_back(std::make_pair(i, Action{DEPART_BERTH,Point2d(),-1}));
             }
             // 在虚拟点，直接出发
@@ -1047,7 +1047,7 @@ std::vector<std::pair<int, Action>>  FinalTransportStrategy::scheduleShips(std::
                     ships[i].info();
                     berths[ships[i].berthId].info();
                     Berth::deliverGoodNum += (ships[i].capacity - ships[i].now_capacity);
-                    ships[i].goStatus();
+                    ships[i].reset();
                     shipActions.push_back(std::make_pair(i, Action{DEPART_BERTH,Point2d(),-1}));
                 }
                 //  货物数量为0
@@ -1059,7 +1059,7 @@ std::vector<std::pair<int, Action>>  FinalTransportStrategy::scheduleShips(std::
                     //     // todo 可调参
                     //     if(nowCapaityProportion < 0.7){
                     //         Berth::deliverGoodNum += (ships[i].capacity - ships[i].now_capacity);
-                    //         ships[i].goStatus();
+                    //         ships[i].reset();
                     //         shipActions.push_back(std::make_pair(i, Action{DEPART_BERTH,Point2d(),-1}));
                     //     }
                     // }
@@ -1070,7 +1070,7 @@ std::vector<std::pair<int, Action>>  FinalTransportStrategy::scheduleShips(std::
                             Berth::deliverGoodNum += (ships[i].capacity - ships[i].now_capacity);
                             LOGI("不在预定泊位上，当前剩余容量:",nowCapaityProportion,",去虚拟点");
                             ships[i].info();
-                            ships[i].goStatus();
+                            ships[i].reset();
                             shipActions.push_back(std::make_pair(i, Action{DEPART_BERTH,Point2d(),-1}));
                         }
                         else{
@@ -1211,7 +1211,7 @@ std::vector<std::pair<int, Action>>  FinalClusterTransportStrategy::scheduleShip
                 ships[i].info();
                 berths[ships[i].berthId].info();
                 Berth::deliverGoodNum += (ships[i].capacity - ships[i].now_capacity);
-                ships[i].goStatus();
+                ships[i].reset();
                 shipActions.push_back(std::make_pair(i, Action{DEPART_BERTH,Point2d(),-1}));
             }
             // 在虚拟点，直接出发
@@ -1232,7 +1232,7 @@ std::vector<std::pair<int, Action>>  FinalClusterTransportStrategy::scheduleShip
                     ships[i].info();
                     berths[ships[i].berthId].info();
                     Berth::deliverGoodNum += (ships[i].capacity - ships[i].now_capacity);
-                    ships[i].goStatus();
+                    ships[i].reset();
                     shipActions.push_back(std::make_pair(i, Action{DEPART_BERTH,Point2d(),-1}));
                 }
                 // 在预定泊位上并且还有时间去其他泊位装货
@@ -1261,7 +1261,7 @@ std::vector<std::pair<int, Action>>  FinalClusterTransportStrategy::scheduleShip
                             Berth::deliverGoodNum += (ships[i].capacity - ships[i].now_capacity);
                             LOGI("不在预定泊位上，当前剩余容量:",nowCapaityProportion,",去虚拟点");
                             ships[i].info();
-                            ships[i].goStatus();
+                            ships[i].reset();
                             shipActions.push_back(std::make_pair(i, Action{DEPART_BERTH,Point2d(),-1}));
                         }
                         else{

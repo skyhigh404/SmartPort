@@ -13,10 +13,10 @@ public:
     int berthId;  // 目标泊位 ID
 public:
     int now_capacity;           // 船的剩余容量
-    int remainingTransportTime; // 船到目标泊位的剩余运行时间
+    int remainingTransportTime; // 船到目标泊位的剩余运行时间，在处理每一帧信息时维护
 
-    bool ableGo = true;   // 在运输期间，是否可以去虚拟点
-    bool ableMove = true; // 在运输期间，是否可以移动去其他船只
+    // bool ableGo = true;   // 在运输期间，是否可以去虚拟点
+    // bool ableMove = true; // 在运输期间，是否可以移动去其他泊位
 
 public:
     Ship(int id, int capacity)
@@ -34,27 +34,34 @@ public:
         assert(berthId >= 0 && berthId <= 10);
 #endif
         using namespace std::string_literals;
+        // todo,重置船的剩余运行时间(500到时候置为全局参数)
+        remainingTransportTime = 500;
         return "ship "s + std::to_string(id) + " "s + std::to_string(berthId);
     }
 
     // 生成船移动到虚拟点的指令
-    std::string go()
+    // time为当前泊位前往虚拟点的时间
+    std::string go(int time)
     {
         using namespace std::string_literals;
+        // 重置船的剩余运行时间
+        remainingTransportTime = time;
+        reset();
         return "go "s + std::to_string(id);
     }
 
-    void goStatus()
-    {
-        // 恢复状态
-        now_capacity = capacity;
-        state = 0;
-        berthId = -1;
-    }
+    // void reset()
+    // {
+    //     // 恢复状态
+    //     now_capacity = capacity;
+    //     state = 0;
+    //     berthId = -1;
+    // }
 
     // 装货,并返回转货的数量
     int loadGoods(int num)
     {
+        assert(now_capacity >= 0);
         // LOGI("now_capacity before",this->now_capacity);
         if (now_capacity == 0)
         {
@@ -74,6 +81,15 @@ public:
             now_capacity = 0;
             return now_capacity;
         }
+    }
+
+    // 在运输期间，是否可以去虚拟点
+    bool ableGo(){
+    }
+
+     // 在运输期间，是否可以移动去其他泊位
+    bool ableMove(){
+
     }
 
     // 打印信息

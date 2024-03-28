@@ -268,5 +268,6 @@ namespace ShipActionSpace
         ShipAction(ShipActionType type) : type(type), targetId(-1) {}
         ShipAction(ShipActionType type, int targetId)
             : type(type), targetId(targetId) {}
+        ShipAction() : targetId(-1) {}
     };
 }

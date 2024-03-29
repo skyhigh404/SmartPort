@@ -26,9 +26,9 @@ using std::vector;
 class RobotScheduler
 {
     // 总的调度函数，在子类里进一步封装实现
-    virtual std::vector<std::pair<RobotID, RobotActionSpace::RobotAction>>
+    virtual void
     scheduleRobots(const Map &map,
-                   const std::vector<Robot> &robots,
+                   std::vector<Robot> &robots,
                    std::vector<Goods> &goods,
                    const std::vector<Berth> &berths,
                    const int currentFrame) = 0;

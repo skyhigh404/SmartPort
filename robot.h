@@ -54,6 +54,17 @@ public:
     {
     }
 
+    void assignGoodOrBerth()
+    {
+        targetid = -1;
+        destination = Point2d(-1,-1);
+    }
+    void assignGoodOrBerth(int Id, Point2d dest)
+    {
+        targetid = Id;
+        destination = dest;
+    }
+
     void updatePath()
     {
         // 正常移动

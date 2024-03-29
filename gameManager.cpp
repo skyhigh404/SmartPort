@@ -281,6 +281,9 @@ void GameManager::processFrameData()
         cin >> shipState >> berthId;
         this->ships[i].state = shipState;
         this->ships[i].berthId = berthId;
+        // 运输中：维护船只剩余运输时间
+        if (ships[i].state == 0) ships[i].remainingTransportTime -= 1;
+        else ships[i].remainingTransportTime = 0;
         // if(ships[i].state == 0 && ships[i].berthId != -1){
         //     LOGW("船只状态：",ships[i].state,",船只泊位：",ships[i].berthId);
         // }

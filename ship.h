@@ -50,18 +50,20 @@ public:
         return "go "s + std::to_string(id);
     }
 
-    // void reset()
-    // {
-    //     // 恢复状态
-    //     now_capacity = capacity;
-    //     state = 0;
-    //     berthId = -1;
-    // }
+    void reset()
+    {
+        // 恢复状态
+        now_capacity = capacity;
+        state = 0;
+        berthId = -1;
+    }
 
     // 装货,并返回转货的数量
     int loadGoods(int num)
     {
+        #ifdef DEBUG
         assert(now_capacity >= 0);
+        #endif
         // LOGI("now_capacity before",this->now_capacity);
         if (now_capacity == 0)
         {
@@ -83,18 +85,13 @@ public:
         }
     }
 
-    // 在运输期间，是否可以去虚拟点
-    bool ableGo(){
-    }
-
-     // 在运输期间，是否可以移动去其他泊位
-    bool ableMove(){
-
-    }
-
     // 打印信息
     void info()
     {
         LOGI("船只", id, ",状态", state, ",装货量：", capacity, ",剩余容量：", now_capacity, ",剩余容量比例：", now_capacity * 1.0 / capacity, ",泊位id：", berthId, ";");
+    }
+
+    float capacityScale(){
+        return 1.0 * now_capacity / capacity;
     }
 };

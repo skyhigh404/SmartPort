@@ -23,8 +23,8 @@ public:
     int totalValue = 0;                 // 泊位当前理论收益，每帧重新计算
     int shipInBerthNum = 0;             // 泊位上船的数量
 
-    // todo ,所有泊位的状态变量，判断是否删除
-    static std::vector<bool> available_berths;
+    // // todo ,所有泊位的状态变量，判断是否删除
+    // static std::vector<bool> available_berths;
 
     std::vector<std::vector<int>> storageSlots; // 16个格子，-1表示没有机器人，否则表示机器人id
 public:

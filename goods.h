@@ -25,4 +25,9 @@ public:
           status(status),
           initFrame(initFrame),
           TTL(1000) { count++; }
+
+    void assignRobot()
+    {
+        status = 1;
+    }
 };

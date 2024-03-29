@@ -39,7 +39,14 @@ public:
     // const static int MAX_SHIP_NUM = 2; // 一个泊位最多几艘船
 
     Berth(int id, Point2d pos, int time, int velocity)
-        : id(id), pos(pos), time(time), velocity(velocity), stockpile(0), stockpileValue(0)
+        : id(id), 
+        pos(pos), 
+        time(time), 
+        velocity(velocity), 
+        isEnabled(false),
+        category(-1),
+        stockpile(0), 
+        stockpileValue(0)
     {
         storageSlots = std::vector<std::vector<int>>(4, std::vector<int>(4, -1));
     }

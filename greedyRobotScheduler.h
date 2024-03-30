@@ -1,7 +1,6 @@
 #pragma once
-
 #include "scheduler.h"
-using std::vector;
+#include <memory>
 
 class GreedyRobotScheduler : public RobotScheduler
 {
@@ -22,7 +21,7 @@ public:
     // 初始化
     void initialize();
 
-    GreedyRobotScheduler(const std::unordered_map<BerthID, int> &cluster);
+    GreedyRobotScheduler(const std::vector<int> &cluster);
 
 public:
     bool enterFinal;
@@ -37,7 +36,7 @@ private:
 private:
     // 辅助变量
     std::vector<std::pair<BerthID, int>> robotAllocationPerBerth; // 记录每个泊位已经分配了多少机器人
-    std::unordered_map<BerthID, int> berthCluster;                // 每个泊位所对应的类
+    const std::shared_ptr<std::vector<int>> berthCluster;         // 每个泊位所对应的类
 
 private:
     // 统计每个泊位分配了多少机器人，维护 robotAllocationPerBerth 变量

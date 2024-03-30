@@ -7,7 +7,7 @@
 class BerthAssignAndControlService
 {
 public:
-    std::unordered_map<BerthID, int> berthCluster; // 每个泊位所对应的类
+    std::vector<int> berthCluster; // 每个泊位所对应的类
 public:
     // 设置参数，参数定义在子类里
     void setParameter(const Params &params);

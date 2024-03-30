@@ -1,8 +1,9 @@
 #include "greedyRobotScheduler.h"
 
-GreedyRobotScheduler::GreedyRobotScheduler(const std::unordered_map<BerthID, int> &cluster)
+GreedyRobotScheduler::GreedyRobotScheduler(const std::vector<int> &cluster)
+    : berthCluster(std::make_shared<std::vector<int>>(cluster))
 {
-    berthCluster = cluster;
+    
 }
 
 void GreedyRobotScheduler::scheduleRobots(const Map &map,

@@ -78,8 +78,16 @@ private:
     // 计算货物到最佳泊位的距离
     vector<long long> Cost_GoodToBerth(std::vector<std::reference_wrapper<Goods>> &availableGoods,
                                        const Map &map);
+<<<<<<< Updated upstream
 
     std::pair<vector<float>, vector<int>> getProfitsAndSortedIndex(std::vector<std::reference_wrapper<Goods>> &availableGoods,
                                                                    vector<long long> &cost_robot2good,
                                                                    vector<long long> &cost_good2berth);
+=======
+    // 计算收益并排序
+    std::pair<vector<float>, vector<int>> 
+    getProfitsAndSortedIndex(std::vector<std::reference_wrapper<Goods>>& availableGoods,
+                             vector<long long>& cost_robot2good,
+                             vector<long long>& cost_good2berth);
+>>>>>>> Stashed changes
 };

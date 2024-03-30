@@ -1,18 +1,16 @@
 #pragma once
-
 #include "scheduler.h"
-using std::vector;
+#include <memory>
 
 class GreedyRobotScheduler : public RobotScheduler
 {
 public:
     // 实现接口
-    void
-    scheduleRobots(const Map &map,
-                   std::vector<Robot> &robots,
-                   std::vector<Goods> &goods,
-                   const std::vector<Berth> &berths,
-                   const int currentFrame) override;
+    void scheduleRobots(const Map &map,
+                        std::vector<Robot> &robots,
+                        std::vector<Goods> &goods,
+                        const std::vector<Berth> &berths,
+                        const int currentFrame) override;
     // 设置参数
     void setParameter(const Params &params) override;
     // 返回调度器名字
@@ -20,18 +18,25 @@ public:
     {
         return SchedulerName::Greedy_ROBOT_SCHEDULER;
     }
+    // 初始化
+    void initialize();
 
+    GreedyRobotScheduler(const std::vector<int> &cluster);
+
+public:
     bool enterFinal;
+
 private:
     // 需要用到的超参数
     float TTL_ProfitWeight;
     int TTL_Bound;
-    bool PartitionScheduling; //是否分区调度
+    bool PartitionScheduling; // 是否分区调度
     // 等等
     std::vector<std::pair<BerthID, int>> maxRobotsPerBerth; // 记录每个泊位分配机器人的上限
 private:
     // 辅助变量
     std::vector<std::pair<BerthID, int>> robotAllocationPerBerth; // 记录每个泊位已经分配了多少机器人
+    const std::shared_ptr<std::vector<int>> berthCluster;         // 每个泊位所对应的类
 
 private:
     // 统计每个泊位分配了多少机器人，维护 robotAllocationPerBerth 变量
@@ -54,7 +59,7 @@ private:
     findBerthForRobot(Robot &robot,
                       std::vector<Goods> &goods,
                       const std::vector<Berth> &berths,
-                      const Map& map);
+                      const Map &map);
 
     // 根据 robotAllocationPerBerth 以及机器人对泊位的可达性和泊位是否启用，筛选出可用泊位
     // std::vector<BerthID> getAvailableBerths(const Robot &robot);
@@ -64,17 +69,17 @@ private:
     getAvailableGoods(std::vector<Goods> &goods);
 
     // 确定机器人在泊位还是不在泊位
-    int WhereIsRobot(const Robot& robot, const std::vector<Berth> &berths, const Map &map);
+    int WhereIsRobot(const Robot &robot, const std::vector<Berth> &berths, const Map &map);
     // 计算机器人到货物的距离
-    vector<long long> Cost_RobotToGood(const Robot& robot, 
-                                       std::vector<std::reference_wrapper<Goods>>& availableGoods,
+    vector<long long> Cost_RobotToGood(const Robot &robot,
+                                       std::vector<std::reference_wrapper<Goods>> &availableGoods,
                                        const std::vector<Berth> &berths,
                                        const Map &map);
     // 计算货物到最佳泊位的距离
-    vector<long long> Cost_GoodToBerth(std::vector<std::reference_wrapper<Goods>>& availableGoods,
+    vector<long long> Cost_GoodToBerth(std::vector<std::reference_wrapper<Goods>> &availableGoods,
                                        const Map &map);
 
-    std::pair<vector<float>, vector<int>> getProfitsAndSortedIndex(std::vector<std::reference_wrapper<Goods>>& availableGoods,
-                                                                   vector<long long>& cost_robot2good,
-                                                                   vector<long long>& cost_good2berth);
+    std::pair<vector<float>, vector<int>> getProfitsAndSortedIndex(std::vector<std::reference_wrapper<Goods>> &availableGoods,
+                                                                   vector<long long> &cost_robot2good,
+                                                                   vector<long long> &cost_good2berth);
 };

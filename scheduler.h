@@ -38,6 +38,8 @@ class RobotScheduler
     virtual void setParameter(const Params &params) = 0;
     // 返回调度器名字
     virtual SchedulerName getSchedulerName() = 0;
+    // 初始化
+    virtual void initialize() = 0;
     virtual ~RobotScheduler() {}
 };
 
@@ -55,6 +57,8 @@ class ShipScheduler
     virtual void setParameter(const Params &params) = 0;
     // 返回调度器名字
     virtual SchedulerName getSchedulerName() = 0;
+    // 初始化
+    virtual void initialize() = 0;
     virtual ~ShipScheduler() {}
 };
 

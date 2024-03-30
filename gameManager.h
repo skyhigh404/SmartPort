@@ -77,7 +77,7 @@ public:
                 minVelocity = std::min(minVelocity, berth.velocity), maxTime = std::max(maxTime, berth.time);
             // finalFrame = 15000 - maxTime * 3 - static_cast<int>(maxCapacity/minVelocity) * 2 - 500;
             // finalFrame = 15000 - maxTime * 2 - static_cast<int>(maxCapacity/minVelocity) * 2 ;
-            finalFrame = 15000 - maxTime * 3 - static_cast<int>(maxCapacity / minVelocity) * 2 - 200;
+            finalFrame = 15000 - maxTime * 3 - static_cast<int>(maxCapacity / minVelocity) * 2 - 500;
         }
         // LOGI("终局帧数：",finalFrame);
         // LOGI("当前帧数：",currentFrame);

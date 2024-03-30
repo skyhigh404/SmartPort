@@ -59,7 +59,7 @@ class ShipScheduler
     virtual SchedulerName getSchedulerName() = 0;
     // 初始化
     virtual void initialize() = 0;
-    virtual ~ShipScheduler() {}
+    // virtual ~ShipScheduler() {}
 };
 
 // 下面的修改之后全部删除，继承的类在新的文件里编写

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "scheduler.h"
+#include <memory>
 
 class FinalShipScheduler : public ShipScheduler
 {
@@ -22,6 +23,8 @@ public:
         return SchedulerName::Final_SHIP_SCHEDULER;
     }
 
+    FinalShipScheduler(const std::vector<int> &cluster);
+
 private:
     // 需要用到的超参数
     // 泊位超参数，需要搬到shipScheduler
@@ -29,63 +32,90 @@ private:
     const int MAX_SHIP_NUM = 2;     // 一个泊位最多几艘船
     const int TIME_TO_WAIT = 100; //等待有货的时间段
     const int CAPACITY_GAP = 10;   // 泊位溢出货物量和船的容量差
-    // 等等
+    
+    // 边界变量
     int maxCapacity = -1;
     int minVelocity = INT_MAX;
     int maxTime = -1;
     int maxLoadTime;
     int hasInit = false;
 
+    // 聚簇的泊位
+    std::vector<std::vector<Berth>> clusters;
+    const std::shared_ptr<std::vector<int>> berthCluster;   // 每个泊位所对应的类
+
+    std::unordered_map<int, int> backupToFinal; // 候选泊位对应的终局泊位
+    std::unordered_map<int, int> finalToBackup; // 终局泊位对应的候选泊位
+    std::unordered_map<int, int> shipToFinal; // 船对应的终局泊位
+    std::unordered_map<int, int> finalToShip; // 终局泊位对应的船
+    std::vector<Berth> finalBerths; //终局泊位
+    std::vector<Berth> backupBerths;    //候选泊位
+
 private:
+    // 处理船在候选泊位的情况
+    ShipActionSpace::ShipAction
+    handleShipAtBackupBerth(Ship& ship, std::vector<Berth> &berths);
+    // 处理船在终局泊位的情况
+    ShipActionSpace::ShipAction
+    handleShipAtFinalBerth(Ship& ship, std::vector<Berth> &berths);
+    // 处理船在虚拟点的情况
+    ShipActionSpace::ShipAction
+    handleShipAtVirtualPoint(Ship& ship, std::vector<Berth> &berths);
+    // // 处理船前往候选泊位的情况
+    // ShipActionSpace::ShipAction
+    // handleShipEnRouteToBackupBerth(Ship& ship, std::vector<Berth> &berths);
+    // // 处理船前往终局泊位的情况
+    // ShipActionSpace::ShipAction
+    // handleShipEnRouteToFinalBerth(Ship& ship, std::vector<Berth> &berths);
+
     // 初始化变量
     void init(std::vector<Ship> &ships, std::vector<Berth> &berths, std::vector<Goods> &goods);
+
+    // 配对终局泊位和候选泊位
+    void selectFinalAndBackupBerths(std::vector<Berth> &berths);
+
+    // 为船选定终局泊位
+    void assignFinalBerthsToShips(std::vector<Ship> &ships, std::vector<Berth> &berths);
+
+    // 获取船的终局泊位
+    BerthID getShipFinalBerth(Ship &ship);
+
+    // 获取船的候选泊位
+    BerthID getShipBackupBerth(Ship &ship);
+
+    // 判断终局泊位是否已经分配
+    bool hasAssigned(BerthID berthId);
+
+    // 判断船是否在指定的候选泊位或者终局泊位上
+    bool isShipAtAssignedBerth(Ship &ship);
+
+    // 判断船是否在候选泊位上
+    bool isShipAtBackupBerth(Ship &ship);
+
+    // 判断船是否在前往候选泊位途中
+    bool isShipOnRouteToBackBerth(Ship &ship);
+
+    // 判断船是否在终局泊位上
+    bool isShipAtFinalBerth(Ship &ship);
+
+    // 判断船是否有时间前往候选泊位
+    bool canReachBackupBerth(Ship &ship);
+
+    // 判断船是否有时间前往终局泊位
+    bool canReachFinalBerth(Ship &ship);
+
+    // 判断船是否能去虚拟点后再回来指定泊位，最后再前往虚拟点
+    bool canDepartBerth(Ship &ship, Berth &berth);
+
+    // 判断船是否必须前往虚拟点
+    bool shouldDepartBerth(Ship &ship,std::vector<Berth> &berths);
+
+    // 禁用泊位
+    void disableBerth(Berth &berth);
+
 
     // 初始化泊位的状态
     void updateBerthStatus(std::vector<Ship> &ships,std::vector<Berth> &berths,std::vector<Goods> & goods);
 
-    // 根据货物距离泊位距离计算货物价值
-    float calculateGoodValueByDist(Goods &good);
-
-    // // 计算一段时间内泊位的价值收益，同时考虑泊位自身前往虚拟点的时间
-    // float calculateBerthFutureValue(std::vector<Berth> &berths, std::vector<Goods> &goods,int timeSpan);
-
-    // 判断船只是否需要前往虚拟点
-    // 1. 容量满了； 2. 游戏快结束了
-    bool shouldDepartBerth(const Ship &ship,std::vector<Berth> &berths);
-
-    // 判断泊位上是否有货物可装载
-    bool isThereGoodsToLoad(Berth &berth); 
-
-    // 判断泊位最近有没有货物到来
-    bool isGoodsArrivingSoon(Berth &berth, std::vector<Goods> goods); 
-
-    // 为船找到最佳泊位，返回泊位id
-    BerthID findBestBerthForShip(const Ship &ship, const std::vector<Berth> &berths, const std::vector<Goods> &goods);
-
-    // 判断船可以前往其他泊位
-    bool canMoveBerth(const Ship &ship,const Berth &Berth);
-
-    // 处理船在路途的情况
-    // 是否可以中途前往其他泊位（收益更高）
-    ShipActionSpace::ShipAction
-    handleShipOnRoute(const Ship &ship,std::vector<Berth> &berths,std::vector<Goods> &goods);
-
-    // 处理船在泊位上的情况
-    ShipActionSpace::ShipAction
-    handleShipAtBerth(Ship &ship,std::vector<Berth> &berths,std::vector<Goods> &goods);
-
-    // 处理在虚拟点的情况
-    ShipActionSpace::ShipAction
-    handleShipInEnd(const Ship &ship,std::vector<Berth> &berths,std::vector<Goods> &goods);
-
-    // 处理在泊位外等待的情况
-    ShipActionSpace::ShipAction
-    handleShipWaiting(const Ship &ship,std::vector<Berth> &berths,std::vector<Goods> &goods);
-
-    // 比较船去两个泊位的收益
-    bool compareBerthsValue(Berth &a,Berth &b);
-
-    // 当船从当前泊位移动到其他泊位时，更新泊位相关参数
-    void updateBerthWhereShipMove(Ship &ship,std::vector<Berth> &berths,BerthID targetId);
 
 };

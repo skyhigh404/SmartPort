@@ -29,7 +29,11 @@ std::vector<std::pair<ShipID, ShipActionSpace::ShipAction>> FinalShipScheduler::
                 action = handleShipAtBackupBerth(ship, berths);
             }
             // 船在终局泊位上
-            else if(isShipAtFinalBerth(ship)){
+            else {
+                #ifdef DEBUG
+                assert(isShipAtFinalBerth(ship));
+                LOGE("终局船调度分支选择出错");
+                #endif
                 action = handleShipAtFinalBerth(ship, berths);
             }
             break;
@@ -37,24 +41,106 @@ std::vector<std::pair<ShipID, ShipActionSpace::ShipAction>> FinalShipScheduler::
         // 解决冲突情况
         actions.push_back(std::make_pair(ship.id,action));
     }
+    return actions;
 }
 
 // 处理船在候选泊位的情况
 ShipActionSpace::ShipAction
 FinalShipScheduler::handleShipAtBackupBerth(Ship& ship, std::vector<Berth> &berths){
-
+    BerthID backupBerthId = getShipBackupBerth(ship);
+    BerthID finalBerthId = getShipFinalBerth(ship);
+    // 不在选定的候选泊位上
+    if(!isShipAtAssignedBerth(ship)){
+        return handleShipNotAtAssignedBerth(ship, berths);
+    }
+    // 还有时间去放货
+    // todo 超参数
+    if(shouldDepartAndReturn(ship, berths[finalBerthId], berths) && ship.capacityScale() < 0.8){
+        // 禁用候选泊位
+        disableBerth(berths[backupBerthId]);
+        return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::DEPART_BERTH,-1);
+    }
+    //  必须前往最终泊位
+    else if (shouldReachFinalBerth(ship, berths)){
+        // 禁用候选泊位
+        disableBerth(berths[backupBerthId]);
+        return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::MOVE_TO_BERTH, finalBerthId); 
+    }
+    // 有货装货
+    else if(isThereGoodsToLoad(berths[backupBerthId])){
+        loadGoodAtBerth(ship, berths);
+    }
+    return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::CONTINUE, ship.berthId); 
+    
 }
 
 // 处理船在终局泊位的情况
 ShipActionSpace::ShipAction
 FinalShipScheduler::handleShipAtFinalBerth(Ship& ship, std::vector<Berth> &berths){
+    BerthID backupBerthId = getShipBackupBerth(ship);
+    BerthID finalBerthId = getShipFinalBerth(ship);
+    #ifdef DEBUG
+    assert(ship.berthId == finalBerthId);
+    #endif
+    // 不在选定的候选泊位上
+    if(!isShipAtAssignedBerth(ship)){
+       return handleShipNotAtAssignedBerth(ship, berths);
+    }
+    //  判断能否前往候选泊位
+    if (canReachBackupBerth(ship, berths)){
+         return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::MOVE_TO_BERTH, backupBerthId); 
+    }
+    // 禁用候选泊位
+    disableBerth(berths[backupBerthId]);
+    // 容量不多，判断能否前往虚拟点
+    if (ship.capacityScale() < ABLE_DEPART_SCALE && shouldDepartAndReturn(ship, berths[finalBerthId])){
+        return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::DEPART_BERTH,-1);
+    }
+    //  有货装货
+    else if(isThereGoodsToLoad(berths[finalBerthId])){
+        loadGoodAtBerth(ship, berths);
+    }
+    return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::CONTINUE, ship.berthId); 
+}
 
+//  处理船不在指定泊位的情况
+// 处理船不在指定泊位情况（只有开局会出现）
+ShipActionSpace::ShipAction
+FinalShipScheduler::handleShipNotAtAssignedBerth(Ship& ship, std::vector<Berth> &berths){
+    BerthID backupBerthId = getShipBackupBerth(ship);
+    BerthID finalBerthId = getShipFinalBerth(ship);
+    // 判断船的容量是否需要去虚拟点
+    if(ship.capacityScale() < ABLE_DEPART_SCALE){
+        return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::DEPART_BERTH,-1);
+    }
+    // 判断船是否能前往候选泊位
+    else if(canReachBackupBerth(ship, berths)){
+        return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::MOVE_TO_BERTH, backupBerthId); 
+    }
+    // 否则判断船是否能前往最终泊位
+    else if(canReachFinalBerth(ship, berths)){
+        // 禁用候选泊位
+        disableBerth(berths[backupBerthId]);
+        return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::MOVE_TO_BERTH, finalBerthId); 
+    }
+    // 有货装货
+    else if(isThereGoodsToLoad(berths[ship.berthId])){
+        loadGoodAtBerth(ship, berths);
+    }
+    return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::CONTINUE, ship.berthId);
 }
 
 // 处理船在虚拟点的情况
 ShipActionSpace::ShipAction
 FinalShipScheduler::handleShipAtVirtualPoint(Ship& ship, std::vector<Berth> &berths){
-
+    BerthID backupBerthId = getShipBackupBerth(ship);
+    BerthID finalBerthId = getShipFinalBerth(ship);
+    // 判断能否前往候选泊位
+    if(canReachBackupBerth(ship, berths)){
+        return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::MOVE_TO_BERTH, backupBerthId); 
+    }
+    //  前往最终泊位
+    return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::MOVE_TO_BERTH, finalBerthId); 
 }
 
 // 初始化
@@ -71,13 +157,11 @@ void FinalShipScheduler::init(std::vector<Ship> &ships, std::vector<Berth> &bert
     for(auto &index : *berthCluster){
         clusters[berthCluster->at(index)].push_back(berths[index]);
     }
-
+    
     // 选取终局泊位和对应的候选泊位
     selectFinalAndBackupBerths(berths);
-
     // 给船分配终局泊位和候选泊位
     assignFinalBerthsToShips(ships, berths);
-
     hasInit = true;
 }
 
@@ -92,9 +176,7 @@ void FinalShipScheduler::updateBerthStatus(std::vector<Ship> &ships,std::vector<
         berth.residue_num = berth.reached_goods.size();
     }
     //  遍历货物，更新泊位的溢出货物量和价值
-    // todo 根据货物到达泊位的距离进行加权影响
     for(auto &good : goods){
-        // todo 后续需要考虑泊位禁用情况
         if((good.status == 1 || good.status == 2) && berths[good.distsToBerths[0].first].isEnabled){
              berths[good.distsToBerths[0].first].residue_num += 1;
         }
@@ -102,15 +184,15 @@ void FinalShipScheduler::updateBerthStatus(std::vector<Ship> &ships,std::vector<
 }
 
 
-// 判断船只是否需要前往虚拟点
-bool FinalShipScheduler::shouldDepartBerth(Ship &ship,std::vector<Berth> &berths){
-    // 1. 船满了，前往虚拟点
-    if (ship.now_capacity <= 0)  return true;
-    // 2. 游戏快结束了，前往虚拟点
-    // todo 15000改成全局变量；缓冲时间变成超参
-    else if(ship.berthId != -1 && 15000 - CURRENT_FRAME <= berths[ship.berthId].time + 2) return true;
-    else return false;
-}
+// // 判断船只是否需要前往虚拟点
+// bool FinalShipScheduler::shouldDepartBerth(Ship &ship,std::vector<Berth> &berths){
+//     // 1. 船满了，前往虚拟点
+//     if (ship.now_capacity <= 0)  return true;
+//     // 2. 游戏快结束了，前往虚拟点
+//     // todo 15000改成全局变量；缓冲时间变成超参
+//     else if(ship.berthId != -1 && 15000 - CURRENT_FRAME <= berths[ship.berthId].time + 2) return true;
+//     else return false;
+// }
 
 // 配对终局泊位和候选泊位
 void FinalShipScheduler::selectFinalAndBackupBerths(std::vector<Berth> &berths){
@@ -203,14 +285,14 @@ void FinalShipScheduler::assignFinalBerthsToShips(std::vector<Ship> &ships, std:
 
     // 分配终局泊位
     for(auto &ship : ships_sort){
-        BerthID finalBerthId = getShipFinalBerth(ship);
+        BerthID finalBerthId = assignFinalBerth(ship);
         shipToFinal[ship.id] = finalBerthId;
         finalToShip[finalBerthId] = ship.id;
     }
 }
 
-// 获取船的终局泊位
-BerthID FinalShipScheduler::getShipFinalBerth(Ship &ship){
+// 为单个船分配终局泊位
+BerthID FinalShipScheduler::assignFinalBerth(Ship &ship){
     if(shipToFinal[ship.id] != -1) return shipToFinal[ship.id];
     else{
         if((isShipOnRouteToBackBerth(ship) || isShipAtBackupBerth(ship)) && !hasAssigned(ship.berthId)) {
@@ -228,9 +310,35 @@ BerthID FinalShipScheduler::getShipFinalBerth(Ship &ship){
     }
 }
 
+// 获取船的终局泊位
+BerthID FinalShipScheduler::getShipFinalBerth(Ship &ship){
+    #ifdef DEBUG
+    if(shipToFinal[ship.id] == -1){
+        LOGE("船只分配终局泊位出错，-1");
+    }
+    #endif
+    return shipToFinal[ship.id];
+}
+
 // 获取船的候选泊位
 BerthID FinalShipScheduler::getShipBackupBerth(Ship &ship){
-
+    // 如果船还没有被分配终局泊位，报错
+    if(shipToFinal[ship.id] == -1){
+        #ifdef  DEBUG
+        LOGE("获取船的候选泊位失败！");
+        exit();
+        #endif
+        return -1;
+    }
+    //  如果终局泊位还没有被分配候选泊位，报错
+    if(finalToBackup[shipToFinal[ship.id]]){
+        #ifdef  DEBUG
+        LOGE("获取终局泊位的候选泊位失败！");
+        exit();
+        #endif
+        return -1;
+    }
+    return finalToBackup[shipToFinal[ship.id]];
 }
 
 // 判断终局泊位是否已经分配
@@ -241,51 +349,112 @@ bool FinalShipScheduler::hasAssigned(BerthID berthId){
 
 // 判断船是否在指定的候选泊位或者终局泊位上
 bool FinalShipScheduler::isShipAtAssignedBerth(Ship &ship){
-
+    if(ship.state == 0) return false;
+    return ship.berthId == getShipBackupBerth(ship) || ship.berthId == getShipFinalBerth(ship);
 }
 
 // 判断船是否在候选泊位上
 bool FinalShipScheduler::isShipAtBackupBerth(Ship &ship){
-
+    return backupToFinal.count(ship.berthId) != 0 && ship.state != 0;
 }
 
 // 判断船是否在前往候选泊位途中
 bool FinalShipScheduler::isShipOnRouteToBackBerth(Ship &ship){
-
+    return ship.berthId == getShipBackupBerth(ship) && ship.state == 0;
 }
 
 // 判断船是否在终局泊位上
 bool FinalShipScheduler::isShipAtFinalBerth(Ship &ship){
-
+    return finalToBackup.count(ship.berthId) != 0 && ship.state != 0;
 }
 
 // 判断船是否有时间前往候选泊位
-bool FinalShipScheduler::canReachBackupBerth(Ship &ship){
-
+bool FinalShipScheduler::canReachBackupBerth(Ship &ship, std::vector<Berth> &berths){
+    BerthID backupBerthId = getShipBackupBerth(ship);
+    BerthID finalBerthId = getShipFinalBerth(ship);
+    int timeCost = berths[finalBerthId].time + 500 + maxLoadTime;
+    if(ship.state != 0){
+        timeCost += 500;
+    }else{
+        timeCost += ship.remainingTransportTime;
+    }
+    //  todo 超参
+    if(timeCost + CURRENT_FRAME <= 15000) return true;
+    else return false;
 }
 
 // 判断船是否有时间前往终局泊位
-bool FinalShipScheduler::canReachFinalBerth(Ship &ship){
+bool FinalShipScheduler::canReachFinalBerth(Ship &ship, std::vector<Berth> &berths){
+    BerthID finalBerthId = getShipFinalBerth(ship);
+    int timeCost = berths[finalBerthId].time + maxLoadTime;
+    if(ship.state != 0){
+        timeCost += 500;
+    }else{
+        timeCost += ship.remainingTransportTime;
+    }
+    //  todo 超参
+    if(timeCost + CURRENT_FRAME <= 15000) return true;
+    else return false;
+}
 
+// 判断船是否应该前往终局泊位
+bool FinalShipScheduler::shouldReachFinalBerth(Ship &ship, std::vector<Berth> &berths){
+    BerthID finalBerthId = getShipFinalBerth(ship);
+    int timeCost = berths[finalBerthId].time + maxLoadTime;
+    if(ship.state != 0){
+        timeCost += 500;
+    }else{
+        timeCost += ship.remainingTransportTime;
+    }
+    //  todo 超参，缓冲帧
+    if(std::clamp(15000 - 2,timeCost + CURRENT_FRAME, 15000)) return true;
+    else return false;
 }
 
 // 判断船是否能去虚拟点后再回来指定泊位，最后再前往虚拟点
-bool FinalShipScheduler::canDepartBerth(Ship &ship, Berth &berth){
-
+bool FinalShipScheduler::canDepartAndReturn(Ship &ship, Berth &berth, std::vector<Berth> &berths){
+    //  todo 超参，可能并不需要maxTime个时间
+    int timeCost = berth.time * 2 + maxLoadTime + berths[ship.berthId].time;
+    if(timeCost + CURRENT_FRAME < 15000) return true;
 }
+
+// 判断船是否必须去虚拟点后再回来指定泊位，最后再前往虚拟点
+bool FinalShipScheduler::shouldDepartAndReturn(Ship &ship, Berth &berth, std::vector<Berth> &berths){
+    int timeCost = berths[ship.berthId].time;
+    //  todo 超参，缓冲帧
+    if(std::clamp(15000 - 2,timeCost + CURRENT_FRAME, 15000)) return true;
+    else return false;
+}
+
 
 // 判断船是否必须前往虚拟点
 bool FinalShipScheduler::shouldDepartBerth(Ship &ship,std::vector<Berth> &berths){
-
+    if (ship.now_capacity <= 0)  return true;
+    if (ship.state == 0 || ship.berthId == -1) return false;
+    int timeCost = berths[ship.berthId].time;
+    if(std::clamp(15000 - 2,timeCost + CURRENT_FRAME, 15000)) return true;
+    else return false;
 }
 
 // 禁用泊位
 void FinalShipScheduler::disableBerth(Berth &berth){
+    #ifdef  DEBUG
+    if(berth.isEnabled == false) LOGE("重复禁用泊位");
+    #endif;
 
+    berth.isEnabled = false;
 }
 
+// 判断泊位上是否有货物可装载
+bool FinalShipScheduler::isThereGoodsToLoad(Berth &berth){
+    if(berth.reached_goods.size() != 0) return true;
+    else return false;
+}
 
-// 初始化泊位的状态
-void FinalShipScheduler::updateBerthStatus(std::vector<Ship> &ships,std::vector<Berth> &berths,std::vector<Goods> & goods){
-
+// 处理装货的状态
+void FinalShipScheduler::loadGoodAtBerth(Ship &ship, std::vector<Berth> &berths){
+    BerthID berthId = ship.berthId;
+    int shipment = std::min(static_cast<int>(berths[berthId].reached_goods.size()),berths[berthId].velocity);
+    int res = ship.loadGoods(shipment); // 装货
+    berths[berthId].reached_goods.erase(berths[berthId].reached_goods.begin(),berths[berthId].reached_goods.begin() + res);
 }

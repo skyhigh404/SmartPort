@@ -61,6 +61,10 @@ private:
     // 处理船在虚拟点的情况
     ShipActionSpace::ShipAction
     handleShipAtVirtualPoint(Ship& ship, std::vector<Berth> &berths);
+
+    // 处理船不在指定泊位情况（只有开局会出现）
+    ShipActionSpace::ShipAction
+    handleShipNotAtAssignedBerth(Ship& ship, std::vector<Berth> &berths);
     // // 处理船前往候选泊位的情况
     // ShipActionSpace::ShipAction
     // handleShipEnRouteToBackupBerth(Ship& ship, std::vector<Berth> &berths);
@@ -74,8 +78,11 @@ private:
     // 配对终局泊位和候选泊位
     void selectFinalAndBackupBerths(std::vector<Berth> &berths);
 
-    // 为船选定终局泊位
+    // 为所有船选定终局泊位
     void assignFinalBerthsToShips(std::vector<Ship> &ships, std::vector<Berth> &berths);
+
+    // 为单个船分配终局泊位
+    BerthID assignFinalBerth(Ship &ship);
 
     // 获取船的终局泊位
     BerthID getShipFinalBerth(Ship &ship);
@@ -98,14 +105,22 @@ private:
     // 判断船是否在终局泊位上
     bool isShipAtFinalBerth(Ship &ship);
 
+    // 判断泊位上是否有货物可装载
+    bool isThereGoodsToLoad(Berth &berth);
+
     // 判断船是否有时间前往候选泊位
-    bool canReachBackupBerth(Ship &ship);
+    bool canReachBackupBerth(Ship &ship, std::vector<Berth> &berths);
 
     // 判断船是否有时间前往终局泊位
-    bool canReachFinalBerth(Ship &ship);
+    bool canReachFinalBerth(Ship &ship, std::vector<Berth> &berths);
+
+    // 判断船是否必须前往终局泊位
+    bool shouldReachFinalBerth(Ship &ship, std::vector<Berth> &berths);
 
     // 判断船是否能去虚拟点后再回来指定泊位，最后再前往虚拟点
-    bool canDepartBerth(Ship &ship, Berth &berth);
+    bool canDepartAndReturn(Ship &ship, Berth &berth, std::vector<Berth> &berths);
+
+    bool FinalShipScheduler::shouldDepartAndReturn(Ship &ship, Berth &berth, std::vector<Berth> &berths);
 
     // 判断船是否必须前往虚拟点
     bool shouldDepartBerth(Ship &ship,std::vector<Berth> &berths);
@@ -117,5 +132,7 @@ private:
     // 初始化泊位的状态
     void updateBerthStatus(std::vector<Ship> &ships,std::vector<Berth> &berths,std::vector<Goods> & goods);
 
+    // 装货
+    void loadGoodAtBerth(Ship &ship, std::vector<Berth> &berths);
 
 };

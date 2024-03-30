@@ -43,7 +43,7 @@ public:
         pos(pos), 
         time(time), 
         velocity(velocity), 
-        isEnabled(false),
+        isEnabled(true),
         category(-1),
         stockpile(0), 
         stockpileValue(0)

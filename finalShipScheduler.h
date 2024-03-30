@@ -2,7 +2,7 @@
 
 #include "scheduler.h"
 
-class GreedyShipScheduler : public ShipScheduler
+class FinalShipScheduler : public ShipScheduler
 {
 public:
     // 实现接口
@@ -19,7 +19,7 @@ public:
     // 返回调度器名字
     SchedulerName getSchedulerName() override
     {
-        return SchedulerName::Greedy_SHIP_SCHEDULER;
+        return SchedulerName::Final_SHIP_SCHEDULER;
     }
 
 private:
@@ -30,8 +30,16 @@ private:
     const int TIME_TO_WAIT = 100; //等待有货的时间段
     const int CAPACITY_GAP = 10;   // 泊位溢出货物量和船的容量差
     // 等等
+    int maxCapacity = -1;
+    int minVelocity = INT_MAX;
+    int maxTime = -1;
+    int maxLoadTime;
+    int hasInit = false;
 
 private:
+    // 初始化变量
+    void init(std::vector<Ship> &ships, std::vector<Berth> &berths, std::vector<Goods> &goods);
+
     // 初始化泊位的状态
     void updateBerthStatus(std::vector<Ship> &ships,std::vector<Berth> &berths,std::vector<Goods> & goods);
 

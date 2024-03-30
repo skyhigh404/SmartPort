@@ -19,6 +19,8 @@ enum StageType
 enum class SchedulerName
 {
     Greedy_ROBOT_SCHEDULER,
+    Greedy_SHIP_SCHEDULER,
+    Final_SHIP_SCHEDULER
 };
 
 using std::vector;

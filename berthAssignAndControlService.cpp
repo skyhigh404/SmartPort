@@ -1,5 +1,15 @@
 #include "berthAssignAndControlService.h"
 
+void BerthAssignAndControlService::clusterResults()
+{
+    for (int i=0;i<clusters.size();i++) {
+        LOGI("class ", i, " 的包含的泊位数量：", clusters[i].size());
+        for (int j=0;j<clusters[i].size();j++) {
+            LOGI("泊位id：", clusters[i][j].id, ", 泊位位置：", clusters[i][j].pos);
+        }
+    }
+}
+
 void BerthAssignAndControlService::clusterBerths(const Map &map, std::vector<Berth> &berths)
 {
     std::vector<bool> clustered(berths.size(), false);

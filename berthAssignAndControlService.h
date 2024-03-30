@@ -16,6 +16,8 @@ public:
     void clusterBerths(const Map &map, std::vector<Berth> &berths);
     // 更新所有货物被分配的泊位，通过更新 distsToBerths 实现
     void updateGoodsBerthAssignmets(std::vector<Goods> &goods, std::vector<Berth> &berths);
+    // 输出聚类结果
+    void clusterResults();
 
 private:
     std::vector<std::vector<Berth>>

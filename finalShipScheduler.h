@@ -23,6 +23,7 @@ public:
     }
 
     FinalShipScheduler(const std::vector<int> &berthCluster, const std::vector<std::vector<Berth>> &clusters);
+    void initialize() override{}
 
 private:
     // 需要用到的超参数

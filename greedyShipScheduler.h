@@ -22,7 +22,7 @@ public:
     }
 
     // 初始化
-    void initialize() {}
+    void initialize()override {}
 
 private:
     // 需要用到的超参数

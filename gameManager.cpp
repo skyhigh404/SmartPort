@@ -35,7 +35,7 @@ std::vector<int> berthDistrubtGoodValueCount(10,0);
 void GameManager::initializeGame()
 {
     // 读取地图
-    // string map_data;
+    string map_data;
     // string diagonal;    //对角线字符串
     // string diagonalMap1 = ".........................................................................BBBB*********.....**.****.********BB...........................................................................................";
     int robot_id = 0;
@@ -44,7 +44,7 @@ void GameManager::initializeGame()
         cin >> map_data;
         for (int j = 0; j < MAPCOLS; ++j)
         {
-            if(i == j) diagonal += map_data[j];
+            // if(i == j) diagonal += map_data[j];
             switch (map_data[j])
             {
             case '.':
@@ -206,7 +206,7 @@ void GameManager::initializeComponents()
     // 8. 初始化 RobotController
     this->robotController = std::make_shared<RobotController>(this->robots);
     // 9. 对泊位进行聚类
-    this->berthAssignAndControlService.initialize();
+    this->berthAssignAndControlService.initialize(this->gameMap,this->berths);
     std::vector<int> &berthCluster = this->berthAssignAndControlService.berthCluster;
     std::vector<std::vector<Berth>> &clusters = this->berthAssignAndControlService.clusters;
     // 10. 注册机器人调度函数

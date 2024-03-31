@@ -2,6 +2,7 @@
 #include "scheduler.h"
 #include "log.h"
 #include "pathFinder.h"
+#include "finalShipScheduler.h"
 #include <chrono>
 
 
@@ -88,25 +89,28 @@ int main()
     //     LOGI("Find path error.", static_cast<int>(*p));
     // }
     // return 0;
-
+    bool hasInitFinalShipScheduler = false; //判断终局船调度是否初始化
     while (1)
     {
         gameManager.processFrameData();
-        // 调度变换
-        // if(gameManager.nowStateType() != gameManager.ShipScheduler->getSchedulerType()){
-        //     switch (gameManager.nowStateType())
-        //     {
-        //     case StageType::FINAL:
-        //         LOGI("进去船只终局调度");
-        //         // // 货物价值最大化终局调度
-        //         // gameManager.setShipScheduler(&finalTransportStrategy);
-        //         // 聚类均衡终局调度
-        //         gameManager.setShipScheduler(&finalClusterTransportStrategy);
-        //         break;
-        //     default:
-        //         break;
-        //     }
-        // }
+        // 切换调度函数
+        switch (gameManager.nowStateType())
+        {
+        case StageType::SIMPLE:
+            //  不做切换
+            break;
+        case StageType::FINAL:
+            // 初始化
+            if (!hasInitFinalShipScheduler){
+                #ifdef DEBUG
+                LOGI("进去终局船调度")
+                #endif
+                gameManager.shipScheduler = std::make_shared<FinalShipScheduler>(gameManager.berthAssignAndControlService.berthCluster,
+                gameManager.berthAssignAndControlService.clusters);
+                hasInitFinalShipScheduler = true;
+            }
+            break;
+        }
         auto start = std::chrono::steady_clock::now();
         gameManager.update();
         auto end = std::chrono::steady_clock::now();

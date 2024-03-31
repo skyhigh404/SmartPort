@@ -56,14 +56,14 @@ public:
     void robotControl_new();      // 运行机器人控制器
     void updateSingleLaneLocks(); // 维护单行路的锁
 
-    void setShipScheduler(ShipScheduler *scheduler)
-    {
-        this->shipScheduler = scheduler;
-    }
-    void setRobotScheduler(RobotScheduler *scheduler)
-    {
-        this->robotScheduler = scheduler;
-    }
+    // void setShipScheduler(ShipScheduler *scheduler)
+    // {
+    //     this->shipScheduler = scheduler;
+    // }
+    // void setRobotScheduler(RobotScheduler *scheduler)
+    // {
+    //     this->robotScheduler = scheduler;
+    // }
 
     inline StageType nowStateType()
     {

@@ -25,7 +25,7 @@ enum class MapFlag
     ERROR      // 默认值
 };
 
-extern MapFlag MAP_INDEX;
+extern MapFlag MAP_TYPE;
 
 class Map
 {

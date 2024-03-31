@@ -16,7 +16,7 @@ int Berth::maxLoadGoodNum = 0;
 int Berth::deliverGoodNum = 0;
 std::vector<bool> Berth::available_berths = std::vector<bool>(BERTHNUMS,true);  //  泊位是否可获取，用于终局调度
 int CURRENT_FRAME = 0;  //当前帧数
-MapFlag MAP_INDEX = MapFlag::ERROR;  // LABYRINTH: 图二、迷宫;NORMAL:图一、正常图;UNKNOWN；图三未知图;ERROR :默认值
+MapFlag MAP_TYPE = MapFlag::ERROR;  // LABYRINTH: 图二、迷宫;NORMAL:图一、正常图;UNKNOWN；图三未知图;ERROR :默认值
 int last_assign = 0;
 int canUnload(Berth& berth, Point2d pos) {
     int x = pos.x-berth.pos.x, y=pos.y-berth.pos.y;
@@ -159,11 +159,11 @@ void GameManager::initializeGame()
 
 void GameManager::initializeComponents()
 {
-    // 让地图实时跟踪机器人位置
+    // 1. 让地图实时跟踪机器人位置
     for (Robot &robot : this->robots)
         this->gameMap.robotPosition.push_back(robot.pos);
 
-    // 使用 BFS 计算地图上每个点到泊位的距离
+    // 2. 使用 BFS 计算地图上每个点到泊位的距离
     for (const auto &berth : this->berths)
     {
         vector<Point2d> positions;
@@ -175,7 +175,7 @@ void GameManager::initializeComponents()
         this->gameMap.computeDistancesToBerthViaBFS(berth.id, positions);
     }
 
-    // 判断机器人是否 DEATH 状态
+    // 3. 判断机器人是否 DEATH 状态
     for (auto &robot : this->robots)
     {
         bool is_isolated = true;
@@ -194,24 +194,27 @@ void GameManager::initializeComponents()
             LOGI("死機器人:", robot.id);
         }
     }
-
-    // 1. 初始化 RobotController
-    this->robotController = std::make_shared<RobotController>(this->robots);
-    // 2. 对所有泊位注册gameManager作为观察者
-    for(auto &berth : berths)
+    // 4. 对所有泊位注册gameManager作为观察者
+    for (auto &berth : berths)
         berth.registerObserver(this);
-    // 3. 对泊位进行聚类
-    // cluster = 
-    // 4. 注册机器人调度函数
-    robotScheduler = std::make_shared<GreedyRobotScheduler>(cluster);
-    // 5. 注册船舶调度函数
-    shipScheduler = std::make_shared<GreedyShipScheduler>();
-    // 6. 初始化单行路
+    // 5. 初始化单行路
     this->singleLaneManager.init(gameMap);
-    // 7. 对机器人调度函数更新Params
-    
-    // 8. 对船舶调度函数更新Params
-
+    // 6. 判断地图类型
+    MAP_TYPE = MapFlag::NORMAL;
+    // 7. 读取参数
+    Params params(MAP_TYPE);
+    // 8. 初始化 RobotController
+    this->robotController = std::make_shared<RobotController>(this->robots);
+    // 9. 对泊位进行聚类
+    // cluster =
+    // 10. 注册机器人调度函数
+    robotScheduler = std::make_shared<GreedyRobotScheduler>(cluster);
+    // 11. 注册船舶调度函数
+    shipScheduler = std::make_shared<GreedyShipScheduler>();
+    // 12. 对机器人调度函数更新Params
+    this->robotScheduler->setParameter(params);
+    // 13. 对船舶调度函数更新Params
+    this->shipScheduler->setParameter(params);
 }
 
 void GameManager::processFrameData()

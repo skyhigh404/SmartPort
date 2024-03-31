@@ -606,7 +606,6 @@ void GameManager::robotControl()
         }
     }
 
-
     auto start = std::chrono::steady_clock::now();
     // 对所有需要调度的机器人进行调度
     this->robotScheduler->scheduleRobots(gameMap, robots, goods, berths, currentFrame);
@@ -724,6 +723,7 @@ void GameManager::outputCommands()
 
 void GameManager::onBerthStatusChanged(int berthId, bool isEnabled)
 {
+    LOGI("Berth 状态改变, ID: ", berthId, ", isEnabled: ", isEnabled);
     // 泊位被启用，遍历所有货物，往 distsToBerths 中添加可达泊位的距离
     if (isEnabled)
     {

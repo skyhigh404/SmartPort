@@ -438,6 +438,7 @@ bool FinalShipScheduler::canDepartAndReturn(Ship &ship, Berth &berth, std::vecto
     //  todo 超参，可能并不需要maxTime个时间
     int timeCost = berth.time * 2 + maxLoadTime + berths[ship.berthId].time;
     if(timeCost + CURRENT_FRAME < 15000) return true;
+    else return false;
 }
 
 // 判断船是否必须去虚拟点后再回来指定泊位，最后再前往虚拟点

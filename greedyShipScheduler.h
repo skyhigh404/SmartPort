@@ -54,15 +54,15 @@ private:
     bool isGoodsArrivingSoon(Berth &berth, std::vector<Goods> goods); 
 
     // 为船找到最佳泊位，返回泊位id
-    BerthID findBestBerthForShip(const Ship &ship, const std::vector<Berth> &berths, const std::vector<Goods> &goods);
+    BerthID findBestBerthForShip( Ship &ship, const std::vector<Berth> &berths, const std::vector<Goods> &goods);
 
     // 判断船可以前往其他泊位
-    bool canMoveBerth(const Ship &ship,const Berth &Berth);
+    bool canMoveBerth( Ship &ship,const Berth &Berth);
 
     // 处理船在路途的情况
     // 是否可以中途前往其他泊位（收益更高）
     ShipActionSpace::ShipAction
-    handleShipOnRoute(const Ship &ship,std::vector<Berth> &berths,std::vector<Goods> &goods);
+    handleShipOnRoute( Ship &ship,std::vector<Berth> &berths,std::vector<Goods> &goods);
 
     // 处理船在泊位上的情况
     ShipActionSpace::ShipAction
@@ -70,11 +70,11 @@ private:
 
     // 处理在虚拟点的情况
     ShipActionSpace::ShipAction
-    handleShipInEnd(const Ship &ship,std::vector<Berth> &berths,std::vector<Goods> &goods);
+    handleShipInEnd( Ship &ship,std::vector<Berth> &berths,std::vector<Goods> &goods);
 
     // 处理在泊位外等待的情况
     ShipActionSpace::ShipAction
-    handleShipWaiting(const Ship &ship,std::vector<Berth> &berths,std::vector<Goods> &goods);
+    handleShipWaiting( Ship &ship,std::vector<Berth> &berths,std::vector<Goods> &goods);
 
     // 比较船去两个泊位的收益
     bool compareBerthsValue(Berth &a,Berth &b);

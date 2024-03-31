@@ -326,7 +326,6 @@ BerthID FinalShipScheduler::assignFinalBerth(Ship &ship){
         }
         #ifdef  DEBUG
         LOGE("给船分配终局泊位失败！");
-        exit();
         #endif
         return -1;
     }
@@ -348,7 +347,6 @@ BerthID FinalShipScheduler::getShipBackupBerth(Ship &ship){
     if(shipToFinal[ship.id] == -1){
         #ifdef  DEBUG
         LOGE("获取船的候选泊位失败！");
-        exit();
         #endif
         return -1;
     }
@@ -356,7 +354,6 @@ BerthID FinalShipScheduler::getShipBackupBerth(Ship &ship){
     if(finalToBackup[shipToFinal[ship.id]]){
         #ifdef  DEBUG
         LOGE("获取终局泊位的候选泊位失败！");
-        exit();
         #endif
         return -1;
     }

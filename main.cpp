@@ -103,7 +103,7 @@ int main()
             // 初始化
             if (!hasInitFinalShipScheduler){
                 #ifdef DEBUG
-                LOGI("进去终局船调度")
+                LOGI("进去终局船调度");
                 #endif
                 gameManager.shipScheduler = std::make_shared<FinalShipScheduler>(gameManager.berthAssignAndControlService.berthCluster,
                 gameManager.berthAssignAndControlService.clusters);

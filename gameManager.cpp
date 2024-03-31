@@ -675,13 +675,13 @@ void GameManager::update()
         int ship_id = shipActions[i].first;
         ShipActionSpace::ShipAction ship_action = shipActions[i].second;
         // 去虚拟点
-        if (ship_action.type == DEPART_BERTH)
+        if (ship_action.type == ShipActionSpace::ShipActionType::DEPART_BERTH)
         {
             // LOGI(ship_id,"前往虚拟点");
             commandManager.addShipCommand(ships[ship_id].go(berths[ship_action.targetId].time));
         }
         // 去泊位
-        if (ship_action.type == MOVE_TO_BERTH)
+        if (ship_action.type == ShipActionSpace::ShipActionType::MOVE_TO_BERTH)
         {
             // LOGI(ship_id,"分配去泊位",ship_action.targetId);
             commandManager.addShipCommand(ships[ship_id].moveToBerth(ship_action.targetId));

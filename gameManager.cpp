@@ -2,9 +2,12 @@
 #include <string>
 #include <iostream>
 #include <algorithm>
+#include <chrono>
 #include "log.h"
 #include "pathFinder.h"
-#include <chrono>
+#include "greedyRobotScheduler.h"
+#include "greedyShipScheduler.h"
+#include "finalShipScheduler.h"
 
 using namespace std;
 int Goods::count = 0;
@@ -32,9 +35,9 @@ std::vector<int> berthDistrubtGoodValueCount(10,0);
 void GameManager::initializeGame()
 {
     // 读取地图
-    string map_data;
-    string diagonal;    //对角线字符串
-    string diagonalMap1 = ".........................................................................BBBB*********.....**.****.********BB...........................................................................................";
+    // string map_data;
+    // string diagonal;    //对角线字符串
+    // string diagonalMap1 = ".........................................................................BBBB*********.....**.****.********BB...........................................................................................";
     int robot_id = 0;
     for (int i = 0; i < MAPROWS; ++i)
     {
@@ -69,11 +72,7 @@ void GameManager::initializeGame()
         }
     }
     // LOGI("Log init map info");
-    // LOGI(this->gameMap.drawMap());
-
-    // 初始化机器人
-    // for (int i = 0; i < ROBOTNUMS; ++i)
-    //     this->robots.emplace_back(i, Point2d(-1, -1));
+    // LOGI(this->gameMap.drawMap())
 
     // 初始化泊位
     int id, x, y, time, velocity;
@@ -99,48 +98,9 @@ void GameManager::initializeGame()
     // }
 
     // 初始化数据读取完成
-    // 让地图实时跟踪机器人位置（需要测试是否正常跟踪）
-    for (Robot &robot : this->robots)
-        this->gameMap.robotPosition.push_back(robot.pos);
-
-    // 计算地图上每个点到泊位的距离
-    auto bfs_start = std::chrono::high_resolution_clock::now();
-    for (const auto &berth : this->berths)
-    {
-        vector<Point2d> positions;
-        // 泊位大小 4x4
-        for (int i = 0; i < 4; ++i)
-            for (int j = 0; j < 4; ++j)
-                positions.push_back(berth.pos + Point2d(i, j));
-
-        this->gameMap.computeDistancesToBerthViaBFS(berth.id, positions);
-    }
-    auto bfs_end = std::chrono::high_resolution_clock::now();
-    LOGI("bfs初始化时长:",std::chrono::duration_cast<std::chrono::milliseconds>(bfs_end - bfs_start).count(),"ms");
-
-
-    // 判断机器人是否位于死点
-    for (auto &robot : this->robots)
-    {
-        bool is_isolated = true;
-        for (const auto &berth : this->berths)
-        {
-            if (this->gameMap.isBerthReachable(berth.id, robot.pos))
-            {
-                is_isolated = false;
-                break;
-            }
-        }
-        // 孤立机器人
-        if (is_isolated)
-            {robot.status = DEATH;LOGI("死機器人:",robot.id);}
-    }
-
-    // 初始化 RobotController
-    this->robotController = std::make_shared<RobotController>(this->robots);
-    auto start = std::chrono::steady_clock::now();
-    this->singleLaneManager.init(gameMap);
-    auto end = std::chrono::steady_clock::now();
+    // 进行其他部件的初始化
+    initializeComponents();
+    
 
     string ok;
     cin >> ok;
@@ -154,33 +114,31 @@ void GameManager::initializeGame()
         LOGE("Init fail!");
     }
     
-    int findTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-    // LOGI("单行路初始化处理时间：",findTime,"ms");
     // 打印单行路
-    LOGI("单行路数量：",this->singleLaneManager.singleLanes.size());
-    int singleLaneSize = this->singleLaneManager.singleLanes.size();
-    switch (singleLaneSize)
-    {
-    case 53:
-        // LOGI("对角线字符串数量：",diagonal.size()," ",diagonalMap1.size());
-        // 如果字符不一致，则是图三
-        for(int i = 0;i < diagonal.size(); i++){
-            if(diagonal[i] != diagonalMap1[i]){
-                MAP_INDEX = MapFlag::UNKNOWN;   //未知图，图三
-                break;
-            }
-        }
-        if(MAP_INDEX == MapFlag::ERROR) MAP_INDEX = MapFlag::NORMAL;   // 正常图，图2
-        break;
-    case 962:
-        MAP_INDEX = MapFlag::LABYRINTH;   //  迷宫图,图1
-        break;
-    default:
-        MAP_INDEX = MapFlag::UNKNOWN;   //未知图，图三
-        break;
-    }
-    assert(MAP_INDEX != MapFlag::ERROR);
-    LOGI("地图序号：",MAP_INDEX);
+    // LOGI("单行路数量：",this->singleLaneManager.singleLanes.size());
+    // int singleLaneSize = this->singleLaneManager.singleLanes.size();
+    // switch (singleLaneSize)
+    // {
+    // case 53:
+    //     // LOGI("对角线字符串数量：",diagonal.size()," ",diagonalMap1.size());
+    //     // 如果字符不一致，则是图三
+    //     for(int i = 0;i < diagonal.size(); i++){
+    //         if(diagonal[i] != diagonalMap1[i]){
+    //             MAP_INDEX = MapFlag::UNKNOWN;   //未知图，图三
+    //             break;
+    //         }
+    //     }
+    //     if(MAP_INDEX == MapFlag::ERROR) MAP_INDEX = MapFlag::NORMAL;   // 正常图，图2
+    //     break;
+    // case 962:
+    //     MAP_INDEX = MapFlag::LABYRINTH;   //  迷宫图,图1
+    //     break;
+    // default:
+    //     MAP_INDEX = MapFlag::UNKNOWN;   //未知图，图三
+    //     break;
+    // }
+    // assert(MAP_INDEX != MapFlag::ERROR);
+    // LOGI("地图序号：",MAP_INDEX);
     // LOGI("对角线字符串：",diagonal);
     // LOGI(Map::drawMap(this->singleLaneManager.singleLaneMap,3));
     // LOGI("输出单行路锁信息");
@@ -197,6 +155,63 @@ void GameManager::initializeGame()
     // LOGI("Log berth 0 BFS map.");
     // LOGI(Map::drawMap(this->gameMap.berthDistanceMap[9],12));
     // exit(0);
+}
+
+void GameManager::initializeComponents()
+{
+    // 让地图实时跟踪机器人位置
+    for (Robot &robot : this->robots)
+        this->gameMap.robotPosition.push_back(robot.pos);
+
+    // 使用 BFS 计算地图上每个点到泊位的距离
+    for (const auto &berth : this->berths)
+    {
+        vector<Point2d> positions;
+        // 泊位大小 4x4
+        for (int i = 0; i < 4; ++i)
+            for (int j = 0; j < 4; ++j)
+                positions.push_back(berth.pos + Point2d(i, j));
+
+        this->gameMap.computeDistancesToBerthViaBFS(berth.id, positions);
+    }
+
+    // 判断机器人是否 DEATH 状态
+    for (auto &robot : this->robots)
+    {
+        bool is_isolated = true;
+        for (const auto &berth : this->berths)
+        {
+            if (this->gameMap.isBerthReachable(berth.id, robot.pos))
+            {
+                is_isolated = false;
+                break;
+            }
+        }
+        // 孤立机器人
+        if (is_isolated)
+        {
+            robot.status = DEATH;
+            LOGI("死機器人:", robot.id);
+        }
+    }
+
+    // 1. 初始化 RobotController
+    this->robotController = std::make_shared<RobotController>(this->robots);
+    // 2. 对所有泊位注册gameManager作为观察者
+    for(auto &berth : berths)
+        berth.registerObserver(this);
+    // 3. 对泊位进行聚类
+    // cluster = 
+    // 4. 注册机器人调度函数
+    robotScheduler = std::make_shared<GreedyRobotScheduler>(cluster);
+    // 5. 注册船舶调度函数
+    shipScheduler = std::make_shared<GreedyShipScheduler>();
+    // 6. 初始化单行路
+    this->singleLaneManager.init(gameMap);
+    // 7. 对机器人调度函数更新Params
+    
+    // 8. 对船舶调度函数更新Params
+
 }
 
 void GameManager::processFrameData()

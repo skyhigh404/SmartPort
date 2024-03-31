@@ -14,45 +14,45 @@ int main()
 #endif
 
     GameManager gameManager;
-    SimpleTransportStrategy simpleTransportStrategy;
-    ImplicitEnumeration implicitEnumeration;
-    FinalTransportStrategy finalTransportStrategy;
-    FinalClusterTransportStrategy finalClusterTransportStrategy;
-    gameManager.setShipScheduler(&simpleTransportStrategy);
-    gameManager.setRobotScheduler(&simpleTransportStrategy);
+    // SimpleTransportStrategy simpleTransportStrategy;
+    // ImplicitEnumeration implicitEnumeration;
+    // FinalTransportStrategy finalTransportStrategy;
+    // FinalClusterTransportStrategy finalClusterTransportStrategy;
+    // gameManager.setShipScheduler(&simpleTransportStrategy);
+    // gameManager.setRobotScheduler(&simpleTransportStrategy);
     gameManager.initializeGame();
     // 初始化聚类
-    simpleTransportStrategy.initCluster(gameManager.berths,gameManager.gameMap);
-    finalTransportStrategy.initCluster(gameManager.berths,gameManager.gameMap);
-    implicitEnumeration.initCluster(gameManager.berths,gameManager.gameMap);
-    finalClusterTransportStrategy.initCluster(gameManager.berths,gameManager.gameMap);
+    // simpleTransportStrategy.initCluster(gameManager.berths,gameManager.gameMap);
+    // finalTransportStrategy.initCluster(gameManager.berths,gameManager.gameMap);
+    // implicitEnumeration.initCluster(gameManager.berths,gameManager.gameMap);
+    // finalClusterTransportStrategy.initCluster(gameManager.berths,gameManager.gameMap);
     
-    simpleTransportStrategy.setParameter();
+    // simpleTransportStrategy.setParameter();
 
-    vector<int> assignBound;
-    // 迷宫
-    if (MAP_INDEX==MapFlag::LABYRINTH) {
-        assignBound = {1,2,3,2,2};
-    }
-    else if (MAP_INDEX==MapFlag::NORMAL) {
-        assignBound = {2,4,1,1,2};
-    }
-    else assignBound.clear();
-    // assignBound.clear();
-    simpleTransportStrategy.assignRobots(gameManager.robots, gameManager.gameMap, assignBound);
-    // LOGI("1");
-    for (int i=0;i<gameManager.RobotScheduler->clusters.size();i++) {
-        LOGI("类",i,"包含以下泊位：");
-        std::string op = "泊位id：";
-        for (int j=0;j<gameManager.RobotScheduler->clusters[i].size();j++) {
-            op += std::to_string(gameManager.RobotScheduler->clusters[i][j].id) + " ";
-        }
-        LOGI(op);
-    }
-    for (int i=0;i<gameManager.robots.size();i++) {
-        LOGI("机器人",i,"分配到类",simpleTransportStrategy.assignment[i]);
-    }
-    // return 0;
+    // vector<int> assignBound;
+    // // 迷宫
+    // if (MAP_INDEX==MapFlag::LABYRINTH) {
+    //     assignBound = {1,2,3,2,2};
+    // }
+    // else if (MAP_INDEX==MapFlag::NORMAL) {
+    //     assignBound = {2,4,1,1,2};
+    // }
+    // else assignBound.clear();
+    // // assignBound.clear();
+    // simpleTransportStrategy.assignRobots(gameManager.robots, gameManager.gameMap, assignBound);
+    // // LOGI("1");
+    // for (int i=0;i<gameManager.RobotScheduler->clusters.size();i++) {
+    //     LOGI("类",i,"包含以下泊位：");
+    //     std::string op = "泊位id：";
+    //     for (int j=0;j<gameManager.RobotScheduler->clusters[i].size();j++) {
+    //         op += std::to_string(gameManager.RobotScheduler->clusters[i][j].id) + " ";
+    //     }
+    //     LOGI(op);
+    // }
+    // for (int i=0;i<gameManager.robots.size();i++) {
+    //     LOGI("机器人",i,"分配到类",simpleTransportStrategy.assignment[i]);
+    // }
+    // // return 0;
 
     LOGI("init finish");
 
@@ -89,25 +89,24 @@ int main()
     // }
     // return 0;
 
-    LOGI("初始化完毕");
     while (1)
     {
         gameManager.processFrameData();
         // 调度变换
-        if(gameManager.nowStateType() != gameManager.ShipScheduler->getSchedulerType()){
-            switch (gameManager.nowStateType())
-            {
-            case StageType::FINAL:
-                LOGI("进去船只终局调度");
-                // // 货物价值最大化终局调度
-                // gameManager.setShipScheduler(&finalTransportStrategy);
-                // 聚类均衡终局调度
-                gameManager.setShipScheduler(&finalClusterTransportStrategy);
-                break;
-            default:
-                break;
-            }
-        }
+        // if(gameManager.nowStateType() != gameManager.ShipScheduler->getSchedulerType()){
+        //     switch (gameManager.nowStateType())
+        //     {
+        //     case StageType::FINAL:
+        //         LOGI("进去船只终局调度");
+        //         // // 货物价值最大化终局调度
+        //         // gameManager.setShipScheduler(&finalTransportStrategy);
+        //         // 聚类均衡终局调度
+        //         gameManager.setShipScheduler(&finalClusterTransportStrategy);
+        //         break;
+        //     default:
+        //         break;
+        //     }
+        // }
         auto start = std::chrono::steady_clock::now();
         gameManager.update();
         auto end = std::chrono::steady_clock::now();

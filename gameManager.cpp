@@ -594,7 +594,7 @@ void GameManager::robotControl_new()
     }
     // LOGI("機器人取放貨完畢");
 
-    if (this->nowStateType()==FINAL && this->robotScheduler->enterFinal==false) {
+    if (this->nowStateType()==FINAL) {
         LOGI("機器人調度進入終局");
         for (Robot& robot:robots) {
             if ( (robot.status==MOVING_TO_BERTH && berths[robot.targetid].isEnable()==false) || (robot.status==MOVING_TO_GOODS && berths[goods[robot.carryingItemId].distsToBerths[0].first].isEnable()==false)) {
@@ -603,7 +603,6 @@ void GameManager::robotControl_new()
                 robot.path = Path();
             }
         }
-        this->robotScheduler->enterFinal = true;
     }
 
     auto start = std::chrono::steady_clock::now();

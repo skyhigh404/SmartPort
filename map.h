@@ -19,11 +19,9 @@ namespace MapItemSpace
     };
 }
 
-enum MapFlag
+enum class MapFlag
 {
-    LABYRINTH, // 图二、迷宫
-    NORMAL,    // 图一、正常图
-    UNKNOWN,   // 图三未知图
+    NORMAL,    // 正常参数
     ERROR      // 默认值
 };
 

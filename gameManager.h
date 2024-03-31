@@ -13,6 +13,7 @@
 #include "commandManager.h"
 #include "robotController.h"
 #include <memory>
+#include "berthAssignAndControlService.h"
 
 #include "singleLaneManager.h"
 
@@ -35,6 +36,7 @@ public:
     std::vector<Ship> ships;
     std::vector<Goods> goods;
     std::vector<Berth> berths;
+    BerthAssignAndControlService berthAssignAndControlService;
     int currentFrame;
     int currentMoney;
     // 统计

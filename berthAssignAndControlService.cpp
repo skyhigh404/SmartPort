@@ -1,5 +1,9 @@
 #include "berthAssignAndControlService.h"
 
+void BerthAssignAndControlService::initialize(const Map &map, std::vector<Berth> &berths){
+    clusterBerths(map, berths);
+}
+
 void BerthAssignAndControlService::clusterResults()
 {
     for (int i=0;i<clusters.size();i++) {

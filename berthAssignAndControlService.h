@@ -12,7 +12,7 @@ public:
     std::vector<int> berthCluster; // 每个泊位所对应的类
 public:
     // 初始化
-    void initialize();
+    void initialize(const Map &map, std::vector<Berth> &berths);
     // 设置参数，参数定义在子类里
     void setParameter(const Params &params);
     // 对泊位进行聚类

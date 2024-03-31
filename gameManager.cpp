@@ -14,7 +14,7 @@ int Goods::count = 0;
 int Berth::totalLoadGoodnum = 0;
 int Berth::maxLoadGoodNum = 0;
 int Berth::deliverGoodNum = 0;
-std::vector<bool> Berth::available_berths = std::vector<bool>(BERTHNUMS,true);  //  泊位是否可获取，用于终局调度
+// std::vector<bool> Berth::available_berths = std::vector<bool>(BERTHNUMS,true);  //  泊位是否可获取，用于终局调度
 int CURRENT_FRAME = 0;  //当前帧数
 MapFlag MAP_TYPE = MapFlag::ERROR;  // LABYRINTH: 图二、迷宫;NORMAL:图一、正常图;UNKNOWN；图三未知图;ERROR :默认值
 int last_assign = 0;
@@ -206,9 +206,11 @@ void GameManager::initializeComponents()
     // 8. 初始化 RobotController
     this->robotController = std::make_shared<RobotController>(this->robots);
     // 9. 对泊位进行聚类
-    // cluster =
+    this->berthAssignAndControlService.initialize();
+    std::vector<int> &berthCluster = this->berthAssignAndControlService.berthCluster;
+    std::vector<std::vector<Berth>> &clusters = this->berthAssignAndControlService.clusters;
     // 10. 注册机器人调度函数
-    robotScheduler = std::make_shared<GreedyRobotScheduler>(cluster);
+    robotScheduler = std::make_shared<GreedyRobotScheduler>(berthCluster);
     // 11. 注册船舶调度函数
     shipScheduler = std::make_shared<GreedyShipScheduler>();
     // 12. 对机器人调度函数更新Params

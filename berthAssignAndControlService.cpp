@@ -16,6 +16,8 @@ void BerthAssignAndControlService::clusterResults()
 
 void BerthAssignAndControlService::clusterBerths(const Map &map, std::vector<Berth> &berths)
 {
+    LOGI("开始聚类");
+    berthCluster = std::vector<int>(BERTHNUMS , -1);
     std::vector<bool> clustered(berths.size(), false);
     // 连通性聚类
     for (int i = 0; i < berths.size(); i++)
@@ -36,7 +38,6 @@ void BerthAssignAndControlService::clusterBerths(const Map &map, std::vector<Ber
             clusters.push_back(anotherClass);
         }
     }
-
     // 距离聚类
     while (clusters.size() < 5)
     {
@@ -70,9 +71,11 @@ void BerthAssignAndControlService::clusterBerths(const Map &map, std::vector<Ber
     {
         for (int j = 0; j < clusters[i].size(); j++)
         {
+            berths[clusters[i][j].id].info();
             berthCluster[clusters[i][j].id] = i;
         }
     }
+    LOGI("聚类成功");
 }
 
 std::vector<std::vector<Berth>>

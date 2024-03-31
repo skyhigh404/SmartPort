@@ -172,7 +172,7 @@ void FinalShipScheduler::init(std::vector<Ship> &ships, std::vector<Berth> &bert
 
     // 更新船和泊位状态
     updateBerthStatus(ships, berths, goods);
-    LOGI("更新船状态");
+    LOGI("更新船状态完毕");
 
     // // 初始化聚簇的泊位信息
     // for(auto &index : *berthCluster){
@@ -186,8 +186,8 @@ void FinalShipScheduler::init(std::vector<Ship> &ships, std::vector<Berth> &bert
     assignFinalBerthsToShips(ships, berths);
     LOGI("分配船的最终泊位");
     for(auto &ship : ships){
-        LOGI("船",ship.id,"的终局id:",shipToFinal[ship.id]," ", getShipFinalBerth(ship));
-        LOGI("船的候选泊位id：",finalToBackup[shipToFinal[ship.id]], " ", getShipBackupBerth(ship));
+        LOGI("船",ship.id,"的终局id:", getShipFinalBerth(ship));
+        LOGI("船的候选泊位id：", getShipBackupBerth(ship));
     }
     hasInit = true;
 }
@@ -330,7 +330,6 @@ void FinalShipScheduler::assignFinalBerthsToShips(std::vector<Ship> &ships, std:
     // 分配终局泊位
     for(auto &ship : ships_sort){
         BerthID finalBerthId = assignFinalBerth(ship);
-        LOGI("船的终局泊位id:",finalBerthId);
         shipToFinal[ship.id] = finalBerthId;
         finalToShip[finalBerthId] = ship.id;
     }
@@ -408,9 +407,6 @@ bool FinalShipScheduler::isShipOnRouteToBackBerth(Ship &ship){
 
 // 判断船是否在终局泊位上
 bool FinalShipScheduler::isShipAtFinalBerth(Ship &ship){
-    LOGI("船的状态：",ship.state != 0);
-    LOGI("是否终局泊位，",finalToBackup.count(ship.berthId));
-    LOGI(ship.state != 0 && finalToBackup.count(ship.berthId) != 0);
     return ship.state != 0 && finalToBackup.count(ship.berthId) != 0;
 }
 
@@ -479,7 +475,6 @@ bool FinalShipScheduler::shouldDepartBerth(Ship &ship,std::vector<Berth> &berths
     if (ship.now_capacity <= 0)  return true;
     if (ship.state == 0 || ship.berthId == -1) return false;
     int timeCost = berths[ship.berthId].time;
-    LOGI("船是否应该去泊位：",timeCost + CURRENT_FRAME,":",isTimeInWithinBounds(15000 - 2,timeCost + CURRENT_FRAME, 15000));
     if(isTimeInWithinBounds(15000 - 2,timeCost + CURRENT_FRAME, 15000)) return true;
     else return false;
 }

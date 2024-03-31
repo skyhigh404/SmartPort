@@ -665,16 +665,15 @@ void GameManager::update()
 
     if(shipDebugOutput){LOGI("船只开始调度");};
     auto ship_start = std::chrono::high_resolution_clock::now();
-    std::vector<std::pair<int, Action>> ShipActions =
-        this->shipScheduler->scheduleShips(ships, berths, goods, robots, this->RobotScheduler->bestBerthIndex, this->gameMap, this->currentFrame, shipDebugOutput);
+    std::vector<std::pair<ShipID, ShipActionSpace::ShipAction>> shipActions = this->shipScheduler->scheduleShips(this->gameMap, this->ships, this->berths, this->goods, this->robots);
     auto ship_end = std::chrono::high_resolution_clock::now();
     LOGI("调度船只时长:",std::chrono::duration_cast<std::chrono::milliseconds>(ship_end - ship_start).count(),"ms");
 
     // CommandManager.shipCommands
-    for (int i = 0; i < ShipActions.size(); i++)
+    for (int i = 0; i < shipActions.size(); i++)
     {
-        int ship_id = ShipActions[i].first;
-        Action ship_action = ShipActions[i].second;
+        int ship_id = shipActions[i].first;
+        ShipActionSpace::ShipAction ship_action = shipActions[i].second;
         // 去虚拟点
         if (ship_action.type == DEPART_BERTH)
         {

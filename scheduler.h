@@ -53,8 +53,7 @@ public:
                   std::vector<Ship> &ships,
                   std::vector<Berth> &berths,
                   std::vector<Goods> &goods,
-                  std::vector<Robot> &robots,
-                  int currentFrame) = 0;
+                  std::vector<Robot> &robots) = 0;
     // 设置参数，参数定义在子类里
     virtual void setParameter(const Params &params) = 0;
     // 返回调度器名字

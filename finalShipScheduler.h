@@ -13,8 +13,7 @@ public:
                   std::vector<Ship> &ships,
                   std::vector<Berth> &berths,
                   std::vector<Goods> &goods,
-                  std::vector<Robot> &robots,
-                  int currentFrame) override;
+                  std::vector<Robot> &robots) override;
     // 设置参数
     void setParameter(const Params &params) override;
     // 返回调度器名字

@@ -9,7 +9,7 @@ void GreedyShipScheduler::setParameter(const Params &params)
     CAPACITY_GAP = params.CAPACITY_GAP;
 }
 
-std::vector<std::pair<ShipID, ShipActionSpace::ShipAction>> GreedyShipScheduler::scheduleShips(Map &map, std::vector<Ship> &ships, std::vector<Berth> &berths, std::vector<Goods> &goods, std::vector<Robot> &robots, int currentFrame) {
+std::vector<std::pair<ShipID, ShipActionSpace::ShipAction>> GreedyShipScheduler::scheduleShips(Map &map, std::vector<Ship> &ships, std::vector<Berth> &berths, std::vector<Goods> &goods, std::vector<Robot> &robots) {
     // 1. 更新泊位和货物的状态
     updateBerthStatus(ships, berths, goods);
 

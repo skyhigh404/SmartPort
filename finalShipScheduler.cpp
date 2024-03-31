@@ -12,7 +12,7 @@ void FinalShipScheduler::setParameter(const Params &params)
 FinalShipScheduler::FinalShipScheduler(const std::vector<int> &berthCluster, const std::vector<std::vector<Berth>> &clusters)
     : berthCluster(std::make_shared<std::vector<int>>(berthCluster)),clusters(std::make_shared<std::vector<std::vector<Berth>>>(clusters)){}
 
-std::vector<std::pair<ShipID, ShipActionSpace::ShipAction>> FinalShipScheduler::scheduleShips(Map &map, std::vector<Ship> &ships, std::vector<Berth> &berths, std::vector<Goods> &goods, std::vector<Robot> &robots, int currentFrame) {
+std::vector<std::pair<ShipID, ShipActionSpace::ShipAction>> FinalShipScheduler::scheduleShips(Map &map, std::vector<Ship> &ships, std::vector<Berth> &berths, std::vector<Goods> &goods, std::vector<Robot> &robots) {
     // 1. 选定终局泊位和候选泊位，分配船只
     if(!hasInit) init(ships, berths, goods);    
 

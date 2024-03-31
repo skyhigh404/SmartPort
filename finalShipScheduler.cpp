@@ -31,6 +31,8 @@ std::vector<std::pair<ShipID, ShipActionSpace::ShipAction>> FinalShipScheduler::
             }
             // 船应该前往虚拟点
             else if(shouldDepartBerth(ship, berths)){
+                LOGI("船应该前往虚拟点");
+                ship.info();
                 action = ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::DEPART_BERTH,ship.berthId);
             }
             // 船在候选泊位上
@@ -56,6 +58,8 @@ std::vector<std::pair<ShipID, ShipActionSpace::ShipAction>> FinalShipScheduler::
 // 处理船在候选泊位的情况
 ShipActionSpace::ShipAction
 FinalShipScheduler::handleShipAtBackupBerth(Ship& ship, std::vector<Berth> &berths){
+    LOGI("船在候选泊位");
+    ship.info();
     BerthID backupBerthId = getShipBackupBerth(ship);
     BerthID finalBerthId = getShipFinalBerth(ship);
     // 不在选定的候选泊位上
@@ -86,6 +90,8 @@ FinalShipScheduler::handleShipAtBackupBerth(Ship& ship, std::vector<Berth> &bert
 // 处理船在终局泊位的情况
 ShipActionSpace::ShipAction
 FinalShipScheduler::handleShipAtFinalBerth(Ship& ship, std::vector<Berth> &berths){
+    LOGI("船在最终泊位");
+    ship.info();
     BerthID backupBerthId = getShipBackupBerth(ship);
     BerthID finalBerthId = getShipFinalBerth(ship);
     #ifdef DEBUG
@@ -142,6 +148,8 @@ FinalShipScheduler::handleShipNotAtAssignedBerth(Ship& ship, std::vector<Berth> 
 // 处理船在虚拟点的情况
 ShipActionSpace::ShipAction
 FinalShipScheduler::handleShipAtVirtualPoint(Ship& ship, std::vector<Berth> &berths){
+    LOGI("船在虚拟点");
+    ship.info();
     BerthID backupBerthId = getShipBackupBerth(ship);
     BerthID finalBerthId = getShipFinalBerth(ship);
     // 判断能否前往候选泊位
@@ -161,6 +169,7 @@ void FinalShipScheduler::init(std::vector<Ship> &ships, std::vector<Berth> &bert
 
     // 更新船和泊位状态
     updateBerthStatus(ships, berths, goods);
+    LOGI("更新船状态");
 
     // // 初始化聚簇的泊位信息
     // for(auto &index : *berthCluster){
@@ -169,8 +178,10 @@ void FinalShipScheduler::init(std::vector<Ship> &ships, std::vector<Berth> &bert
     
     // 选取终局泊位和对应的候选泊位
     selectFinalAndBackupBerths(berths);
+    LOGI("选择终局泊位完毕");
     // 给船分配终局泊位和候选泊位
     assignFinalBerthsToShips(ships, berths);
+    LOGI("分配船的最终泊位");
     hasInit = true;
 }
 

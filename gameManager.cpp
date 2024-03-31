@@ -509,6 +509,127 @@ void GameManager::robotControl()
     
 }
 
+void GameManager::robotControl_new()
+{
+    bool robotDebugOutput = true;
+    // 机器人状态更新
+    for (Robot& robot:robots) {
+        if (robot.status==DEATH) continue;
+        // 机器人眩晕
+        if (robot.status == DIZZY || robot.state == 0) {
+            // 还在眩晕状态
+            robot.status = DIZZY;
+            if (robot.state == 0) continue;
+
+            // 从眩晕状态恢复
+            if (robotDebugOutput) LOGI("从眩晕状态恢复");
+            if (robot.carryingItem == 0) {
+                robot.status = MOVING_TO_GOODS;
+                robot.path = Path();
+                robot.targetid = -1;
+                robot.destination = Point2d(-1,-1);
+                robot.carryingItemId = -1;
+            }
+            else {
+                robot.status = MOVING_TO_BERTH;
+                robot.path = Path();
+                robot.targetid = -1;
+                robot.destination = Point2d(-1,-1);
+            }
+        }
+
+        // 机器人状态更新
+        if (robot.carryingItem==0) robot.status = MOVING_TO_GOODS;
+        else robot.status = MOVING_TO_BERTH;
+    }
+
+    // 对所有可能的机器人执行取货或放货指令，更新状态
+    for (Robot& robot : robots) {
+        if (robot.status==DEATH) continue;
+        if (robot.status==MOVING_TO_GOODS && robot.targetid!=-1 && robot.pos == goods[robot.targetid].pos) {
+            if (goods[robot.targetid].TTL>0) {
+                commandManager.addRobotCommand(robot.get());
+                robot.carryingItem = 1;
+                robot.carryingItemId = robot.targetid;
+                robot.status = MOVING_TO_BERTH;
+                goods[robot.targetid].TTL = INT_MAX;
+                robot.targetid = -1;
+                // Berth::maxLoadGoodNum += 1;
+            }
+            // 货物过期
+            else {
+                robot.status = MOVING_TO_GOODS;
+                robot.targetid = -1;
+                continue;
+            }
+        }
+        // else if(robot.status==MOVING_TO_BERTH && robot.targetid!=-1 && robot.pos == robot.destination) {
+        else if(robot.status==MOVING_TO_BERTH && robot.targetid!=-1) {
+            Berth &berth = berths[robot.targetid];
+            // LOGI(robot);
+            if (canUnload(berth, robot.pos)) {
+                LOGI("機器人",robot.id,"放貨 ");
+                commandManager.addRobotCommand(robot.pull());
+                int x = robot.pos.x-berth.pos.x, y=robot.pos.y-berth.pos.y;
+                if(currentFrame < 15000 - berth.time){
+                    Berth::maxLoadGoodNum += 1;
+                    totalGetGoodsValue += goods[robot.carryingItemId].value;
+                    berth.reached_goods.push_back(goods[robot.carryingItemId]);
+                    goods[robot.carryingItemId].status = 3;
+                }
+                LOGI("机器人效率统计, 当前时间, ",currentFrame,", robotID, ", robot.id, ", goodValue, ", goods[robot.carryingItemId].value, ", berthID, ", berth.id);
+                goods[robot.carryingItemId].status = 3;
+                robot.status = MOVING_TO_GOODS;
+                robot.carryingItem = 0;
+                robot.carryingItemId = -1;
+                robot.targetid = -1;
+                robot.path = Path();
+            }
+            else {
+                // robot.targetid = -1;
+            }
+        }
+    }
+    // LOGI("機器人取放貨完畢");
+
+    if (this->nowStateType()==FINAL && this->robotScheduler->enterFinal==false) {
+        LOGI("機器人調度進入終局");
+        for (Robot& robot:robots) {
+            if ( (robot.status==MOVING_TO_BERTH && berths[robot.targetid].isEnable()==false) || (robot.status==MOVING_TO_GOODS && berths[goods[robot.carryingItemId].distsToBerths[0].first].isEnable()==false)) {
+                robot.targetid = -1;
+                robot.destination = Point2d(-1,-1);
+                robot.path = Path();
+            }
+        }
+        this->robotScheduler->enterFinal = true;
+    }
+
+    auto start = std::chrono::steady_clock::now();
+    // 对所有需要调度的机器人进行调度
+    this->robotScheduler->scheduleRobots(gameMap, robots, goods, berths, currentFrame);
+
+    auto end = std::chrono::steady_clock::now();
+    LOGI("scheduleRobots时间: ",std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()," ms");
+    // LOGI("機器人調度完畢");
+
+    // 执行动作
+    robotController->runController(gameMap, this->singleLaneManager);
+    // LOGI("機器人尋路完畢");
+    // 维护单行路的锁
+    updateSingleLaneLocks();
+    
+    // 输出指令
+    for (Robot& robot : robots) {
+        if (robot.status==DEATH) continue;
+        if (!robot.path.empty()) {
+            string command = robot.movetoNextPosition();
+            // if (robotDebugOutput) LOGI(robot.id, "向货物移动中:", command, " 路径长度: ",robot.path.size());
+            commandManager.addRobotCommand(command);
+        }
+    }
+    
+}
+
 
 void GameManager::update()
 {   

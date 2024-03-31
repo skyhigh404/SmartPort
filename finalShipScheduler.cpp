@@ -1,7 +1,7 @@
 #include "FinalShipScheduler.h"
 
-FinalShipScheduler::FinalShipScheduler(const std::vector<int> &cluster)
-    : berthCluster(std::make_shared<std::vector<int>>(cluster)){}
+FinalShipScheduler::FinalShipScheduler(const std::vector<int> &berthCluster, const std::vector<std::vector<Berth>> &clusters)
+    : berthCluster(std::make_shared<std::vector<int>>(berthCluster)),clusters(std::make_shared<std::vector<std::vector<Berth>>>(clusters)){}
 
 std::vector<std::pair<ShipID, ShipActionSpace::ShipAction>> FinalShipScheduler::scheduleShips(Map &map, std::vector<Ship> &ships, std::vector<Berth> &berths, std::vector<Goods> &goods, std::vector<Robot> &robots, int currentFrame) {
     // 1. 选定终局泊位和候选泊位，分配船只
@@ -93,7 +93,7 @@ FinalShipScheduler::handleShipAtFinalBerth(Ship& ship, std::vector<Berth> &berth
     // 禁用候选泊位
     disableBerth(berths[backupBerthId]);
     // 容量不多，判断能否前往虚拟点
-    if (ship.capacityScale() < ABLE_DEPART_SCALE && shouldDepartAndReturn(ship, berths[finalBerthId])){
+    if (ship.capacityScale() < ABLE_DEPART_SCALE && shouldDepartAndReturn(ship, berths[finalBerthId], berths)){
         return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::DEPART_BERTH,-1);
     }
     //  有货装货
@@ -153,10 +153,10 @@ void FinalShipScheduler::init(std::vector<Ship> &ships, std::vector<Berth> &bert
     // 更新船和泊位状态
     updateBerthStatus(ships, berths, goods);
 
-    // 初始化聚簇的泊位信息
-    for(auto &index : *berthCluster){
-        clusters[berthCluster->at(index)].push_back(berths[index]);
-    }
+    // // 初始化聚簇的泊位信息
+    // for(auto &index : *berthCluster){
+    //     clusters[berthCluster->at(index)].push_back(berths[index]);
+    // }
     
     // 选取终局泊位和对应的候选泊位
     selectFinalAndBackupBerths(berths);
@@ -196,15 +196,28 @@ void FinalShipScheduler::updateBerthStatus(std::vector<Ship> &ships,std::vector<
 
 // 配对终局泊位和候选泊位
 void FinalShipScheduler::selectFinalAndBackupBerths(std::vector<Berth> &berths){
-    std::vector<Berth> berths_sort(berths);
-    // 按照前往虚拟点时间降序排列
-    std::sort(berths_sort.begin(), berths_sort.end(),[](Berth &a, Berth &b){
-        return a.time < b.time;
-    });
+    // 每个聚簇类按照前往虚拟点时间升序排列
+    for(int index = 0;index < clusters->size(); index++){
+        std::vector<Berth> cluster_sort(clusters->at(index));
+        std::sort(cluster_sort.begin(), cluster_sort.end(),[](Berth &a, Berth &b){
+            return a.time < b.time;
+        });
+        // 选取第一个作为终局泊位
+        finalBerths.push_back(cluster_sort[0]);
+        for(int i = 1;i < cluster_sort.size(); i++){
+            backupBerths.push_back(cluster_sort[i]);
+        }
+    }
 
-    // time最小的ShipNum个泊位为终局泊位，其余为候选泊位
-    finalBerths = std::vector<Berth>(berths_sort.begin(), berths_sort.begin() + SHIPNUMS);
-    backupBerths = std::vector<Berth>(berths_sort.begin() + SHIPNUMS, berths_sort.end());
+    // std::vector<Berth> berths_sort(berths);
+    // // 按照前往虚拟点时间降序排列
+    // std::sort(berths_sort.begin(), berths_sort.end(),[](Berth &a, Berth &b){
+    //     return a.time < b.time;
+    // });
+
+    // // time最小的ShipNum个泊位为终局泊位，其余为候选泊位
+    // finalBerths = std::vector<Berth>(berths_sort.begin(), berths_sort.begin() + SHIPNUMS);
+    // backupBerths = std::vector<Berth>(berths_sort.begin() + SHIPNUMS, berths_sort.end());
 
     // 每一对终局泊位和候选泊位的residue_num之和尽量平衡
     std::sort(finalBerths.begin(), finalBerths.end(), [](Berth &a, Berth &b){
@@ -420,7 +433,7 @@ bool FinalShipScheduler::canDepartAndReturn(Ship &ship, Berth &berth, std::vecto
 
 // 判断船是否必须去虚拟点后再回来指定泊位，最后再前往虚拟点
 bool FinalShipScheduler::shouldDepartAndReturn(Ship &ship, Berth &berth, std::vector<Berth> &berths){
-    int timeCost = berths[ship.berthId].time;
+    int timeCost = berth.time * 2 + maxLoadTime + berths[ship.berthId].time;
     //  todo 超参，缓冲帧
     if(std::clamp(15000 - 2,timeCost + CURRENT_FRAME, 15000)) return true;
     else return false;

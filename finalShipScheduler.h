@@ -23,7 +23,7 @@ public:
         return SchedulerName::Final_SHIP_SCHEDULER;
     }
 
-    FinalShipScheduler(const std::vector<int> &cluster);
+    FinalShipScheduler(const std::vector<int> &berthCluster, const std::vector<std::vector<Berth>> &clusters);
 
 private:
     // 需要用到的超参数
@@ -41,7 +41,7 @@ private:
     int hasInit = false;
 
     // 聚簇的泊位
-    std::vector<std::vector<Berth>> clusters;
+    std::shared_ptr<std::vector<std::vector<Berth>>> clusters;
     const std::shared_ptr<std::vector<int>> berthCluster;   // 每个泊位所对应的类
 
     std::unordered_map<int, int> backupToFinal; // 候选泊位对应的终局泊位

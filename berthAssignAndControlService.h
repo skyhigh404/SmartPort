@@ -7,7 +7,7 @@
 class BerthAssignAndControlService
 {
 public:
-    std::vector<std::vector<Berth>> clusters;
+    std::vector<std::vector<Berth>> clusters;   // 聚簇所得类
     std::vector<int> berthCluster; // 每个泊位所对应的类
 public:
     // 设置参数，参数定义在子类里

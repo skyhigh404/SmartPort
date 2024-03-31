@@ -22,6 +22,9 @@ public:
         return SchedulerName::Greedy_SHIP_SCHEDULER;
     }
 
+    // 初始化
+    void initialize() {}
+
 private:
     // 需要用到的超参数
     // 泊位超参数，需要搬到shipScheduler

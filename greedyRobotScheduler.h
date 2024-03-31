@@ -19,7 +19,7 @@ public:
         return SchedulerName::Greedy_ROBOT_SCHEDULER;
     }
     // 初始化
-    void initialize();
+    void initialize() {}
 
     GreedyRobotScheduler(const std::vector<int> &cluster);
 

@@ -54,7 +54,7 @@ ShipActionSpace::ShipAction
 GreedyShipScheduler::handleShipAtBerth(Ship &ship,std::vector<Berth> &berths,std::vector<Goods> &goods){
     // 前往虚拟点
     if(shouldDepartBerth(ship, berths)){
-        return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::DEPART_BERTH,-1);
+        return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::DEPART_BERTH,ship.berthId);
     }
     // 有货转货
     else if(isThereGoodsToLoad(berths[ship.berthId])){
@@ -69,7 +69,7 @@ GreedyShipScheduler::handleShipAtBerth(Ship &ship,std::vector<Berth> &berths,std
         // 附件有货，再等等
         if (isGoodsArrivingSoon(berths[ship.berthId], goods)) return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::CONTINUE,ship.berthId);
         // 附件没货，直接去虚拟点
-        else return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::DEPART_BERTH,-1);
+        else return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::DEPART_BERTH,ship.berthId);
     }
     // 容量还多，等待分配泊位
     else{

@@ -661,7 +661,7 @@ void GameManager::update()
         if (ship_action.type == DEPART_BERTH)
         {
             // LOGI(ship_id,"前往虚拟点");
-            commandManager.addShipCommand(ships[ship_id].go());
+            commandManager.addShipCommand(ships[ship_id].go(berths[ship_action.targetId].time));
         }
         // 去泊位
         if (ship_action.type == MOVE_TO_BERTH)

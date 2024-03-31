@@ -28,10 +28,10 @@ public:
 private:
     // 需要用到的超参数
     // 泊位超参数，需要搬到shipScheduler
-    const float ABLE_DEPART_SCALE = 0.15;           //可以去虚拟点的剩余容量比例
-    const int MAX_SHIP_NUM = 2;     // 一个泊位最多几艘船
-    const int TIME_TO_WAIT = 100; //等待有货的时间段
-    const int CAPACITY_GAP = 10;   // 泊位溢出货物量和船的容量差
+    float ABLE_DEPART_SCALE;           //可以去虚拟点的剩余容量比例
+    int MAX_SHIP_NUM;     // 一个泊位最多几艘船
+    int TIME_TO_WAIT; //等待有货的时间段
+    int CAPACITY_GAP;   // 泊位溢出货物量和船的容量差
     
     // 边界变量
     int maxCapacity = -1;

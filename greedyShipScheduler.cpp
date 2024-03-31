@@ -1,5 +1,13 @@
 #include "greedyShipScheduler.h"
 
+//  设置参数
+void GreedyShipScheduler::setParameter(const Params &params)
+{
+    ABLE_DEPART_SCALE = params.ABLE_DEPART_SCALE;
+    MAX_SHIP_NUM = params.MAX_SHIP_NUM;
+    TIME_TO_WAIT = params.TIME_TO_WAIT;
+    CAPACITY_GAP = params.CAPACITY_GAP;
+}
 
 std::vector<std::pair<ShipID, ShipActionSpace::ShipAction>> GreedyShipScheduler::scheduleShips(Map &map, std::vector<Ship> &ships, std::vector<Berth> &berths, std::vector<Goods> &goods, std::vector<Robot> &robots, int currentFrame) {
     // 1. 更新泊位和货物的状态

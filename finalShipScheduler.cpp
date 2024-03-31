@@ -1,5 +1,14 @@
 #include "FinalShipScheduler.h"
 
+//  设置参数
+void FinalShipScheduler::setParameter(const Params &params)
+{
+    ABLE_DEPART_SCALE = params.ABLE_DEPART_SCALE;
+    MAX_SHIP_NUM = params.MAX_SHIP_NUM;
+    TIME_TO_WAIT = params.TIME_TO_WAIT;
+    CAPACITY_GAP = params.CAPACITY_GAP;
+}
+
 FinalShipScheduler::FinalShipScheduler(const std::vector<int> &berthCluster, const std::vector<std::vector<Berth>> &clusters)
     : berthCluster(std::make_shared<std::vector<int>>(berthCluster)),clusters(std::make_shared<std::vector<std::vector<Berth>>>(clusters)){}
 

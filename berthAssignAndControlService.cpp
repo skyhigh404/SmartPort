@@ -37,13 +37,6 @@ void BerthAssignAndControlService::clusterBerths(const Map &map, std::vector<Ber
         }
     }
 
-    // for (int i=0;i<clusters.size();i++) {
-    //     LOGI("class ", i, ' ', clusters[i].size());
-    //     for (int j=0;j<clusters[i].size();j++) {
-    //         LOGI(clusters[i][j].pos);
-    //     }
-    // }
-
     // 距离聚类
     while (clusters.size() < 5)
     {
@@ -70,14 +63,6 @@ void BerthAssignAndControlService::clusterBerths(const Map &map, std::vector<Ber
         clusters.erase(clusters.begin() + argmax);
         clusters.push_back(ret[0]);
         clusters.push_back(ret[1]);
-
-        // LOGI("split");
-        // for (int i=0;i<clusters.size();i++) {
-        //     LOGI("class ", i, ' ', clusters[i].size());
-        //     for (int j=0;j<clusters[i].size();j++) {
-        //         LOGI(clusters[i][j].pos);
-        //     }
-        // }
     }
 
     // 更新berthCluster

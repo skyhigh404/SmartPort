@@ -594,22 +594,6 @@ void GameManager::robotControl()
     }
     // LOGI("機器人取放貨完畢");
 
-    if (this->nowStateType()==FINAL) {
-        GreedyRobotScheduler* greedyRobotScheduler = dynamic_cast<GreedyRobotScheduler*>(robotScheduler.get());
-        // if(greedyRobotScheduler->enterFinal==false) {
-            LOGI("機器人調度進入終局");
-            for (Robot& robot:robots) {
-                if ( (robot.status==MOVING_TO_BERTH && berths[robot.targetid].isEnable()==false) || (robot.status==MOVING_TO_GOODS && berths[goods[robot.carryingItemId].distsToBerths[0].first].isEnable()==false)) {
-                    robot.targetid = -1;
-                    robot.destination = Point2d(-1,-1);
-                    robot.path = Path();
-                }
-            }
-            // greedyRobotScheduler->enterFinal = true;
-        // }
-    }
-
-    // LOGI("機器人取放貨完畢");
 
     if (this->nowStateType()==FINAL) {
         LOGI("機器人調度進入終局");
@@ -621,7 +605,6 @@ void GameManager::robotControl()
             }
         }
     }
-
 
     auto start = std::chrono::steady_clock::now();
     // 对所有需要调度的机器人进行调度
@@ -652,12 +635,14 @@ void GameManager::robotControl()
 
 void GameManager::update()
 {   
+
     auto start = std::chrono::steady_clock::now();
     
     bool robotDebugOutput = false;
     bool shipDebugOutput = true;
 
     robotControl();
+
 
     auto end = std::chrono::steady_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
@@ -738,6 +723,7 @@ void GameManager::outputCommands()
 
 void GameManager::onBerthStatusChanged(int berthId, bool isEnabled)
 {
+    LOGI("Berth 状态改变, ID: ", berthId, ", isEnabled: ", isEnabled);
     // 泊位被启用，遍历所有货物，往 distsToBerths 中添加可达泊位的距离
     if (isEnabled)
     {

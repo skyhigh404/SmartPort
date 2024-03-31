@@ -4,7 +4,7 @@ GreedyRobotScheduler::GreedyRobotScheduler(std::vector<std::vector<Berth>> &_clu
     : clusters(_clusters), berthCluster(std::make_shared<std::vector<int>>(_berthCluster))
     // : clusters(_clusters), berthCluster(_berthCluster)
 {
-    
+    assignment = vector<int>(10, -1);
 }
 
 void GreedyRobotScheduler::scheduleRobots(const Map &map,
@@ -13,10 +13,16 @@ void GreedyRobotScheduler::scheduleRobots(const Map &map,
                                           const std::vector<Berth> &berths,
                                           const int currentFrame)
 {
+    // LOGI("货物数量：", goods.size());
     // countRobotsPerBerth(robots);
+    if (assignment[0]==-1) {
+        assignRobotsByCluster(robots, map);
+        // for (int i=0;i<assignment.size();i++) LOGI(assignment[i]);
+    }
 
     for (Robot &robot : robots)
     {
+        if (robot.status==DEATH) continue;
         // 机器人需要寻找合适的货物
         // TODO: 机器人临时改变之前拿取货物的决策，去拿取另一个货物
         if (shouldFetchGoods(robot))
@@ -44,7 +50,7 @@ void GreedyRobotScheduler::setParameter(const Params &params)
     PartitionScheduling = params.PartitionScheduling;
 }
 
-void GreedyRobotScheduler::assignRobotsByCluster(vector<Robot> &robots, Map &map, vector<int> assignBound)
+void GreedyRobotScheduler::assignRobotsByCluster(vector<Robot> &robots, const Map &map, vector<int> assignBound)
 {
     if (assignment.empty()) 
         assignment = vector<int>(10, -1);
@@ -253,7 +259,9 @@ GreedyRobotScheduler::Cost_GoodToBerth(std::vector<std::reference_wrapper<Goods>
     for (int j = 0; j < availableGoods.size(); j++)
     {
         // 进入终局的时候要更新distsToBerths
-        cost_good2berth[j] = availableGoods[j].get().distsToBerths[0].second;
+        // LOGI(j, " cost_good2berth ", availableGoods[j].get().distsToBerths.empty());
+        if (availableGoods[j].get().distsToBerths.empty()) cost_good2berth[j] = INT_MAX;
+        else cost_good2berth[j] = availableGoods[j].get().distsToBerths[0].second;
     }
     return cost_good2berth;
 }
@@ -313,11 +321,11 @@ void GreedyRobotScheduler::findGoodsForRobot(const Map &map,
         int goodIndex = index[j];
         Goods &good = availableGoods[goodIndex].get();
         // int berthsIndex = bestBerthIndex[goodsIndex];
-        int berthsIndex = good.distsToBerths[0].first;
         int timeToGoods = cost_robot2good[goodIndex];
         int timeToBerths = cost_good2berth[goodIndex];
         if (timeToBerths == INT_MAX || timeToGoods == INT_MAX)
             continue;
+        int berthsIndex = good.distsToBerths[0].first;
         // LOGI("货物id：",good.id,"货物状态：",good.status,"货物收益：",profits[good.id]);
         if (PartitionScheduling && !enterFinal && berthCluster->at(berthsIndex)!=assignment[robot.id]) continue;
 

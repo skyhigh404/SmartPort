@@ -41,7 +41,7 @@ private:
 
 private:
     // 根据类来分配机器人
-    void assignRobotsByCluster(vector<Robot> &robots, Map &map, vector<int> assignBound = vector<int>());
+    void assignRobotsByCluster(vector<Robot> &robots, const Map &map, vector<int> assignBound = vector<int>());
     // 根据类来重新分配机器人
     void reassignRobotsByCluster(vector<Goods> &goods, vector<Robot> &robots, Map &map, std::vector<Berth> &berths);
     // 统计每个泊位分配了多少机器人，维护 robotAllocationPerBerth 变量

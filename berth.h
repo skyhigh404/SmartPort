@@ -1,20 +1,31 @@
 #pragma once
 
 #include "utils.h"
+#include "log.h"
+
+// 观察者接口
+class BerthObserver
+{
+public:
+    virtual void onBerthStatusChanged(int berthId, bool isEnabled) = 0;
+};
 
 class Berth
 {
     // 泊位间移动时间 500 帧
 public:
-    int id;
+    int id;       // 泊位 ID
     Point2d pos;  // 泊位左上角的坐标，泊位是一个 4x4 的矩形
     int time;     // 该泊位轮船运输到虚拟点的时间(虚拟点移动到泊位的时间同)，即产生价值的时间，时间用帧数表示。
     int velocity; // Velocity(1 <= Velocity <= 5)表示该泊位的装载速度，即每帧可以装载的物品数。
 
+private:
+    bool isEnabled;          // 标识泊位是否启用
+    BerthObserver *observer; // 泊位的观察者
 public:
-    // 单个泊位维护的状态变量
-    bool isEnabled; // 标识泊位是否启用
-    int category;   // 标识该泊位聚类后的类别
+    int category;            // 标识该泊位聚类后的类别
+
+public:
     int stockpile;                      // 泊位堆积的货物量
     int stockpileValue;                 // 泊位堆积的货物的价值
     std::vector<Goods> reached_goods;   // 堆积货物的列表
@@ -39,16 +50,50 @@ public:
     // const static int MAX_SHIP_NUM = 2; // 一个泊位最多几艘船
 
     Berth(int id, Point2d pos, int time, int velocity)
-        : id(id), 
-        pos(pos), 
-        time(time), 
-        velocity(velocity), 
-        isEnabled(true),
-        category(-1),
-        stockpile(0), 
-        stockpileValue(0)
+        : id(id),
+          pos(pos),
+          time(time),
+          velocity(velocity),
+          isEnabled(true),
+          category(-1),
+          stockpile(0),
+          stockpileValue(0)
     {
         storageSlots = std::vector<std::vector<int>>(4, std::vector<int>(4, -1));
+    }
+
+    // 判断泊位是否启用
+    bool isEnable() const {
+        return isEnable;
+    }
+
+    // 启动泊位，通知观察者
+    void enable()
+    {
+        isEnabled = true;
+        notifyObservers();
+    }
+
+    // 禁用泊位，通知观察者
+    void disable()
+    {
+        isEnabled = false;
+        notifyObservers();
+    }
+
+    // 注册观察者
+    void registerObserver(BerthObserver *observer)
+    {
+        this->observer = observer;
+    }
+
+    // 通知观察者
+    void notifyObservers()
+    {
+        if(observer)
+            observer->onBerthStatusChanged(id, isEnabled);
+        else
+            LOGE("没有注册观察者");
     }
 
     // 打印泊位信息

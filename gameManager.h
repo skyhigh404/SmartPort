@@ -16,7 +16,7 @@
 
 #include "singleLaneManager.h"
 
-class GameManager
+class GameManager : public BerthObserver
 {
 public:
     RobotScheduler *robotScheduler;
@@ -91,4 +91,8 @@ public:
             return StageType::FINAL;
         }
     }
+
+private:
+    // 处理泊位的状态发生变化
+    void onBerthStatusChanged(int berthId, bool isEnabled) override;
 };

@@ -576,3 +576,15 @@ void GameManager::outputCommands()
     commandManager.outputCommands();
     commandManager.clearCommands();
 }
+
+void GameManager::onBerthStatusChanged(int berthId, bool isEnabled) override
+{
+    if(isEnabled)
+    {
+
+    }
+    // 泊位被禁用
+    else{
+
+    }
+}

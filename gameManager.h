@@ -24,10 +24,6 @@ public:
     std::shared_ptr<ShipScheduler> shipScheduler;
     std::shared_ptr<RobotController> robotController;
 
-    // 将下面的废弃
-    // Scheduler *ShipScheduler;
-    // Scheduler *RobotScheduler;
-
 public:
     Map gameMap;
     CommandManager commandManager;
@@ -55,47 +51,7 @@ public:
     void robotControl();          // 运行机器人控制器
     void robotControl_new();      // 运行机器人控制器
     void updateSingleLaneLocks(); // 维护单行路的锁
-
-    // void setShipScheduler(ShipScheduler *scheduler)
-    // {
-    //     this->shipScheduler = scheduler;
-    // }
-    // void setRobotScheduler(RobotScheduler *scheduler)
-    // {
-    //     this->robotScheduler = scheduler;
-    // }
-
-    inline StageType nowStateType()
-    {
-        // 初始化
-        if (finalFrame == -1)
-        {
-            // 最终帧计算公式
-            // todo 可以调参,应该考虑机器人的路途代价
-            // finalFrame = 15000 - 最大的泊位运输时间 * 3 - 最大的船舶容量 / 最小的泊位装货速度（装货时间） * 2 - 船舶移动的运输时间 - 缓冲时间
-
-            int maxCapacity = -1, minVelocity = INT_MAX, maxTime = -1;
-            for (auto &ship : ships)
-                maxCapacity = std::max(maxCapacity, ship.capacity);
-            for (auto &berth : berths)
-                minVelocity = std::min(minVelocity, berth.velocity), maxTime = std::max(maxTime, berth.time);
-
-            finalFrame = 15000 - maxTime * 3 - static_cast<int>(maxCapacity / minVelocity) * 2 - 500;
-        }
-        // LOGI("终局帧数：",finalFrame);
-        // LOGI("当前帧数：",currentFrame);
-        if (currentFrame < finalFrame)
-        {
-            return StageType::SIMPLE;
-        }
-        else
-        {
-            #ifdef DEBUG
-            LOGI("进入终局调度，终局帧数：",finalFrame,",当前帧数：",currentFrame);
-            #endif
-            return StageType::FINAL;
-        }
-    }
+    StageType nowStateType();
 
 private:
     // 处理泊位的状态发生变化

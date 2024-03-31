@@ -57,13 +57,13 @@ FinalShipScheduler::handleShipAtBackupBerth(Ship& ship, std::vector<Berth> &bert
     // todo 超参数
     if(shouldDepartAndReturn(ship, berths[finalBerthId], berths) && ship.capacityScale() < 0.8){
         // 禁用候选泊位
-        disableBerth(berths[backupBerthId]);
+        berths[backupBerthId].disable();
         return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::DEPART_BERTH,-1);
     }
     //  必须前往最终泊位
     else if (shouldReachFinalBerth(ship, berths)){
         // 禁用候选泊位
-        disableBerth(berths[backupBerthId]);
+        berths[backupBerthId].disable();
         return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::MOVE_TO_BERTH, finalBerthId); 
     }
     // 有货装货
@@ -91,7 +91,7 @@ FinalShipScheduler::handleShipAtFinalBerth(Ship& ship, std::vector<Berth> &berth
          return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::MOVE_TO_BERTH, backupBerthId); 
     }
     // 禁用候选泊位
-    disableBerth(berths[backupBerthId]);
+    berths[backupBerthId].disable();
     // 容量不多，判断能否前往虚拟点
     if (ship.capacityScale() < ABLE_DEPART_SCALE && shouldDepartAndReturn(ship, berths[finalBerthId], berths)){
         return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::DEPART_BERTH,-1);
@@ -120,7 +120,7 @@ FinalShipScheduler::handleShipNotAtAssignedBerth(Ship& ship, std::vector<Berth> 
     // 否则判断船是否能前往最终泊位
     else if(canReachFinalBerth(ship, berths)){
         // 禁用候选泊位
-        disableBerth(berths[backupBerthId]);
+        berths[backupBerthId].disable();
         return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::MOVE_TO_BERTH, finalBerthId); 
     }
     // 有货装货
@@ -177,7 +177,7 @@ void FinalShipScheduler::updateBerthStatus(std::vector<Ship> &ships,std::vector<
     }
     //  遍历货物，更新泊位的溢出货物量和价值
     for(auto &good : goods){
-        if((good.status == 1 || good.status == 2) && berths[good.distsToBerths[0].first].isEnabled){
+        if((good.status == 1 || good.status == 2) && berths[good.distsToBerths[0].first].isEnable()){
              berths[good.distsToBerths[0].first].residue_num += 1;
         }
     }
@@ -449,14 +449,14 @@ bool FinalShipScheduler::shouldDepartBerth(Ship &ship,std::vector<Berth> &berths
     else return false;
 }
 
-// 禁用泊位
-void FinalShipScheduler::disableBerth(Berth &berth){
-    #ifdef  DEBUG
-    if(berth.isEnabled == false) LOGE("重复禁用泊位");
-    #endif;
+// // 禁用泊位
+// void FinalShipScheduler::disableBerth(Berth &berth){
+//     #ifdef  DEBUG
+//     if(berth.isEnabled == false) LOGE("重复禁用泊位");
+//     #endif;
 
-    berth.isEnabled = false;
-}
+//     berth.isEnabled = false;
+// }
 
 // 判断泊位上是否有货物可装载
 bool FinalShipScheduler::isThereGoodsToLoad(Berth &berth){

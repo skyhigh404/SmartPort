@@ -125,9 +125,8 @@ private:
     // 判断船是否必须前往虚拟点
     bool shouldDepartBerth(Ship &ship,std::vector<Berth> &berths);
 
-    // 禁用泊位
-    void disableBerth(Berth &berth);
-
+    // // 禁用泊位
+    // void disableBerth(Berth &berth);
 
     // 初始化泊位的状态
     void updateBerthStatus(std::vector<Ship> &ships,std::vector<Berth> &berths,std::vector<Goods> & goods);

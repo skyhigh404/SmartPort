@@ -325,193 +325,193 @@ void GameManager::processFrameData()
     // }
 }
 
+// void GameManager::robotControl()
+// {
+//     bool robotDebugOutput = true;
+//     // 机器人状态更新
+//     for (Robot& robot:robots) {
+//         if (robot.status==DEATH) continue;
+//         // 机器人眩晕
+//         if (robot.status == DIZZY || robot.state == 0) {
+//             // 还在眩晕状态
+//             robot.status = DIZZY;
+//             if (robot.state == 0) continue;
+
+//             // 从眩晕状态恢复
+//             if (robotDebugOutput) LOGI("从眩晕状态恢复");
+//             if (robot.carryingItem == 0) {
+//                 robot.status = MOVING_TO_GOODS;
+//                 robot.path = Path();
+//                 robot.targetid = -1;
+//                 robot.destination = Point2d(-1,-1);
+//                 robot.carryingItemId = -1;
+//             }
+//             else {
+//                 robot.status = MOVING_TO_BERTH;
+//                 robot.path = Path();
+//                 robot.targetid = -1;
+//                 robot.destination = Point2d(-1,-1);
+//             }
+//         }
+
+//         // 机器人状态更新
+//         if (robot.carryingItem==0) robot.status = MOVING_TO_GOODS;
+//         else robot.status = MOVING_TO_BERTH;
+//     }
+
+//     // 对所有可能的机器人执行取货或放货指令，更新状态
+//     for (Robot& robot : robots) {
+//         if (robot.status==DEATH) continue;
+//         if (robot.status==MOVING_TO_GOODS && robot.targetid!=-1 && robot.pos == goods[robot.targetid].pos) {
+//             if (goods[robot.targetid].TTL>0) {
+//                 commandManager.addRobotCommand(robot.get());
+//                 robot.carryingItem = 1;
+//                 robot.carryingItemId = robot.targetid;
+//                 robot.status = MOVING_TO_BERTH;
+//                 goods[robot.targetid].TTL = INT_MAX;
+//                 robot.targetid = -1;
+//                 // Berth::maxLoadGoodNum += 1;
+//             }
+//             // 货物过期
+//             else {
+//                 robot.status = MOVING_TO_GOODS;
+//                 robot.targetid = -1;
+//                 continue;
+//             }
+//         }
+//         // else if(robot.status==MOVING_TO_BERTH && robot.targetid!=-1 && robot.pos == robot.destination) {
+//         else if(robot.status==MOVING_TO_BERTH && robot.targetid!=-1) {
+//             Berth &berth = berths[robot.targetid];
+//             // LOGI(robot);
+//             if (canUnload(berth, robot.pos)) {
+//                 LOGI("機器人",robot.id,"放貨 ");
+//                 commandManager.addRobotCommand(robot.pull());
+//                 int x = robot.pos.x-berth.pos.x, y=robot.pos.y-berth.pos.y;
+//                 // berth.storageSlots[x][y] = goods[robot.carryingItemId].id;
+//                 if(currentFrame < 15000 - berth.time){
+//                     Berth::maxLoadGoodNum += 1;
+//                     totalGetGoodsValue += goods[robot.carryingItemId].value;
+//                     berth.reached_goods.push_back(goods[robot.carryingItemId]);
+//                     goods[robot.carryingItemId].status = 3;
+//                 }
+//                 LOGI("机器人效率统计, 当前时间, ",currentFrame,", robotID, ", robot.id, ", goodValue, ", goods[robot.carryingItemId].value, ", berthID, ", berth.id);
+//                 goods[robot.carryingItemId].status = 3;
+//                 robot.status = MOVING_TO_GOODS;
+//                 robot.carryingItem = 0;
+//                 robot.carryingItemId = -1;
+//                 robot.targetid = -1;
+//                 robot.path = Path();
+//             }
+//             else {
+//                 // robot.targetid = -1;
+//             }
+//         }
+//     }
+//     // LOGI("機器人取放貨完畢");
+
+//     if (this->RobotScheduler->getSchedulerType()==FINAL && this->RobotScheduler->enterFinal==false) {
+//         LOGI("機器人調度進入終局");
+//         for (Robot& robot:robots) {
+//             if ( (robot.status==MOVING_TO_BERTH && Berth::available_berths[robot.targetid]==false) || (robot.status==MOVING_TO_GOODS && Berth::available_berths[this->RobotScheduler->bestBerthIndex[robot.targetid][0]==false])) {
+//                 robot.targetid = -1;
+//                 robot.destination = Point2d(-1,-1);
+//                 robot.path = Path();
+//             }
+//         }
+//         this->RobotScheduler->bestBerthIndex.clear();
+//         this->RobotScheduler->enterFinal = true;
+//     }
+
+//     auto start = std::chrono::steady_clock::now();
+//     // 为机器人分配类
+//     // if (MAP_INDEX==2) { // 为正常图开启动态调度
+//     // // if (currentFrame-last_assign >= 15) {
+//     //     // LOGI("MAP2");
+//     if (this->RobotScheduler->reassign && this->RobotScheduler->dynamicSchedule)
+//         this->RobotScheduler->reassignRobots(goods, robots, gameMap, berths);
+//     //     // last_assign = currentFrame;
+//     // }
+//     // 对所有需要调度的机器人进行调度
+//     for (Robot& robot : robots) {
+//         if (robot.status==DEATH) continue;
+//         if ((robot.status==MOVING_TO_GOODS && robot.targetid==-1) || (robot.status==MOVING_TO_BERTH && robot.targetid==-1)) {
+//             Action action = this->RobotScheduler->scheduleRobot(robot, gameMap, goods, berths, robotDebugOutput);
+//             if (action.type==FAIL) {
+//                 LOGI("機器人",robot.id,"調度失敗");
+//                 robot.targetid = -1;
+//                 robot.destination = Point2d(-1,-1);
+//                 continue;
+//             }
+//             robot.targetid = action.targetId;
+//             robot.destination = action.destination;
+//         }
+//     }
+
+//     // // 分配货物
+//     // vector<Robot> needSchedule;
+//     // for (Robot& robot : robots) {
+//     //     if (robot.status==DEATH) continue;
+//     //     if (needSchedule.size()>=3) break;
+//     //     if ((robot.status==MOVING_TO_GOODS && robot.targetid==-1)) {
+//     //         needSchedule.push_back(robot);
+//     //     }
+//     // }
+//     // vector<Goods> availableGoods;
+//     // for (Goods& good : goods) {
+//     //     if (good.status==0) availableGoods.push_back(good);
+//     // }
+//     // vector<int> array(needSchedule.size(), -1); int idx=0;
+//     // this->RobotScheduler->calCostAndBestBerthIndes(gameMap, goods, berths);
+//     // this->RobotScheduler->LPscheduleRobots(needSchedule, gameMap, availableGoods, berths, array, idx);
+//     // vector<int> scheduleResult = this->RobotScheduler->getResult();
+//     // for (int i=0;i<scheduleResult.size();i++) {
+//     //     // LOGI(scheduleResult[i]);
+//     //     int index = scheduleResult[i];
+//     //     Robot& robot = robots[needSchedule[i].id];
+//     //     if (index==-1) {
+//     //         LOGI("機器人",robot.id,"調度失敗");
+//     //         robot.targetid = -1;
+//     //         robot.destination = Point2d(-1,-1);
+//     //         continue;
+//     //     }
+//     //     robot.targetid = availableGoods[index].id;
+//     //     robot.destination = availableGoods[index].pos;
+//     //     goods[availableGoods[index].id].status = 1;
+//     //     LOGI("机器人分配货物：",robot.id,' ',robot.targetid,' ',robot.destination);
+//     // }
+//     // // 分配泊位
+//     // for (Robot& robot:robots) {
+//     //     // LOGI(robot);
+//     //     if (robot.status==DEATH) continue;
+//     //     Action action = this->RobotScheduler->scheduleRobot(robot, gameMap, goods,berths, false);
+//     //     if (action.type!=FAIL) {
+//     //         robot.targetid = action.targetId;
+//     //         robot.destination = action.destination;
+//     //     }
+//     // }
+//     auto end = std::chrono::steady_clock::now();
+//     LOGI("scheduleRobots时间: ",std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()," ms");
+//     // LOGI("機器人調度完畢");
+
+//     // 执行动作
+//     robotController->runController(gameMap, this->singleLaneManager);
+//     // LOGI("機器人尋路完畢");
+//     // 维护单行路的锁
+//     updateSingleLaneLocks();
+    
+//     // 输出指令
+//     for (Robot& robot : robots) {
+//         if (robot.status==DEATH) continue;
+//         if (!robot.path.empty()) {
+//             string command = robot.movetoNextPosition();
+//             // if (robotDebugOutput) LOGI(robot.id, "向货物移动中:", command, " 路径长度: ",robot.path.size());
+//             commandManager.addRobotCommand(command);
+//         }
+//     }
+    
+// }
+
 void GameManager::robotControl()
-{
-    bool robotDebugOutput = true;
-    // 机器人状态更新
-    for (Robot& robot:robots) {
-        if (robot.status==DEATH) continue;
-        // 机器人眩晕
-        if (robot.status == DIZZY || robot.state == 0) {
-            // 还在眩晕状态
-            robot.status = DIZZY;
-            if (robot.state == 0) continue;
-
-            // 从眩晕状态恢复
-            if (robotDebugOutput) LOGI("从眩晕状态恢复");
-            if (robot.carryingItem == 0) {
-                robot.status = MOVING_TO_GOODS;
-                robot.path = Path();
-                robot.targetid = -1;
-                robot.destination = Point2d(-1,-1);
-                robot.carryingItemId = -1;
-            }
-            else {
-                robot.status = MOVING_TO_BERTH;
-                robot.path = Path();
-                robot.targetid = -1;
-                robot.destination = Point2d(-1,-1);
-            }
-        }
-
-        // 机器人状态更新
-        if (robot.carryingItem==0) robot.status = MOVING_TO_GOODS;
-        else robot.status = MOVING_TO_BERTH;
-    }
-
-    // 对所有可能的机器人执行取货或放货指令，更新状态
-    for (Robot& robot : robots) {
-        if (robot.status==DEATH) continue;
-        if (robot.status==MOVING_TO_GOODS && robot.targetid!=-1 && robot.pos == goods[robot.targetid].pos) {
-            if (goods[robot.targetid].TTL>0) {
-                commandManager.addRobotCommand(robot.get());
-                robot.carryingItem = 1;
-                robot.carryingItemId = robot.targetid;
-                robot.status = MOVING_TO_BERTH;
-                goods[robot.targetid].TTL = INT_MAX;
-                robot.targetid = -1;
-                // Berth::maxLoadGoodNum += 1;
-            }
-            // 货物过期
-            else {
-                robot.status = MOVING_TO_GOODS;
-                robot.targetid = -1;
-                continue;
-            }
-        }
-        // else if(robot.status==MOVING_TO_BERTH && robot.targetid!=-1 && robot.pos == robot.destination) {
-        else if(robot.status==MOVING_TO_BERTH && robot.targetid!=-1) {
-            Berth &berth = berths[robot.targetid];
-            // LOGI(robot);
-            if (canUnload(berth, robot.pos)) {
-                LOGI("機器人",robot.id,"放貨 ");
-                commandManager.addRobotCommand(robot.pull());
-                int x = robot.pos.x-berth.pos.x, y=robot.pos.y-berth.pos.y;
-                // berth.storageSlots[x][y] = goods[robot.carryingItemId].id;
-                if(currentFrame < 15000 - berth.time){
-                    Berth::maxLoadGoodNum += 1;
-                    totalGetGoodsValue += goods[robot.carryingItemId].value;
-                    berth.reached_goods.push_back(goods[robot.carryingItemId]);
-                    goods[robot.carryingItemId].status = 3;
-                }
-                LOGI("机器人效率统计, 当前时间, ",currentFrame,", robotID, ", robot.id, ", goodValue, ", goods[robot.carryingItemId].value, ", berthID, ", berth.id);
-                goods[robot.carryingItemId].status = 3;
-                robot.status = MOVING_TO_GOODS;
-                robot.carryingItem = 0;
-                robot.carryingItemId = -1;
-                robot.targetid = -1;
-                robot.path = Path();
-            }
-            else {
-                // robot.targetid = -1;
-            }
-        }
-    }
-    // LOGI("機器人取放貨完畢");
-
-    if (this->RobotScheduler->getSchedulerType()==FINAL && this->RobotScheduler->enterFinal==false) {
-        LOGI("機器人調度進入終局");
-        for (Robot& robot:robots) {
-            if ( (robot.status==MOVING_TO_BERTH && Berth::available_berths[robot.targetid]==false) || (robot.status==MOVING_TO_GOODS && Berth::available_berths[this->RobotScheduler->bestBerthIndex[robot.targetid][0]==false])) {
-                robot.targetid = -1;
-                robot.destination = Point2d(-1,-1);
-                robot.path = Path();
-            }
-        }
-        this->RobotScheduler->bestBerthIndex.clear();
-        this->RobotScheduler->enterFinal = true;
-    }
-
-    auto start = std::chrono::steady_clock::now();
-    // 为机器人分配类
-    // if (MAP_INDEX==2) { // 为正常图开启动态调度
-    // // if (currentFrame-last_assign >= 15) {
-    //     // LOGI("MAP2");
-    if (this->RobotScheduler->reassign && this->RobotScheduler->dynamicSchedule)
-        this->RobotScheduler->reassignRobots(goods, robots, gameMap, berths);
-    //     // last_assign = currentFrame;
-    // }
-    // 对所有需要调度的机器人进行调度
-    for (Robot& robot : robots) {
-        if (robot.status==DEATH) continue;
-        if ((robot.status==MOVING_TO_GOODS && robot.targetid==-1) || (robot.status==MOVING_TO_BERTH && robot.targetid==-1)) {
-            Action action = this->RobotScheduler->scheduleRobot(robot, gameMap, goods, berths, robotDebugOutput);
-            if (action.type==FAIL) {
-                LOGI("機器人",robot.id,"調度失敗");
-                robot.targetid = -1;
-                robot.destination = Point2d(-1,-1);
-                continue;
-            }
-            robot.targetid = action.targetId;
-            robot.destination = action.destination;
-        }
-    }
-
-    // // 分配货物
-    // vector<Robot> needSchedule;
-    // for (Robot& robot : robots) {
-    //     if (robot.status==DEATH) continue;
-    //     if (needSchedule.size()>=3) break;
-    //     if ((robot.status==MOVING_TO_GOODS && robot.targetid==-1)) {
-    //         needSchedule.push_back(robot);
-    //     }
-    // }
-    // vector<Goods> availableGoods;
-    // for (Goods& good : goods) {
-    //     if (good.status==0) availableGoods.push_back(good);
-    // }
-    // vector<int> array(needSchedule.size(), -1); int idx=0;
-    // this->RobotScheduler->calCostAndBestBerthIndes(gameMap, goods, berths);
-    // this->RobotScheduler->LPscheduleRobots(needSchedule, gameMap, availableGoods, berths, array, idx);
-    // vector<int> scheduleResult = this->RobotScheduler->getResult();
-    // for (int i=0;i<scheduleResult.size();i++) {
-    //     // LOGI(scheduleResult[i]);
-    //     int index = scheduleResult[i];
-    //     Robot& robot = robots[needSchedule[i].id];
-    //     if (index==-1) {
-    //         LOGI("機器人",robot.id,"調度失敗");
-    //         robot.targetid = -1;
-    //         robot.destination = Point2d(-1,-1);
-    //         continue;
-    //     }
-    //     robot.targetid = availableGoods[index].id;
-    //     robot.destination = availableGoods[index].pos;
-    //     goods[availableGoods[index].id].status = 1;
-    //     LOGI("机器人分配货物：",robot.id,' ',robot.targetid,' ',robot.destination);
-    // }
-    // // 分配泊位
-    // for (Robot& robot:robots) {
-    //     // LOGI(robot);
-    //     if (robot.status==DEATH) continue;
-    //     Action action = this->RobotScheduler->scheduleRobot(robot, gameMap, goods,berths, false);
-    //     if (action.type!=FAIL) {
-    //         robot.targetid = action.targetId;
-    //         robot.destination = action.destination;
-    //     }
-    // }
-    auto end = std::chrono::steady_clock::now();
-    LOGI("scheduleRobots时间: ",std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()," ms");
-    // LOGI("機器人調度完畢");
-
-    // 执行动作
-    robotController->runController(gameMap, this->singleLaneManager);
-    // LOGI("機器人尋路完畢");
-    // 维护单行路的锁
-    updateSingleLaneLocks();
-    
-    // 输出指令
-    for (Robot& robot : robots) {
-        if (robot.status==DEATH) continue;
-        if (!robot.path.empty()) {
-            string command = robot.movetoNextPosition();
-            // if (robotDebugOutput) LOGI(robot.id, "向货物移动中:", command, " 路径长度: ",robot.path.size());
-            commandManager.addRobotCommand(command);
-        }
-    }
-    
-}
-
-void GameManager::robotControl_new()
 {
     bool robotDebugOutput = true;
     // 机器人状态更新
@@ -648,7 +648,8 @@ void GameManager::update()
 
     if(shipDebugOutput){LOGI("船只开始调度");};
     auto ship_start = std::chrono::high_resolution_clock::now();
-    std::vector<std::pair<int, Action>> ShipActions = this->ShipScheduler->scheduleShips(ships, berths, goods, robots,this->RobotScheduler->bestBerthIndex,this->gameMap,this->currentFrame, shipDebugOutput);
+    std::vector<std::pair<int, Action>> ShipActions =
+        this->shipScheduler->scheduleShips(ships, berths, goods, robots, this->RobotScheduler->bestBerthIndex, this->gameMap, this->currentFrame, shipDebugOutput);
     auto ship_end = std::chrono::high_resolution_clock::now();
     LOGI("调度船只时长:",std::chrono::duration_cast<std::chrono::milliseconds>(ship_end - ship_start).count(),"ms");
 
@@ -730,8 +731,8 @@ void GameManager::onBerthStatusChanged(int berthId, bool isEnabled)
             if (distance < INT_MAX)
             {
                 std::pair<BerthID, int> newItem(berthId, distance);
-                auto it = std::lower_bound(distsToBerths.begin(),
-                                           distsToBerths.end(),
+                auto it = std::lower_bound(g.distsToBerths.begin(),
+                                           g.distsToBerths.end(),
                                            newItem,
                                            [](const std::pair<BerthID, int> &a,
                                               const std::pair<BerthID, int> &b)

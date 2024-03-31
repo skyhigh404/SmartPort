@@ -2,6 +2,7 @@
 
 #include "utils.h"
 #include "log.h"
+#include "goods.h"
 
 // 观察者接口
 class BerthObserver
@@ -64,7 +65,7 @@ public:
 
     // 判断泊位是否启用
     bool isEnable() const {
-        return isEnable;
+        return isEnabled;
     }
 
     // 启动泊位，通知观察者

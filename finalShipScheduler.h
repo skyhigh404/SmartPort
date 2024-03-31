@@ -120,7 +120,7 @@ private:
     // 判断船是否能去虚拟点后再回来指定泊位，最后再前往虚拟点
     bool canDepartAndReturn(Ship &ship, Berth &berth, std::vector<Berth> &berths);
 
-    bool FinalShipScheduler::shouldDepartAndReturn(Ship &ship, Berth &berth, std::vector<Berth> &berths);
+    bool shouldDepartAndReturn(Ship &ship, Berth &berth, std::vector<Berth> &berths);
 
     // 判断船是否必须前往虚拟点
     bool shouldDepartBerth(Ship &ship,std::vector<Berth> &berths);

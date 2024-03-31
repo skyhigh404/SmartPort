@@ -598,14 +598,16 @@ void GameManager::robotControl()
     if (this->nowStateType()==FINAL) {
         LOGI("機器人調度進入終局");
         for (Robot& robot:robots) {
-            if ( (robot.status==MOVING_TO_BERTH && berths[robot.targetid].isEnable()==false) || (robot.status==MOVING_TO_GOODS && berths[goods[robot.carryingItemId].distsToBerths[0].first].isEnable()==false)) {
+            if (robot.targetid==-1) continue;
+            if ( (robot.status==MOVING_TO_BERTH && berths[robot.targetid].isEnable()==false) || (robot.status==MOVING_TO_GOODS && berths[goods[robot.targetid].distsToBerths[0].first].isEnable()==false)) {
                 robot.targetid = -1;
                 robot.destination = Point2d(-1,-1);
                 robot.path = Path();
             }
         }
+        LOGI("機器人調度進入終局");
     }
-
+    
     auto start = std::chrono::steady_clock::now();
     // 对所有需要调度的机器人进行调度
     this->robotScheduler->scheduleRobots(gameMap, robots, goods, berths, currentFrame);

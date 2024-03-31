@@ -594,22 +594,6 @@ void GameManager::robotControl()
     }
     // LOGI("機器人取放貨完畢");
 
-    if (this->nowStateType()==FINAL) {
-        GreedyRobotScheduler* greedyRobotScheduler = dynamic_cast<GreedyRobotScheduler*>(robotScheduler.get());
-        // if(greedyRobotScheduler->enterFinal==false) {
-            LOGI("機器人調度進入終局");
-            for (Robot& robot:robots) {
-                if ( (robot.status==MOVING_TO_BERTH && berths[robot.targetid].isEnable()==false) || (robot.status==MOVING_TO_GOODS && berths[goods[robot.carryingItemId].distsToBerths[0].first].isEnable()==false)) {
-                    robot.targetid = -1;
-                    robot.destination = Point2d(-1,-1);
-                    robot.path = Path();
-                }
-            }
-            // greedyRobotScheduler->enterFinal = true;
-        // }
-    }
-
-    // LOGI("機器人取放貨完畢");
 
     if (this->nowStateType()==FINAL) {
         LOGI("機器人調度進入終局");
@@ -652,12 +636,14 @@ void GameManager::robotControl()
 
 void GameManager::update()
 {   
+
     auto start = std::chrono::steady_clock::now();
     
     bool robotDebugOutput = false;
     bool shipDebugOutput = true;
 
     robotControl();
+
 
     auto end = std::chrono::steady_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);

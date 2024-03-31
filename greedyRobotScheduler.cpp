@@ -4,7 +4,7 @@ GreedyRobotScheduler::GreedyRobotScheduler(std::vector<std::vector<Berth>> &_clu
     : clusters(_clusters), berthCluster(std::make_shared<std::vector<int>>(_berthCluster))
     // : clusters(_clusters), berthCluster(_berthCluster)
 {
-    
+    assignment = vector<int>(10, -1);
 }
 
 void GreedyRobotScheduler::scheduleRobots(const Map &map,
@@ -14,9 +14,11 @@ void GreedyRobotScheduler::scheduleRobots(const Map &map,
                                           const int currentFrame)
 {
     // countRobotsPerBerth(robots);
+    if (assignment[0]==-1) assignRobotsByCluster(robots, map);
 
     for (Robot &robot : robots)
     {
+        if (robot.status==DEATH) continue;
         // 机器人需要寻找合适的货物
         // TODO: 机器人临时改变之前拿取货物的决策，去拿取另一个货物
         if (shouldFetchGoods(robot))
@@ -44,7 +46,7 @@ void GreedyRobotScheduler::setParameter(const Params &params)
     PartitionScheduling = params.PartitionScheduling;
 }
 
-void GreedyRobotScheduler::assignRobotsByCluster(vector<Robot> &robots, Map &map, vector<int> assignBound)
+void GreedyRobotScheduler::assignRobotsByCluster(vector<Robot> &robots, const Map &map, vector<int> assignBound)
 {
     if (assignment.empty()) 
         assignment = vector<int>(10, -1);

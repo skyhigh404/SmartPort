@@ -195,7 +195,7 @@ void GreedyRobotScheduler::findGoodsForRobot(const Map &map,
         if (timeToBerths == INT_MAX || timeToGoods == INT_MAX)
             continue;
         // LOGI("货物id：",good.id,"货物状态：",good.status,"货物收益：",profits[good.id]);
-        // if (PartitionScheduling && !enterFinal && berthCluster[berthsIndex]!=assignment[robot.id]) continue;
+        if (PartitionScheduling && !enterFinal && berthCluster->at(berthsIndex)!=assignment[robot.id]) continue;
 
         if (good.status == 0 && profits[goodIndex] > 0 && good.TTL + 10 >= timeToGoods)
         {
@@ -218,7 +218,7 @@ void GreedyRobotScheduler::findBerthForRobot(Robot &robot,
     const Berth &berth = berths[goods[robot.carryingItemId].distsToBerths[0].first];
     // 不考虑泊位 isEnabled 为 False 的情况，这应该由其他函数更新所有货物被分配的泊位 ID，而不是由该调度函数负责
     // 但是要检查 berths isEnabled的情况，如果为 False， LOGE 记录。
-    if (!berth.isEnabled)
+    if (!berth.isEnable())
     {
         LOGI("findBerthForRobot：机器人", robot.id, "分配到泊位", berth.id, "。但该泊位不可用");
         robot.assignGoodOrBerth();

@@ -5,6 +5,7 @@ struct Params
 {
     // 注意命名规范，防止不同的子类超参互相冲突
     // robot 参数
+    // 例如，float greedyRobotScheduleTTLProfitWeight
     float TTL_ProfitWeight;
     int TTL_Bound;
     bool PartitionScheduling; // 是否分区调度
@@ -18,9 +19,6 @@ struct Params
 
     Params(MapFlag mapFalg) {
         if (mapFalg == MapFlag::NORMAL) {
-
-        }
-        else if (mapFalg == MapFlag::LABYRINTH) {
 
         }
         else if (mapFalg == MapFlag::ERROR) {

@@ -19,8 +19,8 @@
 class GameManager : public BerthObserver
 {
 public:
-    RobotScheduler *robotScheduler;
-    ShipScheduler *shipScheduler;
+    std::shared_ptr<RobotScheduler> robotScheduler;
+    std::shared_ptr<ShipScheduler> shipScheduler;
     std::shared_ptr<RobotController> robotController;
 
     // 将下面的废弃
@@ -46,10 +46,12 @@ public:
 public:
     GameManager() : gameMap(MAPROWS, MAPCOLS) {}
     void initializeGame();        // 读取初始化信息并初始化
+    void initializeComponents();  // 初始化游戏各个类部件
     void processFrameData();      // 处理每帧的输入
     void update();                // 更新
     void outputCommands();        // 输出每帧的控制指令
     void robotControl();          // 运行机器人控制器
+    void robotControl_new();      // 运行机器人控制器
     void updateSingleLaneLocks(); // 维护单行路的锁
 
     void setShipScheduler(ShipScheduler *scheduler)

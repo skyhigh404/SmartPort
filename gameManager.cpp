@@ -1,6 +1,7 @@
 #include "gameManager.h"
 #include <string>
 #include <iostream>
+#include <algorithm>
 #include "log.h"
 #include "pathFinder.h"
 #include <chrono>
@@ -575,4 +576,48 @@ void GameManager::outputCommands()
 
     commandManager.outputCommands();
     commandManager.clearCommands();
+}
+
+void GameManager::onBerthStatusChanged(int berthId, bool isEnabled)
+{
+    // 泊位被启用，遍历所有货物，往 distsToBerths 中添加可达泊位的距离
+    if (isEnabled)
+    {
+        for (Goods &g : goods)
+        {
+            int distance = this->gameMap.getDistanceToBerth(berthId, g.pos);
+            if (distance < INT_MAX)
+            {
+                std::pair<BerthID, int> newItem(berthId, distance);
+                auto it = std::lower_bound(distsToBerths.begin(),
+                                           distsToBerths.end(),
+                                           newItem,
+                                           [](const std::pair<BerthID, int> &a,
+                                              const std::pair<BerthID, int> &b)
+                                           {
+                                               return a.second < b.second;
+                                           });
+                g.distsToBerths.insert(it, newItem);
+            }
+        }
+    }
+    // 泊位被禁用，遍历所有货物，删除 distsToBerths 中含有 berthID 的元素
+    else
+    {
+        for (Goods &g : goods)
+        {
+            for (auto it = g.distsToBerths.begin(); it != g.distsToBerths.end();)
+            {
+                if (it->first == berthId)
+                {
+                    it = g.distsToBerths.erase(it);
+                    break; // 退出循环
+                }
+                else
+                {
+                    ++it; // 只有在不删除元素时才向前移动迭代器
+                }
+            }
+        }
+    }
 }

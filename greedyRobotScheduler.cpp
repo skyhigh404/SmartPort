@@ -46,6 +46,9 @@ void GreedyRobotScheduler::setParameter(const Params &params)
 
 void GreedyRobotScheduler::assignRobotsByCluster(vector<Robot> &robots, Map &map, vector<int> assignBound)
 {
+    if (assignment.empty()) 
+        assignment = vector<int>(10, -1);
+        
     vector<bool> assigned(robots.size(), false);
     if (assignBound.empty())
     {

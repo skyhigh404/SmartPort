@@ -210,7 +210,7 @@ void GameManager::initializeComponents()
     std::vector<int> &berthCluster = this->berthAssignAndControlService.berthCluster;
     std::vector<std::vector<Berth>> &clusters = this->berthAssignAndControlService.clusters;
     // 10. 注册机器人调度函数
-    robotScheduler = std::make_shared<GreedyRobotScheduler>(berthCluster);
+    robotScheduler = std::make_shared<GreedyRobotScheduler>(clusters, berthCluster);
     // 11. 注册船舶调度函数
     shipScheduler = std::make_shared<GreedyShipScheduler>();
     // 12. 对机器人调度函数更新Params
@@ -596,7 +596,7 @@ void GameManager::robotControl()
 
     if (this->nowStateType()==FINAL) {
         GreedyRobotScheduler* greedyRobotScheduler = dynamic_cast<GreedyRobotScheduler*>(robotScheduler.get());
-        if(greedyRobotScheduler->enterFinal==false) {
+        // if(greedyRobotScheduler->enterFinal==false) {
             LOGI("機器人調度進入終局");
             for (Robot& robot:robots) {
                 if ( (robot.status==MOVING_TO_BERTH && berths[robot.targetid].isEnable()==false) || (robot.status==MOVING_TO_GOODS && berths[goods[robot.carryingItemId].distsToBerths[0].first].isEnable()==false)) {
@@ -605,8 +605,8 @@ void GameManager::robotControl()
                     robot.path = Path();
                 }
             }
-            greedyRobotScheduler->enterFinal = true;
-        }
+            // greedyRobotScheduler->enterFinal = true;
+        // }
     }
 
     // LOGI("機器人取放貨完畢");

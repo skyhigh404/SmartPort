@@ -21,10 +21,8 @@ public:
     // 初始化
     void initialize() {}
 
-    GreedyRobotScheduler(const std::vector<int> &cluster);
+    GreedyRobotScheduler(std::vector<std::vector<Berth>> &_clusters, std::vector<int> &_berthCluster);
 
-public:
-    bool enterFinal;
 
 private:
     // 需要用到的超参数
@@ -36,9 +34,16 @@ private:
 private:
     // 辅助变量
     std::vector<std::pair<BerthID, int>> robotAllocationPerBerth; // 记录每个泊位已经分配了多少机器人
-    const std::shared_ptr<std::vector<int>> berthCluster;         // 每个泊位所对应的类
+    std::vector<std::vector<Berth>> clusters;                     // 每个簇对应的泊位
+    std::shared_ptr<std::vector<int>> berthCluster;         // 每个泊位所对应的类
+    std::vector<int> assignment;
+    bool enterFinal; // 判断是否进入终局
 
 private:
+    // 根据类来分配机器人
+    void assignRobotsByCluster(vector<Robot> &robots, Map &map, vector<int> assignBound = vector<int>());
+    // 根据类来重新分配机器人
+    void reassignRobotsByCluster(vector<Goods> &goods, vector<Robot> &robots, Map &map, std::vector<Berth> &berths);
     // 统计每个泊位分配了多少机器人，维护 robotAllocationPerBerth 变量
     void countRobotsPerBerth(const std::vector<Robot> &robots);
     // 判断机器人是否需要去拿货物
@@ -62,7 +67,7 @@ private:
                       const Map &map);
 
     // 根据 robotAllocationPerBerth 以及机器人对泊位的可达性和泊位是否启用，筛选出可用泊位
-    // std::vector<BerthID> getAvailableBerths(const Robot &robot);
+    std::vector<BerthID> getAvailableBerths(const Robot &robot);
 
     // 获取可用的货物子集
     std::vector<std::reference_wrapper<Goods>>

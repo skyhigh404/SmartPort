@@ -27,7 +27,7 @@ using std::vector;
 
 class RobotScheduler
 {
-    public:
+public:
     // 总的调度函数，在子类里进一步封装实现
     virtual void
     scheduleRobots(const Map &map,
@@ -46,7 +46,7 @@ class RobotScheduler
 
 class ShipScheduler
 {
-    public:
+public:
     // 总的调度函数，在子类里进一步封装实现
     virtual std::vector<std::pair<ShipID, ShipActionSpace::ShipAction>>
     scheduleShips(Map &map,

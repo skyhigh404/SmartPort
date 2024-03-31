@@ -656,11 +656,15 @@ void GameManager::update()
     auto ship_end = std::chrono::high_resolution_clock::now();
     LOGI("调度船只时长:",std::chrono::duration_cast<std::chrono::milliseconds>(ship_end - ship_start).count(),"ms");
 
+    LOGI("命令个数：",shipActions.size());
     // CommandManager.shipCommands
     for (int i = 0; i < shipActions.size(); i++)
     {
         int ship_id = shipActions[i].first;
         ShipActionSpace::ShipAction ship_action = shipActions[i].second;
+        LOGI("船:", ship_id);
+        LOGI("船的命令类型:", ship_action.type);
+        LOGI("船的执行id：",ship_action.targetId);
         // 去虚拟点
         if (ship_action.type == ShipActionSpace::ShipActionType::DEPART_BERTH)
         {
@@ -674,6 +678,7 @@ void GameManager::update()
             commandManager.addShipCommand(ships[ship_id].moveToBerth(ship_action.targetId));
         }
     }
+    LOGI("船命令执行完毕");
 
     if(currentFrame>=14000 && currentFrame <= 14005){
         LOGI("skipFrame: ", skipFrame, ", totalGetGoodsValue: ", totalGetGoodsValue);

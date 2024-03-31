@@ -30,9 +30,9 @@ public:
     // 生成移动到指定泊位的指令
     std::string moveToBerth(int berthId)
     {
-#ifdef DEBUG
-        assert(berthId >= 0 && berthId <= 10);
-#endif
+        #ifdef DEBUG
+        assert(berthId >= 0 && berthId < 10);
+        #endif
         using namespace std::string_literals;
         // todo,重置船的剩余运行时间(500到时候置为全局参数)
         remainingTransportTime = 500;

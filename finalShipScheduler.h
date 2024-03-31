@@ -134,4 +134,8 @@ private:
     // 装货
     void loadGoodAtBerth(Ship &ship, std::vector<Berth> &berths);
 
+    // 帧数是否处于边界值
+    inline bool isTimeInWithinBounds(int lower, int value, int upper) {
+    return value >= lower && value <= upper;
+    }
 };

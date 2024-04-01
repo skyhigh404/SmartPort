@@ -14,7 +14,7 @@ public:
     // 初始化
     void initialize(const Map &map, std::vector<Berth> &berths);
     // 设置参数，参数定义在子类里
-    void setParameter(const Params &params);
+    void setParameter(const Params &params){}
     // 对泊位进行聚类
     void clusterBerths(const Map &map, std::vector<Berth> &berths);
     // 输出聚类结果

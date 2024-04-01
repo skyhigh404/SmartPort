@@ -96,7 +96,7 @@ int main()
         // 切换调度函数
         switch (gameManager.nowStateType())
         {
-        case StageType::SIMPLE:
+        case StageType::BEGIN:
             //  不做切换
             break;
         case StageType::FINAL:

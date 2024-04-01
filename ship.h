@@ -15,9 +15,6 @@ public:
     int now_capacity;           // 船的剩余容量
     int remainingTransportTime; // 船到目标泊位的剩余运行时间，在处理每一帧信息时维护
 
-    // bool ableGo = true;   // 在运输期间，是否可以去虚拟点
-    // bool ableMove = true; // 在运输期间，是否可以移动去其他泊位
-
 public:
     Ship(int id, int capacity)
         : id(id),

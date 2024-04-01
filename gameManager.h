@@ -2,7 +2,7 @@
 
 #include <vector>
 #include <string>
-
+#include <memory>
 #include "utils.h"
 #include "map.h"
 #include "robot.h"
@@ -12,10 +12,15 @@
 #include "scheduler.h"
 #include "commandManager.h"
 #include "robotController.h"
-#include <memory>
 #include "berthAssignAndControlService.h"
-
 #include "singleLaneManager.h"
+
+enum class StageType
+{
+    BEGIN,
+    FINAL
+};
+
 
 class GameManager : public BerthObserver
 {
@@ -39,7 +44,6 @@ public:
     int totalGetGoodsValue = 0;
     int skipFrame = 0;
     int finalFrame = -1; // 进入终局调度的帧数
-    // int finalReadyFrame = -1;    // 进去终局调度前的准备帧数
 
 public:
     GameManager() : gameMap(MAPROWS, MAPCOLS) {}

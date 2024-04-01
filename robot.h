@@ -32,7 +32,7 @@ public:
     int carryingItemId;      // 携带的物品 ID
     int targetid;            // 机器人目标货物或泊位的 ID
     Point2d destination;     // 机器人的目的地
-    BerthID assignedBerthID; // 机器人被分配的泊位 ID
+    // BerthID assignedBerthID; // 机器人被分配的泊位 ID
 public:
     Point2d nextPos;           // 机器人下一帧前往的位置
     std::vector<Point2d> path; // 机器人运行路径

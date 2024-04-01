@@ -24,7 +24,7 @@ private:
     bool isEnabled;          // 标识泊位是否启用
     BerthObserver *observer; // 泊位的观察者
 public:
-    int category;            // 标识该泊位聚类后的类别
+    // int category;            // 标识该泊位聚类后的类别
 
 public:
     int stockpile;                      // 泊位堆积的货物量
@@ -56,7 +56,6 @@ public:
           time(time),
           velocity(velocity),
           isEnabled(true),
-          category(-1),
           stockpile(0),
           stockpileValue(0)
     {

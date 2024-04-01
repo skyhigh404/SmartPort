@@ -8,11 +8,15 @@ class Ship
 {
 public:
     int id;
-    int capacity; // 船的容量
-    int state;    // 0: 运输中, 1: 正常运行状态即装货状态或运输完成状态, 2: 泊位外等待状态
-    int berthId;  // 目标泊位 ID
+    int size;               // 携带的货物数量
+    Point2d pos;            // 船舶核心点坐标
+    int direction;          // 0-3 分别标识右、左、上、下
+    int state;              // 0: 正常行驶状态, 1: 恢复状态, 2: 装载状态
+    int capacity;           // 船的容量
+    int berthId;            // 目标泊位 ID
+    const int price = 8000; // 购买价格
 public:
-    int now_capacity;           // 船的剩余容量
+    // int now_capacity;           // 船的剩余容量
     int remainingTransportTime; // 船到目标泊位的剩余运行时间，在处理每一帧信息时维护
 
 public:
@@ -27,9 +31,9 @@ public:
     // 生成移动到指定泊位的指令
     std::string moveToBerth(int berthId)
     {
-        #ifdef DEBUG
+#ifdef DEBUG
         assert(berthId >= 0 && berthId < 10);
-        #endif
+#endif
         using namespace std::string_literals;
         // todo,重置船的剩余运行时间(500到时候置为全局参数)
         remainingTransportTime = 500;
@@ -58,9 +62,9 @@ public:
     // 装货,并返回转货的数量
     int loadGoods(int num)
     {
-        #ifdef DEBUG
+#ifdef DEBUG
         assert(now_capacity >= 0);
-        #endif
+#endif
         // LOGI("now_capacity before",this->now_capacity);
         if (now_capacity == 0)
         {
@@ -88,7 +92,8 @@ public:
         LOGI("船只", id, ",状态", state, ",装货量：", capacity, ",剩余容量：", now_capacity, ",剩余容量比例：", now_capacity * 1.0 / capacity, ",泊位id：", berthId, ";");
     }
 
-    float capacityScale(){
+    float capacityScale()
+    {
         return 1.0 * now_capacity / capacity;
     }
 };

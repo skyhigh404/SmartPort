@@ -12,6 +12,8 @@
 #include "scheduler.h"
 #include "commandManager.h"
 #include "robotController.h"
+#include "shipController.h"
+#include "assetManager.h"
 #include "berthAssignAndControlService.h"
 #include "singleLaneManager.h"
 
@@ -28,6 +30,8 @@ public:
     std::shared_ptr<RobotScheduler> robotScheduler;
     std::shared_ptr<ShipScheduler> shipScheduler;
     std::shared_ptr<RobotController> robotController;
+    std::shared_ptr<ShipController> shipController;
+    std::shared_ptr<AssetManager> assetManager;
 
 public:
     Map gameMap;

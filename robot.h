@@ -16,22 +16,23 @@ enum RobotStatus
     MOVING_TO_BERTH, // 机器人正在移动至指定泊位。
     UNLOADING,       // 机器人正在卸载货物。
     DEATH,           // 机器人无法工作。
-    DIZZY            // 机器人发生碰撞，处于一种临时混乱状态。
+    // DIZZY            // 机器人发生碰撞，处于一种临时混乱状态。
 };
 
 class Robot
 {
 public:
     // 判题器输入数据
-    int id;           // 机器人 ID
-    Point2d pos;      // 机器人目前位置
-    int carryingItem; // 0 表示未携带物品，1 表示携带物品
-    int state;        // 0 表示恢复状态，1 表示正常运行状态
+    int id;                 // 机器人 ID
+    Point2d pos;            // 机器人目前位置
+    int carryingItem;       // 0 表示未携带物品，1 表示携带物品
+    const int price = 2000; // 购买价格
+    // int state;        // 0 表示恢复状态，1 表示正常运行状态
 public:
     RobotStatus status;
-    int carryingItemId;      // 携带的物品 ID
-    int targetid;            // 机器人目标货物或泊位的 ID
-    Point2d destination;     // 机器人的目的地
+    int carryingItemId;  // 携带的物品 ID
+    int targetid;        // 机器人目标货物或泊位的 ID
+    Point2d destination; // 机器人的目的地
     // BerthID assignedBerthID; // 机器人被分配的泊位 ID
 public:
     Point2d nextPos;           // 机器人下一帧前往的位置
@@ -57,7 +58,7 @@ public:
     void assignGoodOrBerth()
     {
         targetid = -1;
-        destination = Point2d(-1,-1);
+        destination = Point2d(-1, -1);
     }
     void assignGoodOrBerth(int Id, Point2d dest)
     {

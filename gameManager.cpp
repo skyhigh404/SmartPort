@@ -83,6 +83,7 @@ void GameManager::initializeGame()
             }
         }
     }
+    this->gameMap.readOnlyGrid = this->gameMap.grid;
     // LOGI("Log init map info");
     // LOGI(this->gameMap.drawMap())
 

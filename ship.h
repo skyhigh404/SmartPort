@@ -8,14 +8,13 @@ class Ship
 {
 public:
     int id;
-    int goodsCount;         // 携带的货物数量
-    Point2d pos;            // 船舶核心点坐标，位于船体左后方
-    int direction;          // 0-3 分别标识右、左、上、下
-    int state;              // 0: 正常行驶状态, 1: 恢复状态, 2: 装载状态
-    int berthId;            // 目标泊位 ID
-    const int price = 8000; // 购买价格
+    int goodsCount;               // 携带的货物数量
+    VectorPosition shipLocAndDir; //  表示船舶位置和方向
+    int state;                    // 0: 正常行驶状态, 1: 恢复状态, 2: 装载状态
+    int berthId;                  // 目标泊位 ID
+    const int price = 8000;       // 购买价格
 public:
-    static int capacity;    // 船的容量
+    static int capacity; // 船的容量
     // int now_capacity;           // 船的剩余容量
     int remainingTransportTime; // 船到目标泊位的剩余运行时间，在处理每一帧信息时维护
 
@@ -49,34 +48,20 @@ public:
         return "go "s + std::to_string(id);
     }
 
-    // 获取船舶右前方的坐标
-    inline Point2d getForwardRightPos()
+    // 给定船的核心点和朝向，返回该船舶占用空间的矩形的左上角和右下角坐标，船舶大小为2*3
+    static inline std::pair<Point2d, Point2d> getShipOccupancyRect(const VectorPosition &e)
     {
-        // 船舶是 2*3矩形
-        Point2d result;
-        if (direction == 0)
-        {
-            result.x = pos.x + 1;
-            result.y = pos.y + 2;
-        }
-        else if (direction == 1)
-        {
-            result.x = pos.x - 1;
-            result.y = pos.y - 2;
-        }
-        else if (direction == 2)
-        {
-            result.x = pos.x - 2;
-            result.y = pos.y + 1;
-        }
-        else if (direction == 3)
-        {
-            result.x = pos.x + 2;
-            result.y = pos.y - 1;
-        }
-        else
-            LOGE("错误的船舶方向 in getForwardRightPos()");
-        return result;
+        // 核心点坐标和朝向到船占据的矩形的映射表
+        static const std::array<std::pair<Point2d, Point2d>, 4> occupancyOffsetTable = {
+            {{{0, 0}, {1, 2}},   // EAST: 左上角偏移(0,0)，右下角偏移(1,2)
+             {{-1, -2}, {0, 0}}, // WEST: 左上角偏移(-1,-2)，右下角偏移(0,0)
+             {{-2, 0}, {0, 1}},  // NORTH: 左上角偏移(-2,0)，右下角偏移(0,1)
+             {{0, -1}, {2, 0}}}  // SOUTH: 左上角偏移(0,-1)，右下角偏移(2,0)
+        };
+        const auto &offsets = occupancyOffsetTable[static_cast<int>(e.direction)];
+        Point2d topLeft = {e.pos.x + offsets.first.x, e.pos.y + offsets.first.y};
+        Point2d bottomRight = {e.pos.x + offsets.second.x, e.pos.y + offsets.second.y};
+        return {topLeft, bottomRight};
     }
 
     void reset()

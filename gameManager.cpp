@@ -135,8 +135,8 @@ void GameManager::initializeGame()
 void GameManager::initializeComponents()
 {
     // 1. 让地图实时跟踪机器人位置
-    for (Robot &robot : this->robots)
-        this->gameMap.robotPosition.push_back(robot.pos);
+    // for (Robot &robot : this->robots)
+    //     this->gameMap.robotPosition.push_back(robot.pos);
 
     // 2. 使用 BFS 计算地图上每个点到泊位的距离
     for (const auto &berth : this->berths)
@@ -270,11 +270,12 @@ void GameManager::processFrameData()
     for (int i = 0; i < shipNum; ++i)
     {
         cin >> shipId >> goodsCount >> shipX >> shipY >> direction >> shipState;
-        if (i >= this->ships.size()) this->ships.emplace_back(Ship(shipId));
+        if (i >= this->ships.size())
+            this->ships.emplace_back(Ship(shipId));
         this->ships[shipId].goodsCount = goodsCount;
-        this->ships[shipId].pos.x = shipX;
-        this->ships[shipId].pos.y = shipY;
-        this->ships[shipId].direction = direction;
+        this->ships[shipId].shipLocAndDir.pos.x = shipX;
+        this->ships[shipId].shipLocAndDir.pos.y = shipY;
+        this->ships[shipId].shipLocAndDir.direction = static_cast<Direction>(direction);
         this->ships[shipId].state = shipState;
     }
     // 确认已接收完本帧的所有数据

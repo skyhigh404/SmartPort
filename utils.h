@@ -87,7 +87,7 @@ inline bool operator<(const Point2d &a, const Point2d &b)
 }
 
 
-enum Direction
+enum class Direction
 {
     EAST = 0, // 右
     WEST,     // 左
@@ -96,14 +96,26 @@ enum Direction
 };
 
 // 有朝向的物体
-struct OrientedEntity
+struct VectorPosition
 {
     Point2d pos;         // 位置坐标
     Direction direction; // 朝向
 
-    bool operator==(const OrientedEntity &other) const
+    bool operator==(const VectorPosition &other) const
     {
         return other.pos == other.pos && direction == other.direction;
+    }
+
+    // 旋转多少次（每次 90 度）可以达到目标方向，逆时针方向为正，取值范围 (-1, 2]
+    static inline int minimalRotationStep(Direction begin, Direction end) {
+        static const std::array<std::array<int, 4>, 4> rotationStepsTable  = {{
+            {0, 2, 1, -1},  // Comparisons for 0 
+            {2, 0, -1, 1},  // Comparisons for 1
+            {-1, 1, 0, 2},  // Comparisons for 2
+            {1, -1, 2, 0}   // Comparisons for 3
+        }};
+
+    return rotationStepsTable[static_cast<int>begin][static_cast<int>end];
     }
 };
 
@@ -119,9 +131,9 @@ namespace std
     };
 
     template <>
-    struct hash<OrientedEntity>
+    struct hash<VectorPosition>
     {
-        std::size_t operator()(const OrientedEntity &id) const noexcept
+        std::size_t operator()(const VectorPosition &id) const noexcept
         {
             return std::hash<int>()(id.pos.x ^ (id.pos.y << 16) ^ (id.direction << 24));
         }

@@ -49,7 +49,7 @@ public:
     std::vector<std::vector<MapItemSpace::MapItem>> readOnlyGrid;            // 地图的拷贝，只读
     std::unordered_map<int, std::vector<std::vector<int>>> berthDistanceMap; // 泊位距离图
 public:
-    std::vector<std::reference_wrapper<Point2d>> robotPosition;  // 实时记录机器人位置（不建议使用）
+    // std::vector<std::reference_wrapper<Point2d>> robotPosition;  // 实时记录机器人位置（不建议使用）
     std::vector<Point2d> temporaryObstacles;                     // 临时障碍物的位置
     std::unordered_map<Point2d, int> temporaryObstaclesRefCount; // 对障碍物进行计数
 
@@ -128,7 +128,7 @@ public:
     // 计算泊位到地图上所有点的距离，不可通行的记录为 INT_MAX
     void computeDistancesToBerthViaBFS(BerthID id, const std::vector<Point2d> &positions);
     // 获取当前帧地图的变化，即机器人的位置，将其视为障碍（除自己外），预测未来 n 帧是否有碰撞风险
-    std::vector<Point2d> isCollisionRisk(int robotID, int framesAhead) const;
+    // std::vector<Point2d> isCollisionRisk(int robotID, int framesAhead) const;
     // 添加一个临时障碍物，即机器人
     void addTemporaryObstacle(const Point2d &pos);
     // 移除一个临时障碍物
@@ -166,10 +166,20 @@ public:
     {
         return Point2d::calculateManhattanDistance(pos1, pos2);
     }
-    // 使用曼哈顿距离计算两个 OrientedEntity 之间的代价，包含了转向代价
-    inline int cost(const OrientedEntity &e1, const OrientedEntity &e2) const
+    // 使用曼哈顿距离计算两个 VectorPosition 之间的代价，包含了转向代价
+    inline int cost(const VectorPosition &e1, const VectorPosition &e2) const
     {
-        // cost(e1.pos, e2.pos);
+        int result = cost(e1.pos, e2.pos) + abs(VectorPosition::minimalRotationStep(e1.direction, e2.direction));
+        auto [topLeft, bottomRight] = Ship::getShipOccupancyRect(e2);
+        for (int x = topLeft.x; x < bottomRight.x; ++x) {
+            for (int y = topLeft.y; y < bottomRight.y; ++y) {
+                if (isInSealane(x, y)) {
+                    result += 1;
+                    break;
+                }
+            }
+        }
+        return result;
     }
 };
 

@@ -331,7 +331,7 @@ void GreedyRobotScheduler::findGoodsForRobot(const Map &map,
 
         if (good.status == 0 && profits[goodIndex] > 0 && good.TTL + 10 >= timeToGoods)
         {
-            LOGI("成功分配货物", goods[goodIndex].id, ",给机器人：", robot.id, "机器人状态：", robot.state);
+            LOGI("成功分配货物", goods[goodIndex].id, ",给机器人：", robot.id);
             robot.assignGoodOrBerth(good.id, good.pos);
             good.assignRobot();
             return;

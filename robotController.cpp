@@ -183,30 +183,13 @@ RobotController::detectNextFrameConflict(const Map &map, const SingleLaneManager
 
 void RobotController::tryResolveConflict(Map &map, const CollisionEvent &event)
 {
-    // DIZZY 状态的 robot 不可以移动 robot1.status == RobotStatus::DIZZY
     // 重新寻路或等待，根据它们的代价来判断，或者往空位走一格
     Robot &robot1 = robots[event.robotId1];
     Robot &robot2 = (event.robotId2 != -1) ? robots[event.robotId2] : robot1; // 用于单一机器人事件处理
     // 下一帧前往位置相同
     if(event.type == CollisionEvent::CollisionType::TargetOverlap){
-        // 检查机器人是否处于DIZZY状态
-        if (robot1.status == RobotStatus::DIZZY || robot2.status == RobotStatus::DIZZY) {
-            // 如果任一机器人处于DIZZY状态，则另一机器人重新寻路
-            if (robot1.status != RobotStatus::DIZZY) {
-                LOGI("DIZZY ",robot2, " 重新寻路", robot1);
-                makeRobotRefindPath(robot1);
-            }
-            else if (robot2.status != RobotStatus::DIZZY) {
-                LOGI("DIZZY ",robot1, " 重新寻路", robot2);
-                makeRobotRefindPath(robot2);
-            }
-            // 如果两个都处于 DIZZY 那么就不应该检测到冲突
-            else{
-                LOGE("两个都处于 DIZZY 不应该检测到冲突 Robot id ", robot1.id, ", ", robot2.id);
-            }
-        }
         // 检查是否有机器人是静止状态，这代表会直接撞过去
-        else if (robot1.nextPos == robot1.pos || robot2.nextPos == robot2.pos){
+        if (robot1.nextPos == robot1.pos || robot2.nextPos == robot2.pos){
             // robot1 静止, robot1 占据了 robot2 的终点, robot2 停止
             if (robot1.nextPos == robot1.pos && robot1.nextPos == robot2.destination){
                 LOGI("robot1.nextPos == robot1.pos && robot1.nextPos == robot2.destination ",robot1," ",robot2);
@@ -269,12 +252,8 @@ void RobotController::tryResolveConflict(Map &map, const CollisionEvent &event)
     }
     // 下一帧分别前往它们当前帧的位置
     else if(event.type == CollisionEvent::CollisionType::SwapPositions){
-        // DIZZY 状态的 robot 不可以移动，因此不应该出现这种状态
-        if(robot1.status == RobotStatus::DIZZY || robot2.status == RobotStatus::DIZZY) {
-            LOGI("SwapPositions 错误情况出现了 DIZZY, robot id: ", robot1, ", ", robot2);
-        }
         // robot2 当前帧位置是 robot1 的 destination, robot1 当前帧位置是 robot2 的 destination
-        else if (robot1.destination == robot2.pos && robot1.pos == robot2.destination) {
+        if (robot1.destination == robot2.pos && robot1.pos == robot2.destination) {
             LOGI("发生死锁");
             resolveDeadlocks(map, robot1, robot2);  // TODO: 未经验证
         }

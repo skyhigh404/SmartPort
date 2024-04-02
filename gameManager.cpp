@@ -45,21 +45,38 @@ void GameManager::initializeGame()
             case '.':
                 this->gameMap.setCell(i, j, MapItemSpace::MapItem::SPACE);
                 break;
+            case '>':
+                this->gameMap.setCell(i, j, MapItemSpace::MapItem::MAIN_ROAD);
+                break;
             case '*':
                 this->gameMap.setCell(i, j, MapItemSpace::MapItem::SEA);
+                break;
+            case '~':
+                this->gameMap.setCell(i, j, MapItemSpace::MapItem::SEA_LANE);
                 break;
             case '#':
                 this->gameMap.setCell(i, j, MapItemSpace::MapItem::OBSTACLE);
                 break;
-            case 'A':
-                // 初始化机器人
-                this->gameMap.setCell(i, j, MapItemSpace::MapItem::SPACE);
-                this->robots.emplace_back(robot_id, Point2d(i, j));
-                robot_id++;
-                this->gameMap.setCell(i, j, MapItemSpace::MapItem::SPACE);
+            case 'R':
+                this->gameMap.setCell(i, j, MapItemSpace::MapItem::ROBOT_SHOP);
+                break;
+            case 'S':
+                this->gameMap.setCell(i, j, MapItemSpace::MapItem::SHIP_SHOP);
                 break;
             case 'B':
                 this->gameMap.setCell(i, j, MapItemSpace::MapItem::BERTH);
+                break;
+            case 'K':
+                this->gameMap.setCell(i, j, MapItemSpace::MapItem::MOORING_AREA);
+                break;
+            case 'C':
+                this->gameMap.setCell(i, j, MapItemSpace::MapItem::HYBRID);
+                break;
+            case 'c':
+                this->gameMap.setCell(i, j, MapItemSpace::MapItem::HYBRID_LANE);
+                break;
+            case 'T':
+                this->gameMap.setCell(i, j, MapItemSpace::MapItem::DELIVERY_POINT);
                 break;
             default:
                 break;

@@ -277,28 +277,6 @@ void GameManager::robotControl()
     // 机器人状态更新
     for (Robot& robot:robots) {
         if (robot.status==DEATH) continue;
-        // 机器人眩晕
-        if (robot.status == DIZZY || robot.state == 0) {
-            // 还在眩晕状态
-            robot.status = DIZZY;
-            if (robot.state == 0) continue;
-
-            // 从眩晕状态恢复
-            if (robotDebugOutput) LOGI("从眩晕状态恢复");
-            if (robot.carryingItem == 0) {
-                robot.status = MOVING_TO_GOODS;
-                robot.path = Path();
-                robot.targetid = -1;
-                robot.destination = Point2d(-1,-1);
-                robot.carryingItemId = -1;
-            }
-            else {
-                robot.status = MOVING_TO_BERTH;
-                robot.path = Path();
-                robot.targetid = -1;
-                robot.destination = Point2d(-1,-1);
-            }
-        }
 
         // 机器人状态更新
         if (robot.carryingItem==0) robot.status = MOVING_TO_GOODS;

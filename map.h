@@ -162,9 +162,14 @@ public:
     // 返回当前节点上下左右的四个可达的邻居
     std::vector<Point2d> neighbors(Point2d id) const;
     // 使用曼哈顿距离计算两个点之间的代价
-    inline int cost(Point2d pos1, Point2d pos2) const
+    inline int cost(const Point2d &pos1, const Point2d &pos2) const
     {
         return Point2d::calculateManhattanDistance(pos1, pos2);
+    }
+    // 使用曼哈顿距离计算两个 OrientedEntity 之间的代价，包含了转向代价
+    inline int cost(const OrientedEntity &e1, const OrientedEntity &e2) const
+    {
+        // cost(e1.pos, e2.pos);
     }
 };
 

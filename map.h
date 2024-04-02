@@ -10,6 +10,7 @@ namespace MapItemSpace
 {
     enum class MapItem
     {
+        // 当机器人和船舶位于主干道或主航道时，地图不应该绘制
         SPACE = 0,      // 空地
         MAIN_ROAD,      // 陆地主干道
         SEA,            // 海洋
@@ -45,7 +46,7 @@ public:
     static std::array<Point2d, 4> DIRS;
     int rows, cols;
     std::vector<std::vector<MapItemSpace::MapItem>> grid;                    // 地图
-    std::vector<std::vector<MapItemSpace::MapItem>> readOnlyGrid;                // 地图的拷贝，只读
+    std::vector<std::vector<MapItemSpace::MapItem>> readOnlyGrid;            // 地图的拷贝，只读
     std::unordered_map<int, std::vector<std::vector<int>>> berthDistanceMap; // 泊位距离图
 public:
     std::vector<std::reference_wrapper<Point2d>> robotPosition;  // 实时记录机器人位置（不建议使用）
@@ -90,13 +91,30 @@ public:
         return getCell(pos.x, pos.y);
     }
 
-    // 查询 pos 位置是否可达
+    // 查询 pos 位置在陆地上是否可达
     inline bool passable(const Point2d &pos) const
     {
         MapItemSpace::MapItem item = getCell(pos);
-        return (item != MapItemSpace::MapItem::OBSTACLE &&
-                item != MapItemSpace::MapItem::SEA &&
-                item != MapItemSpace::MapItem::ROBOT);
+        return (item == MapItemSpace::MapItem::SPACE ||
+                item == MapItemSpace::MapItem::MAIN_ROAD ||
+                item == MapItemSpace::MapItem::ROBOT_SHOP ||
+                item == MapItemSpace::MapItem::BERTH ||
+                item == MapItemSpace::MapItem::HYBRID ||
+                item == MapItemSpace::MapItem::HYBRID_LANE);
+    }
+
+    // 查询 pos 位置在海洋上是否可达
+    inline bool seaPassable(const Point2d &pos) const
+    {
+        MapItemSpace::MapItem item = getCell(pos);
+        return (item == MapItemSpace::MapItem::SEA ||
+                item == MapItemSpace::MapItem::SEA_LANE ||
+                item == MapItemSpace::MapItem::SHIP_SHOP ||
+                item == MapItemSpace::MapItem::BERTH ||
+                item == MapItemSpace::MapItem::MOORING_AREA ||
+                item == MapItemSpace::MapItem::HYBRID ||
+                item == MapItemSpace::MapItem::HYBRID_LANE ||
+                item == MapItemSpace::MapItem::DELIVERY_POINT);
     }
 
     float costCosin(const Point2d &robotPos, const Point2d &goodPos, const Point2d &berthPos, const int berthID);

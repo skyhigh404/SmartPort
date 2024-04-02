@@ -12,7 +12,7 @@ public:
     Point2d pos;            // 船舶核心点坐标
     int direction;          // 0-3 分别标识右、左、上、下
     int state;              // 0: 正常行驶状态, 1: 恢复状态, 2: 装载状态
-    int capacity;           // 船的容量
+    static int capacity;           // 船的容量
     int berthId;            // 目标泊位 ID
     const int price = 8000; // 购买价格
 public:
@@ -20,9 +20,8 @@ public:
     int remainingTransportTime; // 船到目标泊位的剩余运行时间，在处理每一帧信息时维护
 
 public:
-    Ship(int id, int capacity)
+    Ship(int id)
         : id(id),
-          capacity(capacity),
           state(-1),
           berthId(-1),
           remainingTransportTime(0) {}

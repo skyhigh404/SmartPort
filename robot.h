@@ -47,7 +47,6 @@ public:
         : id(id),
           pos(pos),
           carryingItem(0),
-          state(0),
           status(IDLE),
           carryingItemId(-1),
           targetid(-1),

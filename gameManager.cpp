@@ -70,23 +70,19 @@ void GameManager::initializeGame()
     // LOGI(this->gameMap.drawMap())
 
     // 初始化泊位
-    int id, x, y, time, velocity;
-    for (int i = 0; i < BERTHNUMS; ++i)
+    int id, x, y, time, velocity, berthNum;
+    cin >> berthNum;
+    for (int i = 0; i < berthNum; ++i)
     {
-        cin >> id >> x >> y >> time >> velocity;
-        this->berths.emplace_back(id, Point2d(x, y), time, velocity);
+        cin >> id >> x >> y >> velocity;
+        this->berths.emplace_back(id, Point2d(x, y), velocity);
     }
     LOGI("print berth init info");
     for (const auto &berth : this->berths)
-        LOGI("ID: ", berth.id, " POS: ", berth.pos, " time: ", berth.time, " velocity: ", berth.velocity);
+        LOGI("ID: ", berth.id, " POS: ", berth.pos, " velocity: ", berth.velocity);
 
     // 初始化船舶
-    int capacity;
-    cin >> capacity;
-    for (int i = 0; i < SHIPNUMS; ++i)
-    {
-        this->ships.emplace_back(i, capacity);
-    }
+    cin >> Ship::capacity;
     // for (int i = 0; i < SHIPNUMS; ++i)
     // {
     //     LOGI("Ship ", this->ships[i].id," capacity: ", this->ships[i].capacity);
@@ -185,7 +181,7 @@ void GameManager::processFrameData()
     int newItemCount;
     int goodsX, goodsY, value;
     int carrying, robotX, robotY, robotState;
-    int shipState, berthId;
+    // int shipState, berthId;
     // 如果读取到了 EOF，则结束
     if (cin.eof())
     {
@@ -210,12 +206,14 @@ void GameManager::processFrameData()
             good.TTL = std::max(1000-(currentFrame - good.initFrame),-1);
         }
     }
-    // 读取新增货物
+    // 读取变化货物
     // TODO: 使用Map::computePointToBerthsDistances计算货物到泊位距离
     cin >> newItemCount;
     while (newItemCount--)
     {
         cin >> goodsX >> goodsY >> value;
+        // 金额为 0 表示上一帧被拿取或者该帧消失
+        if (value==0) continue;
         Goods good(Point2d(goodsX, goodsY), value, currentFrame);
         good.distsToBerths = gameMap.computePointToBerthsDistances(Point2d(goodsX, goodsY));
         this->goods.push_back(good);
@@ -227,48 +225,39 @@ void GameManager::processFrameData()
         }
     }
     // 读取机器人状态
-    bool flag = false;
-    for (int i = 0; i < ROBOTNUMS; ++i)
+    int robotNum, robotId;
+    std::cin >> robotNum;
+    for (int i = 0; i < robotNum; ++i)
     {
-        cin >> carrying >> robotX >> robotY >> robotState;
-        this->robots[i].carryingItem = carrying;
-        this->robots[i].pos.x = robotX;
-        this->robots[i].pos.y = robotY;
-        this->robots[i].state = robotState;
-
-        if(robotState==0){
-            LOGE("Robot ", i," 发生碰撞, pos: ", robots[i].pos);
-            flag = true;
-        }
+        cin >> robotId >> carrying >> robotX >> robotY;
+        // 创建机器人
+        if (i >= this->robots.size()) this->robots.emplace_back(Robot(robotId, Point2d(robotX, robotY)));
+        this->robots[robotId].carryingItem = carrying;
+        this->robots[robotId].pos.x = robotX;
+        this->robots[robotId].pos.y = robotY;
 
         // 暂时处理程序认为机器人放下了货物并且分配了下一个货物的id，但是判题器认为机器人还拿着上一个货物的情况
-        if (this->robots[i].carryingItem == 0)
+        if (this->robots[robotId].carryingItem == 0)
         {
             // 强行初始化机器人状态
-            this->robots[i].carryingItemId = -1;
+            this->robots[robotId].carryingItemId = -1;
         }
         // 检查是否要 pop path
-        this->robots[i].updatePath();
-
-        // 暂时处理程序认为机器人放下了货物并且分配了下一个货物的id，但是判题器认为机器人还拿着上一个货物的情况
-        if(this->robots[i].carryingItem == 0){
-            // 强行初始化机器人状态
-            this->robots[i].carryingItemId = -1;
-        }
+        this->robots[robotId].updatePath();
     }
 
     // 读取船舶状态
-    for (int i = 0; i < SHIPNUMS; ++i)
+    int shipNum, shipId, goodsCount, shipX, shipY, direction, shipState;
+    std::cin >> shipNum;
+    for (int i = 0; i < shipNum; ++i)
     {
-        cin >> shipState >> berthId;
-        this->ships[i].state = shipState;
-        this->ships[i].berthId = berthId;
-        // 运输中：维护船只剩余运输时间
-        if (ships[i].state == 0) ships[i].remainingTransportTime -= 1;
-        else ships[i].remainingTransportTime = 0;
-        // if(ships[i].state == 0 && ships[i].berthId != -1){
-        //     LOGW("船只状态：",ships[i].state,",船只泊位：",ships[i].berthId);
-        // }
+        cin >> shipId >> goodsCount >> shipX >> shipY >> direction >> shipState;
+        if (i >= this->ships.size()) this->ships.emplace_back(Ship(shipId));
+        this->ships[shipId].goodsCount = goodsCount;
+        this->ships[shipId].pos.x = shipX;
+        this->ships[shipId].pos.y = shipY;
+        this->ships[shipId].direction = direction;
+        this->ships[shipId].state = shipState;
     }
     // 确认已接收完本帧的所有数据
     string ok;

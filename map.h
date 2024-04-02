@@ -10,19 +10,30 @@ namespace MapItemSpace
 {
     enum class MapItem
     {
-        SPACE = 0,
-        SEA,
-        OBSTACLE,
-        ROBOT,
-        BERTH,
+        SPACE = 0,      // 空地
+        MAIN_ROAD,      // 陆地主干道
+        SEA,            // 海洋
+        SEA_LANE,       // 海洋主航道
+        OBSTACLE,       // 障碍
+        ROBOT_SHOP,     // 机器人购买地块，同时该地块也是主干道
+        ROBOT,          // 机器人
+        SHIP_SHOP,      // 船舶购买地块，同时该地块也是主航道
+        SHIP,           // 船舶
+        BERTH,          // 泊位，特殊的海陆立体交通地块，视为主干道和主航道
+        MOORING_AREA,   // 靠泊区，可作海洋主航道
+        HYBRID,         // 海陆立体交通地块
+        HYBRID_LANE,    // 海陆立体交通地块，同时为主干道和主航道
+        DELIVERY_POINT, // 交货点，相当于特殊靠泊区
+
         ERROR = -1,
     };
+
 }
 
 enum class MapFlag
 {
-    NORMAL,    // 正常参数
-    ERROR      // 默认值
+    NORMAL, // 正常参数
+    ERROR   // 默认值
 };
 
 extern MapFlag MAP_TYPE;
@@ -34,6 +45,7 @@ public:
     static std::array<Point2d, 4> DIRS;
     int rows, cols;
     std::vector<std::vector<MapItemSpace::MapItem>> grid;                    // 地图
+    std::vector<std::vector<MapItemSpace::MapItem>> gridCopy;                // 地图的拷贝，只读
     std::unordered_map<int, std::vector<std::vector<int>>> berthDistanceMap; // 泊位距离图
 public:
     std::vector<std::reference_wrapper<Point2d>> robotPosition;  // 实时记录机器人位置（不建议使用）

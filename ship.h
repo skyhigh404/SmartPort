@@ -8,7 +8,7 @@ class Ship
 {
 public:
     int id;
-    int size;               // 携带的货物数量
+    int goodsCount;         // 携带的货物数量
     Point2d pos;            // 船舶核心点坐标
     int direction;          // 0-3 分别标识右、左、上、下
     int state;              // 0: 正常行驶状态, 1: 恢复状态, 2: 装载状态
@@ -25,7 +25,6 @@ public:
           capacity(capacity),
           state(-1),
           berthId(-1),
-          now_capacity(capacity),
           remainingTransportTime(0) {}
 
     // 生成移动到指定泊位的指令

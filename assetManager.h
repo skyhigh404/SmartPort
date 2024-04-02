@@ -53,4 +53,8 @@ public:
     virtual AssetManagerName getAssetManagerName() = 0;
     virtual void setParameter(const Params &params) = 0;
     virtual ~AssetManager() {}
+
+public:
+    const int robotPrice = 2000;
+    const int shipPrice = 8000;
 };

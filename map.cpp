@@ -34,6 +34,26 @@ std::vector<Point2d> Map::neighbors(Point2d pos) const
     return results;
 }
 
+bool Map::isInMainRodad(const Point2d &pos) const
+{
+    MapItemSpace::MapItem item = getCell(pos);
+    return (item == MapItemSpace::MapItem::MAIN_ROAD ||
+            item == MapItemSpace::MapItem::ROBOT_SHOP ||
+            item == MapItemSpace::MapItem::BERTH ||
+            item == MapItemSpace::MapItem::HYBRID_LANE);
+}
+
+bool Map::isInSealane(const Point2d &pos) const
+{
+    MapItemSpace::MapItem item = getCell(pos);
+    return (item == MapItemSpace::MapItem::SEA_LANE ||
+            item == MapItemSpace::MapItem::SHIP_SHOP ||
+            item == MapItemSpace::MapItem::BERTH ||
+            item == MapItemSpace::MapItem::MOORING_AREA ||
+            item == MapItemSpace::MapItem::HYBRID_LANE ||
+            item == MapItemSpace::MapItem::DELIVERY_POINT);
+}
+
 std::string Map::drawMap(std::unordered_map<Point2d, double> *distances,
                          std::unordered_map<Point2d, Point2d> *point_to,
                          std::vector<Point2d> *path,

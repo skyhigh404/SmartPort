@@ -86,16 +86,53 @@ inline bool operator<(const Point2d &a, const Point2d &b)
     return std::tie(a.x, a.y) < std::tie(b.x, b.y);
 }
 
+
+enum Direction
+{
+    EAST = 0, // 右
+    WEST,     // 左
+    NORTH,    // 上
+    SOUTH     // 下
+};
+
+// 有朝向的物体
+struct OrientedEntity
+{
+    Point2d pos;         // 位置坐标
+    Direction direction; // 朝向
+
+    bool operator==(const OrientedEntity &other) const
+    {
+        return other.pos == other.pos && direction == other.direction;
+    }
+
+    // 为了在unordered_map中使用Location作为键，需要自定义哈希函数
+    struct HashFunction
+    {
+        std::size_t operator()(const OrientedEntity &loc) const
+        {
+            return std::hash<int>()(loc.x) ^ std::hash<int>()(loc.y) ^ std::hash<int>()(static_cast<int>(loc.direction));
+        }
+    };
+};
+
 namespace std
 {
-    /* implement hash function so we can put GridLocation into an unordered_set */
     template <>
     struct hash<Point2d>
     {
         std::size_t operator()(const Point2d &id) const noexcept
         {
-            // NOTE: better to use something like boost hash_combine
             return std::hash<int>()(id.x ^ (id.y << 16));
+        }
+    };
+
+    template <>
+    struct hash<OrientedEntity>
+    {
+        std::size_t operator()(const OrientedEntity &id) const noexcept
+        {
+            return std::hash<int>()(id.pos.x ^ (id.pos.y << 16) ^ (id.direction << 24));
         }
     };
 }
@@ -240,9 +277,9 @@ namespace RobotActionSpace
 
     struct RobotAction
     {
-        RobotActionType type;     // 行动类型
-        Point2d destination; // 用于MOVE_TO_TARGET的目的地坐标
-        int targetId;        // 标识具体任务或对象的ID，例如货物ID或泊位ID
+        RobotActionType type; // 行动类型
+        Point2d destination;  // 用于MOVE_TO_TARGET的目的地坐标
+        int targetId;         // 标识具体任务或对象的ID，例如货物ID或泊位ID
 
         RobotAction(RobotActionType type) : type(type), destination(Point2d(-1, -1)), targetId(-1) {}
         RobotAction(RobotActionType type, Point2d destination)

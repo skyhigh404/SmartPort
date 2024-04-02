@@ -32,7 +32,9 @@ class AStarPathfinder : public Pathfinder
 {
 public:
     // Path 第一个元素是终点，逆序存储
-    std::variant<Path, PathfindingFailureReason> findPath(const Point2d &start, const Point2d &goal, const Map &map) override;
+    virtual std::variant<Path, PathfindingFailureReason> findPath(const Point2d &start,
+                                                                  const Point2d &goal,
+                                                                  const Map &map) override;
 
     template <typename Location, typename Graph>
     void aStarSearch(const Graph &graph,
@@ -52,4 +54,3 @@ public:
         return Point2d::calculateManhattanDistance(pos1, pos2);
     }
 };
-

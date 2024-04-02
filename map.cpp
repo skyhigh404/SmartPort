@@ -34,7 +34,7 @@ std::vector<Point2d> Map::neighbors(Point2d pos) const
     return results;
 }
 
-bool Map::isInMainRodad(const Point2d &pos) const
+bool Map::isInMainRoad(const Point2d &pos) const
 {
     MapItemSpace::MapItem item = getCell(pos);
     return (item == MapItemSpace::MapItem::MAIN_ROAD ||
@@ -207,6 +207,10 @@ void Map::addTemporaryObstacle(const Point2d& pos) {
             LOGE("往障碍位置上放置临时障碍, pos: ", pos);
             return;
         }
+        else if(isInMainRoad(pos)){
+            LOGE("往主干道上放置临时障碍, pos: ", pos);
+            return;
+        }
         grid[pos.x][pos.y] = MapItemSpace::MapItem::ROBOT; // 标记为障碍物
         temporaryObstacles.push_back(pos); // 添加到临时障碍物列表
         temporaryObstaclesRefCount[pos]++;
@@ -219,7 +223,7 @@ void Map::removeTemporaryObstacle(const Point2d& pos) {
         if (it != temporaryObstaclesRefCount.end()) {
             if (--it->second <= 0) {
                 temporaryObstaclesRefCount.erase(it);
-                grid[pos.x][pos.y] = MapItemSpace::MapItem::SPACE;  // 恢复为空地
+                grid[pos.x][pos.y] = readOnlyGrid[pos.x][pos.y];  // 恢复为原始元素
             }
         }
     }
@@ -229,7 +233,7 @@ void Map::clearTemporaryObstacles() {
     for (const Point2d& pos : temporaryObstacles) {
         // 在清除前检查该位置是否确实是OBSTACLE，以防误清
         if (grid[pos.x][pos.y] == MapItemSpace::MapItem::ROBOT) {
-            grid[pos.x][pos.y] = MapItemSpace::MapItem::SPACE; // 恢复为空地
+            grid[pos.x][pos.y] = readOnlyGrid[pos.x][pos.y];  // 恢复为原始元素
         }
     }
     temporaryObstacles.clear(); // 清空临时障碍物列表

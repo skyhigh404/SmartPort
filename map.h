@@ -118,7 +118,7 @@ public:
     }
 
     // 判断是否在主干道上
-    bool isInMainRodad(const Point2d &pos) const;
+    bool isInMainRoad(const Point2d &pos) const;
     // 判断是否在主航道上
     bool isInSealane(const Point2d &pos) const;
 

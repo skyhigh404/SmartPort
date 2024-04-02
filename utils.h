@@ -105,15 +105,6 @@ struct OrientedEntity
     {
         return other.pos == other.pos && direction == other.direction;
     }
-
-    // 为了在unordered_map中使用Location作为键，需要自定义哈希函数
-    struct HashFunction
-    {
-        std::size_t operator()(const OrientedEntity &loc) const
-        {
-            return std::hash<int>()(loc.x) ^ std::hash<int>()(loc.y) ^ std::hash<int>()(static_cast<int>(loc.direction));
-        }
-    };
 };
 
 namespace std

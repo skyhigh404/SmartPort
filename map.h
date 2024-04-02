@@ -45,7 +45,7 @@ public:
     static std::array<Point2d, 4> DIRS;
     int rows, cols;
     std::vector<std::vector<MapItemSpace::MapItem>> grid;                    // 地图
-    std::vector<std::vector<MapItemSpace::MapItem>> gridCopy;                // 地图的拷贝，只读
+    std::vector<std::vector<MapItemSpace::MapItem>> readOnlyGrid;                // 地图的拷贝，只读
     std::unordered_map<int, std::vector<std::vector<int>>> berthDistanceMap; // 泊位距离图
 public:
     std::vector<std::reference_wrapper<Point2d>> robotPosition;  // 实时记录机器人位置（不建议使用）

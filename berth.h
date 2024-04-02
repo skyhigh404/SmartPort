@@ -17,7 +17,7 @@ class Berth
 public:
     int id;       // 泊位 ID
     Point2d pos;  // 泊位左上角的坐标，泊位是一个 4x4 的矩形
-    int time;     // 该泊位轮船运输到虚拟点的时间(虚拟点移动到泊位的时间同)，即产生价值的时间，时间用帧数表示。
+    // int time;     // 该泊位轮船运输到虚拟点的时间(虚拟点移动到泊位的时间同)，即产生价值的时间，时间用帧数表示。
     int velocity; // Velocity(1 <= Velocity <= 5)表示该泊位的装载速度，即每帧可以装载的物品数。
 
 private:
@@ -50,10 +50,10 @@ public:
     // float canMoveScale = 0.1;          // > 可以移动泊位的剩余容量比例
     // const static int MAX_SHIP_NUM = 2; // 一个泊位最多几艘船
 
-    Berth(int id, Point2d pos, int time, int velocity)
+    Berth(int id, Point2d pos, int velocity)
         : id(id),
           pos(pos),
-          time(time),
+        //   time(time),
           velocity(velocity),
           isEnabled(true),
           stockpile(0),

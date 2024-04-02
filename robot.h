@@ -16,7 +16,6 @@ enum RobotStatus
     MOVING_TO_BERTH, // 机器人正在移动至指定泊位。
     UNLOADING,       // 机器人正在卸载货物。
     DEATH,           // 机器人无法工作。
-    // DIZZY            // 机器人发生碰撞，处于一种临时混乱状态。
 };
 
 class Robot
@@ -47,7 +46,6 @@ public:
         : id(id),
           pos(pos),
           carryingItem(0),
-          state(0),
           status(IDLE),
           carryingItemId(-1),
           targetid(-1),
@@ -82,7 +80,7 @@ public:
 
     void updateNextPos()
     {
-        if (!path.empty() && status != DIZZY)
+        if (!path.empty())
             // 寻路算法输出的路径是逆序存储的，以提高弹出效率
             nextPos = this->path.back();
         // 如果路径为空，则机器人下一帧不移动
@@ -207,10 +205,7 @@ public:
     // 认定正常运行的，不携带货物的优先级更高，然后是路径更短的优先级更高，最后比较 ID，更小的优先级更高
     bool comparePriority(const Robot &rhs) const
     {
-        // 判断是否在单行路
-        if (state != rhs.state)
-            return state > rhs.state;
-        else if (carryingItem != rhs.carryingItem)
+        if (carryingItem != rhs.carryingItem)
             return carryingItem < rhs.carryingItem;
         else if (path.size() != rhs.path.size())
             return path.size() < rhs.path.size();

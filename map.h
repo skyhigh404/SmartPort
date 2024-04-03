@@ -46,9 +46,10 @@ class Map
 public:
     static std::array<Point2d, 4> DIRS;
     int rows, cols;
-    std::vector<std::vector<MapItemSpace::MapItem>> grid;                    // 地图
-    std::vector<std::vector<MapItemSpace::MapItem>> readOnlyGrid;            // 地图的拷贝，只读
-    std::unordered_map<int, std::vector<std::vector<int>>> berthDistanceMap; // 泊位距离图
+    std::vector<std::vector<MapItemSpace::MapItem>> grid;                            // 地图
+    std::vector<std::vector<MapItemSpace::MapItem>> readOnlyGrid;                    // 地图的拷贝，只读
+    std::unordered_map<int, std::vector<std::vector<int>>> berthDistanceMap;         // 陆地上所有点到泊位距离图
+    std::unordered_map<int, std::vector<std::vector<int>>> maritimeBerthDistanceMap; // 海洋上所有点到泊位距离图
 public:
     // std::vector<std::reference_wrapper<Point2d>> robotPosition;  // 实时记录机器人位置（不建议使用）
     std::vector<Point2d> temporaryObstacles;                     // 临时障碍物的位置
@@ -158,8 +159,10 @@ public:
     float costCosin(const Point2d &robotPos, const Point2d &goodPos, const Point2d &berthPos, const int berthID);
 
 public:
-    // 计算泊位到地图上所有点的距离，不可通行的记录为 INT_MAX
+    // 计算泊位到地图上所有陆地点的距离，不可通行的记录为 INT_MAX
     void computeDistancesToBerthViaBFS(BerthID id, const std::vector<Point2d> &positions);
+    // 计算泊位到地图上所有海洋点的距离，不可通行的记录为 INT_MAX
+    void computeMaritimeBerthDistanceViaBFS(BerthID id, const std::vector<Point2d> &positions);
     // 获取当前帧地图的变化，即机器人的位置，将其视为障碍（除自己外），预测未来 n 帧是否有碰撞风险
     // std::vector<Point2d> isCollisionRisk(int robotID, int framesAhead) const;
     // 添加一个临时障碍物，即机器人

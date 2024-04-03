@@ -192,6 +192,36 @@ void Map::computeDistancesToBerthViaBFS(BerthID id, const std::vector<Point2d> &
     berthDistanceMap[id] = dis;
 }
 
+void Map::computeMaritimeBerthDistanceViaBFS(BerthID id, const std::vector<Point2d> &positions)
+{
+    using std::vector, std::queue;
+    vector<vector<int>> dis(rows, vector<int>(cols, INT_MAX));
+    queue<Point2d> nextToVisitQueue;
+    for (const Point2d &pos : positions)
+    {
+        if (inBounds(pos) && seaPassable(pos))
+        {
+            dis[pos.x][pos.y] = 0;
+            nextToVisitQueue.push(pos);
+        }
+    }
+    while (!nextToVisitQueue.empty())
+    {
+        Point2d current = nextToVisitQueue.front();
+        nextToVisitQueue.pop();
+        for (const Point2d &dir : DIRS)
+        {
+            Point2d next{current.x + dir.x, current.y + dir.y};
+            if (inBounds(next) && seaPassable(next) && dis[next.x][next.y] == INT_MAX)
+            {
+                dis[next.x][next.y] = dis[current.x][current.y] + 1;
+                nextToVisitQueue.push(next);
+            }
+        }
+    }
+    maritimeBerthDistanceMap[id] = dis;
+}
+
 std::string Map::drawMap(std::vector<std::vector<int>> map, int field_width)
 {
     using std::string, std::find;

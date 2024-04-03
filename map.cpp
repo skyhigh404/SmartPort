@@ -136,6 +136,22 @@ std::string Map::drawMap(std::unordered_map<Point2d, double> *distances,
                 oss << " B ";
             else if (item == MapItem::SPACE)
                 oss << " . ";
+            else if (item == MapItem::DELIVERY_POINT)
+                oss << " T ";
+            else if (item == MapItem::SEA_LANE)
+                oss << " ~ ";
+            else if (item == MapItem::HYBRID)
+                oss << " C ";
+            else if (item == MapItem::HYBRID_LANE)
+                oss << " c ";
+            else if (item == MapItem::MAIN_ROAD)
+                oss << " = ";
+            else if (item == MapItem::MOORING_AREA)
+                oss << " K ";
+            else if (item == MapItem::ROBOT_SHOP)
+                oss << " R ";
+            else if (item == MapItem::SHIP_SHOP)
+                oss << " S ";
             else
                 oss << " E ";
         }

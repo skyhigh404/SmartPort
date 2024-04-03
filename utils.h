@@ -101,6 +101,8 @@ struct VectorPosition
     Point2d pos;         // 位置坐标
     Direction direction; // 朝向
 
+    VectorPosition(Point2d _pos, Direction _d) : pos(_pos), direction(_d) {}
+    
     bool operator==(const VectorPosition &other) const
     {
         return other.pos == other.pos && direction == other.direction;
@@ -115,7 +117,7 @@ struct VectorPosition
             {1, -1, 2, 0}   // Comparisons for 3
         }};
 
-    return rotationStepsTable[static_cast<int>begin][static_cast<int>end];
+    return rotationStepsTable[static_cast<int>(begin)][static_cast<int>(end)];
     }
 };
 

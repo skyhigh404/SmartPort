@@ -11,7 +11,7 @@ std::array<Point2d, 4> Map::DIRS = {
     /* East, West, North, South */
     Point2d{1, 0}, Point2d{-1, 0}, Point2d{0, -1}, Point2d{0, 1}};
 
-std::vector<Point2d> Map::neighbors(Point2d pos) const
+std::vector<Point2d> Map::neighbors(const Point2d &pos) const
 {
     std::vector<Point2d> results;
     results.reserve(4);
@@ -32,6 +32,25 @@ std::vector<Point2d> Map::neighbors(Point2d pos) const
     }
 
     return results;
+}
+
+std::vector<VectorPosition> Map::neighbors(const VectorPosition &vp) const
+{
+    static const std::array<Point2d, 4> rotationStepsTable = {{
+        {0, 1},  // 右
+        {0, -1}, // 左
+        {-1, 0}, // 上
+        {1, 0}   // 下
+    }};
+
+    std::vector<VectorPosition> results;
+    results.reserve(3);
+    // 前进 1 格或者旋转一次
+    VectorPosition moveForwad(vp.pos + rotationStepsTable[static_cast<int>(vp.direction)], vp.direction);
+    if(inBounds(moveForwad) && passable(moveForwad))
+        results.push_back(moveForwad);
+    
+    
 }
 
 bool Map::isInMainRoad(const Point2d &pos) const

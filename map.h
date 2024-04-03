@@ -83,7 +83,15 @@ public:
 
     inline bool inBounds(const VectorPosition &vp) const
     {
-        return inBounds(vp.pos);
+        auto [topLeft, bottomRight] = Ship::getShipOccupancyRect(vp);
+        for (int x = topLeft.x; x < bottomRight.x; ++x) {
+            for (int y = topLeft.y; y < bottomRight.y; ++y) {
+                if (!inBounds(Point2d(x, y))) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     // 获取地图上某个位置的值
@@ -114,10 +122,24 @@ public:
                 item == MapItemSpace::MapItem::HYBRID_LANE);
     }
 
-    // 查询 pos 位置在海洋上是否可达
+    // 查询对有大小和位置的 vp 在海洋上是否可达
     inline bool passable(const VectorPosition &vp) const
     {
-        MapItemSpace::MapItem item = getCell(vp);
+        auto [topLeft, bottomRight] = Ship::getShipOccupancyRect(vp);
+        for (int x = topLeft.x; x < bottomRight.x; ++x) {
+            for (int y = topLeft.y; y < bottomRight.y; ++y) {
+                if (!seaPassable(Point2d(x, y))) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    // 查询 pos 位置在海洋上是否可达
+    inline bool seaPassable(const Point2d &pos) const
+    {
+        MapItemSpace::MapItem item = getCell(pos);
         return (item == MapItemSpace::MapItem::SEA ||
                 item == MapItemSpace::MapItem::SEA_LANE ||
                 item == MapItemSpace::MapItem::SHIP_SHOP ||
@@ -171,7 +193,9 @@ public:
     // 计算一个点到所有泊位的距离，以降序输出，第一个是泊位 ID，第二个是距离，不包含不可达泊位
     std::vector<std::pair<int, int>> computePointToBerthsDistances(Point2d position) const;
     // 返回当前节点上下左右的四个可达的邻居
-    std::vector<Point2d> neighbors(Point2d id) const;
+    std::vector<Point2d> neighbors(const Point2d &pos) const;
+    // 返回 vp 的邻居状态
+    std::vector<VectorPosition> neighbors(const VectorPosition &vp) const;
     // 使用曼哈顿距离计算两个点之间的代价
     inline int cost(const Point2d &pos1, const Point2d &pos2) const
     {

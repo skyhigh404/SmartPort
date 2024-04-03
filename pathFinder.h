@@ -7,7 +7,9 @@
 #include <algorithm>
 #include <limits>
 
-using Path = std::vector<Point2d>;
+template <typename Location>
+using Path = std::vector<Location>;
+
 enum class PathfindingFailureReason
 {
     START_POINT_INVALID = 0,  // 起点无效（位于不可通行区域，如障碍物）
@@ -19,32 +21,34 @@ enum class PathfindingFailureReason
     OTHER                     // 其他原因
 };
 
+template <class Location, class Graph>
 class Pathfinder
 {
     // 怎么去
 public:
     // 寻路算法的输入是起始点和目标点的坐标，以及地图信息。输出是一系列坐标，表示路径。
     // 如果无法到达，返回 PathfindingFailureReason。
-    virtual std::variant<Path, PathfindingFailureReason> findPath(const Point2d &start, const Point2d &goal, const Map &map) = 0;
+    virtual std::variant<Path<Location>, PathfindingFailureReason>
+    findPath(const Location &start, const Location &goal, const Graph &graph) = 0;
 };
 
-class AStarPathfinder : public Pathfinder
+template <class Location, class Graph>
+class AStarPathfinder : public Pathfinder<Location, Graph>
 {
 public:
     // Path 第一个元素是终点，逆序存储
-    virtual std::variant<Path, PathfindingFailureReason> findPath(const Point2d &start,
-                                                                  const Point2d &goal,
-                                                                  const Map &map) override;
+    virtual std::variant<Path<Location>, PathfindingFailureReason>
+    findPath(const Location &start,
+             const Location &goal,
+             const Graph &graph) override;
 
-    template <typename Location, typename Graph>
     void aStarSearch(const Graph &graph,
                      const Location &start,
                      const Location &goal,
                      std::unordered_map<Location, Location> &came_from,
                      std::unordered_map<Location, int> &cost_so_far);
 
-    template <typename Location>
-    std::vector<Location> reconstruct_path(
+    Path<Location> reconstruct_path(
         const Location &start, const Location &goal,
         const std::unordered_map<Location, Location> &came_from);
 

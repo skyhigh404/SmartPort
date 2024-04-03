@@ -2,24 +2,24 @@
 #include "log.h"
 #include <chrono>
 
-std::variant<Path, PathfindingFailureReason> AStarPathfinder::findPath(const Point2d &start,
-                                                                       const Point2d &goal,
-                                                                       const Map &map)
+template <class Location, class Graph>
+std::variant<Path<Location>, PathfindingFailureReason>
+AStarPathfinder<Location, Graph>::findPath(const Location &start,
+                                           const Location &goal,
+                                           const Graph &graph)
 {
-    if (!map.inBounds(start) || !map.inBounds(goal))
+    if (!graph.inBounds(start) || !graph.inBounds(goal))
         return PathfindingFailureReason::OUT_OF_BOUNDS;
-    if (map.getCell(start) == MapItemSpace::MapItem::SEA ||
-        map.getCell(start) == MapItemSpace::MapItem::OBSTACLE)
+    if (!graph.passable(start))
         return PathfindingFailureReason::START_POINT_INVALID;
-    if (map.getCell(goal) == MapItemSpace::MapItem::SEA ||
-        map.getCell(goal) == MapItemSpace::MapItem::OBSTACLE)
+    if (!graph.passable(goal))
         return PathfindingFailureReason::END_POINT_INVALID;
     if (start == goal)
         return PathfindingFailureReason::START_AND_END_POINT_SAME;
 
     std::unordered_map<Point2d, Point2d> came_from; // came_from 用于追踪路径
     std::unordered_map<Point2d, int> cost_so_far;   // cost_so_far 用于记录到达每个点的成本
-    aStarSearch(map, start, goal, came_from, cost_so_far);
+    aStarSearch(graph, start, goal, came_from, cost_so_far);
 
     // 如果未找到路径（即目标不在 came_from 中）
     if (came_from.find(goal) == came_from.end())
@@ -32,12 +32,12 @@ std::variant<Path, PathfindingFailureReason> AStarPathfinder::findPath(const Poi
     return path;
 }
 
-template <typename Location, typename Graph>
-void AStarPathfinder::aStarSearch(const Graph &graph,
-                                  const Location &start,
-                                  const Location &goal,
-                                  std::unordered_map<Location, Location> &came_from,
-                                  std::unordered_map<Location, int> &cost_so_far)
+template <class Location, class Graph>
+void AStarPathfinder<Location, Graph>::aStarSearch(const Graph &graph,
+                                                   const Location &start,
+                                                   const Location &goal,
+                                                   std::unordered_map<Location, Location> &came_from,
+                                                   std::unordered_map<Location, int> &cost_so_far)
 {
     int calTime = 0;
     if (!graph.inBounds(goal) || !graph.passable(goal))
@@ -69,12 +69,12 @@ void AStarPathfinder::aStarSearch(const Graph &graph,
             }
         }
     }
-    LOGI("A* 搜索节点个数：",calTime);
+    LOGI("A* 搜索节点个数：", calTime);
     // LOGI("优先队列长度：",frontier.elements.size());
 }
 
-template <typename Location>
-std::vector<Location> AStarPathfinder::reconstruct_path(
+template <class Location, class Graph>
+Path<Location> AStarPathfinder<Location, Graph>::reconstruct_path(
     const Location &start, const Location &goal,
     const std::unordered_map<Location, Location> &came_from)
 {

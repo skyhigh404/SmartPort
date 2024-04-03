@@ -137,7 +137,7 @@ namespace std
     {
         std::size_t operator()(const VectorPosition &id) const noexcept
         {
-            return std::hash<int>()(id.pos.x ^ (id.pos.y << 16) ^ (id.direction << 24));
+            return std::hash<int>()(id.pos.x ^ (id.pos.y << 16) ^ (static_cast<int>(id.direction) << 24));
         }
     };
 }

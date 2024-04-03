@@ -39,7 +39,7 @@ public:
     int avoidNum = 0;          //  避让的次数
 private:
     // DStarPathfinder pathFinder; // 每个机器人都要存储寻路状态
-    AStarPathfinder pathFinder;
+    AStarPathfinder<Point2d, Map> pathFinder;
 
 public:
     Robot(int id, Point2d pos)
@@ -146,10 +146,10 @@ public:
     bool findPath(const Map &map, Point2d dst)
     {
         destination = dst;
-        std::variant<Path, PathfindingFailureReason> path = pathFinder.findPath(pos, destination, map);
-        if (std::holds_alternative<Path>(path))
+        std::variant<Path<Point2d>, PathfindingFailureReason> path = pathFinder.findPath(pos, destination, map);
+        if (std::holds_alternative<Path<Point2d>>(path))
         {
-            this->path = std::get<Path>(path);
+            this->path = std::get<Path<Point2d>>(path);
             return true;
         }
         else

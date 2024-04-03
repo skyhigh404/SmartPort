@@ -101,11 +101,40 @@ struct VectorPosition
     Point2d pos;         // 位置坐标
     Direction direction; // 朝向
 
+    VectorPosition() : direction(Direction::EAST) {}
     VectorPosition(Point2d _pos, Direction _d) : pos(_pos), direction(_d) {}
-    
-    bool operator==(const VectorPosition &other) const
+    VectorPosition(const VectorPosition &other) : pos(other.pos), direction(other.direction) {}
+    VectorPosition(VectorPosition &&other) noexcept
+        : pos(std::exchange(other.pos, {-1, -1})), direction(std::exchange(other.direction, Direction::EAST)) {}
+    VectorPosition &operator=(const VectorPosition &other) // 拷贝赋值运算符
     {
+        if (this != &other)
+        {
+            pos.x = other.pos.x;
+            pos.y = other.pos.y;
+            direction = other.direction;
+        }
+        return *this;
+    }
+    VectorPosition &operator=(VectorPosition &&other) noexcept // 移动赋值运算符
+    {
+        if (this != &other)
+        {
+            pos.x = std::exchange(other.pos.x, -1);
+            pos.y = std::exchange(other.pos.y, -1);
+            direction = std::exchange(other.direction, Direction::EAST);
+        }
+        return *this;
+    }
+    bool operator==(const VectorPosition &other) const {
         return other.pos == other.pos && direction == other.direction;
+    }
+    bool operator!=(const VectorPosition &other) const {
+        return !(*this == other);
+    }
+    friend std::ostream &operator<<(std::ostream &os, const VectorPosition &vp) {
+        os << "(" << vp.pos.x << "," << vp.pos.y << "," << static_cast<int>(vp.direction) << ")";
+        return os;
     }
 
     // 旋转多少次（每次 90 度）可以达到目标方向，逆时针方向为正，取值范围 (-1, 2]

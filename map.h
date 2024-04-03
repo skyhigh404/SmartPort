@@ -5,6 +5,7 @@
 #include <string>
 #include <unordered_map>
 #include <functional>
+#include "ship.h"
 #include "utils.h"
 namespace MapItemSpace
 {
@@ -80,15 +81,25 @@ public:
         return inBounds(pos.x, pos.y);
     }
 
+    inline bool inBounds(const VectorPosition &vp) const
+    {
+        return inBounds(vp.pos);
+    }
+
     // 获取地图上某个位置的值
     inline MapItemSpace::MapItem getCell(int x, int y) const
     {
         return grid[x][y];
     }
 
-    inline MapItemSpace::MapItem getCell(Point2d pos) const
+    inline MapItemSpace::MapItem getCell(const Point2d &pos) const
     {
         return getCell(pos.x, pos.y);
+    }
+
+    inline MapItemSpace::MapItem getCell(const VectorPosition &vp) const
+    {
+        return getCell(vp.pos);
     }
 
     // 查询 pos 位置在陆地上是否可达
@@ -104,9 +115,9 @@ public:
     }
 
     // 查询 pos 位置在海洋上是否可达
-    inline bool seaPassable(const Point2d &pos) const
+    inline bool passable(const VectorPosition &vp) const
     {
-        MapItemSpace::MapItem item = getCell(pos);
+        MapItemSpace::MapItem item = getCell(vp);
         return (item == MapItemSpace::MapItem::SEA ||
                 item == MapItemSpace::MapItem::SEA_LANE ||
                 item == MapItemSpace::MapItem::SHIP_SHOP ||
@@ -173,7 +184,7 @@ public:
         auto [topLeft, bottomRight] = Ship::getShipOccupancyRect(e2);
         for (int x = topLeft.x; x < bottomRight.x; ++x) {
             for (int y = topLeft.y; y < bottomRight.y; ++y) {
-                if (isInSealane(x, y)) {
+                if (isInSealane(Point2d(x, y))) {
                     result += 1;
                     break;
                 }

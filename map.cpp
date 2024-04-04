@@ -36,32 +36,17 @@ std::vector<Point2d> Map::neighbors(const Point2d &pos) const
 
 std::vector<VectorPosition> Map::neighbors(const VectorPosition &vp) const
 {
-    // 前进一格后的位置
-    static const std::array<Point2d, 4> moveOneStep = {{
-        {0, 1},  // 右
-        {0, -1}, // 左
-        {-1, 0}, // 上
-        {1, 0}   // 下
-    }};
-    // 旋转一次后的方向，先逆时针旋转再顺时针旋转
-    static const std::array<std::array<Direction, 2>, 4> rotateOneStep = {{
-        {Direction::NORTH, Direction::SOUTH}, // 右
-        {Direction::SOUTH, Direction::NORTH}, // 左
-        {Direction::WEST, Direction::EAST},   // 上
-        {Direction::EAST, Direction::WEST}    // 下
-    }};
-
     std::vector<VectorPosition> results;
     results.reserve(3);
     // 前进 1 格或者旋转一次
     // TODO: 某些区域进行了多次检查，可以进行优化
-    VectorPosition moveForward(vp.pos + moveOneStep[static_cast<int>(vp.direction)], vp.direction);
+    VectorPosition moveForward = Ship::moveForward(vp);
     if(inBounds(moveForward) && passable(moveForward))
         results.push_back(moveForward);
-    VectorPosition rotate(vp.pos, rotateOneStep[static_cast<int>(vp.direction)][0]);
+    VectorPosition rotate = Ship::anticlockwiseRotation(vp);
     if(inBounds(rotate) && passable(rotate))
         results.push_back(rotate);
-    VectorPosition rotate(vp.pos, rotateOneStep[static_cast<int>(vp.direction)][1]);
+    VectorPosition rotate = Ship::clockwiseRotation(vp);
     if(inBounds(rotate) && passable(rotate))
         results.push_back(rotate);
     return results;

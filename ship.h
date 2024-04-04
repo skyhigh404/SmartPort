@@ -21,31 +21,45 @@ public:
 public:
     Ship(int id)
         : id(id),
-          state(-1),
+          state(0),
           berthId(-1),
           remainingTransportTime(0) {}
 
-    // 生成移动到指定泊位的指令
-    std::string moveToBerth(int berthId)
-    {
-#ifdef DEBUG
-        assert(berthId >= 0 && berthId < 10);
-#endif
-        using namespace std::string_literals;
-        // todo,重置船的剩余运行时间(500到时候置为全局参数)
-        remainingTransportTime = 500;
-        return "ship "s + std::to_string(id) + " "s + std::to_string(berthId);
+    // 重置船只到主航道
+    std::string dept(){
+        #ifdef DEBUG
+            // 船不在恢复状态
+            assert(state != 1);
+        #endif
+        return "dept";
     }
 
-    // 生成船移动到虚拟点的指令
-    // time为当前泊位前往虚拟点的时间
-    std::string go(int time)
-    {
-        using namespace std::string_literals;
-        // 重置船的剩余运行时间
-        remainingTransportTime = time;
-        reset();
-        return "go "s + std::to_string(id);
+    // 重置船只到主航道
+    std::string dept(){
+        #ifdef DEBUG
+            // 船不在恢复状态
+            assert(state != 1);
+        #endif
+        return "berth";
+    }
+
+    // 旋转命令
+    // 重置船只到主航道
+    std::string rot(RotationDirection rotDirection){
+        #ifdef DEBUG
+            // 船在正常行驶状态
+            assert(state == 0);
+        #endif
+        return "rot " + std::to_string(static_cast<int>(rotDirection));
+    }
+
+    // 前进命令
+    std::string ship(){
+        #ifdef DEBUG
+            // 船在正常行驶状态
+            assert(state == 0);
+        #endif
+        return "ship";
     }
 
     // 给定船的核心点和朝向，返回该船舶占用空间的矩形的左上角和右下角坐标，船舶大小为2*3
@@ -117,49 +131,37 @@ public:
         return {vp.pos + corePositionChange[static_cast<int>(vp.direction)], directionChange[static_cast<int>(vp.direction)]};
     }
 
-    void reset()
-    {
-        // 恢复状态
-        now_capacity = capacity;
-        state = 0;
-        berthId = -1;
-    }
-
     // 装货,并返回转货的数量
     int loadGoods(int num)
     {
 #ifdef DEBUG
-        assert(now_capacity >= 0);
+        assert(nowCapacity() >= 0);
 #endif
-        // LOGI("now_capacity before",this->now_capacity);
-        if (now_capacity == 0)
-        {
+        if (nowCapacity() == 0){
             // 异常情况，满货船舶停滞在泊位
-            // LOGW("ID: ", id, " now_capacity: ", now_capacity, " berth_id: ", berthId);
             return 0;
         }
-        else if (now_capacity >= num)
-        {
-            now_capacity -= num;
-            // LOGI("搬运货物：",num);
+        else if (nowCapacity() >= num){
             return num;
-            // LOGI("now_capacity after：",this->now_capacity);
         }
-        else
-        {
-            now_capacity = 0;
-            return now_capacity;
+        else{
+            return nowCapacity();
         }
     }
 
     // 打印信息
     void info()
     {
-        LOGI("船只", id, ",状态", state, ",装货量：", capacity, ",剩余容量：", now_capacity, ",剩余容量比例：", now_capacity * 1.0 / capacity, ",泊位id：", berthId, ";");
+        LOGI("船只", id, ",状态", state, ",装货量：", capacity, ",剩余容量：", nowCapacity(), ",剩余容量比例：", nowCapacity() * 1.0 / capacity, ",泊位id：", berthId, ";");
     }
 
     float capacityScale()
     {
-        return 1.0 * now_capacity / capacity;
+        return 1.0 * nowCapacity() / capacity;
+    }
+
+    // 获取船的剩余容量
+    int nowCapacity(){
+        return std::max(capacity - goodsCount, -1);
     }
 };

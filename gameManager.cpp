@@ -77,6 +77,7 @@ void GameManager::initializeGame()
                 break;
             case 'T':
                 this->gameMap.setCell(i, j, MapItemSpace::MapItem::DELIVERY_POINT);
+                this->gameMap.deliveryLocations.push_back({i,j});
                 break;
             default:
                 break;

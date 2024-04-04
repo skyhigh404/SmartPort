@@ -310,7 +310,7 @@ void FinalShipScheduler::assignFinalBerthsToShips(std::vector<Ship> &ships, std:
                 break;
             case 1:
                 // 容量高的优先
-                return a.now_capacity >= b.now_capacity;
+                return a.nowCapacity() >= b.nowCapacity();
                 break;
             case 2:
                 // 耗时长的优先
@@ -318,7 +318,7 @@ void FinalShipScheduler::assignFinalBerthsToShips(std::vector<Ship> &ships, std:
                 break;
             default:
                 // 容量大的优先
-                return a.now_capacity > b.now_capacity;
+                return a.nowCapacity() > b.nowCapacity();
                 break;
             }
         }else{
@@ -472,7 +472,7 @@ bool FinalShipScheduler::shouldDepartAndReturn(Ship &ship, Berth &berth, std::ve
 
 // 判断船是否必须前往虚拟点
 bool FinalShipScheduler::shouldDepartBerth(Ship &ship,std::vector<Berth> &berths){
-    if (ship.now_capacity <= 0)  return true;
+    if (ship.nowCapacity() <= 0)  return true;
     if (ship.state == 0 || ship.berthId == -1) return false;
     int timeCost = berths[ship.berthId].time;
     if(isTimeInWithinBounds(15000 - 2,timeCost + CURRENT_FRAME, 15000)) return true;

@@ -106,22 +106,8 @@ public:
         // }
 
         std::string unreach_info = "未到达货物数量:" + std::to_string(unreached_goods.size()) + ";总价值：" + std::to_string(totalValue);
-        // for(const auto& good : unreached_goods){
-        //     unreach_info += "(" + std::to_string(good.id) + "," + std::to_string(good.value) + "),";
-        // }
         LOGI(berth_info, reach_info, ";", unreach_info);
         LOGI("总装货量：", totalLoadGoodnum, ",送达货物量：", deliverGoodNum, ",理论最大装货量：", maxLoadGoodNum, ", 成功装载比例：", totalLoadGoodnum * 1.0 / maxLoadGoodNum, ",成功送达比例：", deliverGoodNum * 1.0 / maxLoadGoodNum);
-        // std::vector<std::vector<int>> temp(4,std::vector<int>(4,-1));
-        // for(int i =0;i < 4;i++){
-        //     for(int j=0;j<4;j++){
-        //         if(storageSlots[i][j] != nullptr){
-        //             temp[i][j] = storageSlots[i][j]->id;
-        //         }
-        //     }
-        // }
-        // for(int i=0;i<4;i++){
-        //     LOGI(storageSlots[i][0]," ",storageSlots[i][1]," ",storageSlots[i][2]," ",storageSlots[i][3]);
-        // }
         LOGI("-----------------------------------------------------------------------------------------------------------------------------------------------");
     }
 

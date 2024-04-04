@@ -109,8 +109,8 @@ GreedyShipScheduler::handleShipWaiting( Ship &ship,std::vector<Berth> &berths,st
     // 调度失败
     if(berthId == -1 || berthId == ship.berthId) return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::CONTINUE,ship.berthId);
     // 调度泊位溢出货物量比当前泊位
-    int bestCanLoadNum = std::min(berths[berthId].residue_num, ship.now_capacity);  // 调度泊位中能装的货物数量
-    int nowCanLoadNum = std::min(berths[ship.berthId].residue_num + ship.now_capacity, ship.now_capacity);  // 当前泊位能装的货物数量
+    int bestCanLoadNum = std::min(berths[berthId].residue_num, ship.nowCapacity());  // 调度泊位中能装的货物数量
+    int nowCanLoadNum = std::min(berths[ship.berthId].residue_num + ship.nowCapacity(), ship.nowCapacity());  // 当前泊位能装的货物数量
     // 调度泊位价值和需求 大于 当前泊位
     // todo 超参数
     if(berths[berthId].totalValue > berths[ship.berthId].totalValue && bestCanLoadNum > nowCanLoadNum * 1.5){
@@ -135,7 +135,7 @@ void GreedyShipScheduler::updateBerthStatus(std::vector<Ship> &ships,std::vector
     // 遍历船只，更新前泊位上的船只数量和更新溢出货物量
     for(auto &ship : ships){
         if (ship.berthId != -1){
-            berths[ship.berthId].residue_num -= ship.now_capacity;
+            berths[ship.berthId].residue_num -= ship.nowCapacity();
             berths[ship.berthId].shipInBerthNum += 1;
         }
     }
@@ -170,9 +170,9 @@ float GreedyShipScheduler::calculateGoodValueByDist(Goods &good){
 }
 
 // 判断船只是否需要前往虚拟点
-bool GreedyShipScheduler::shouldDepartBerth(const Ship &ship,std::vector<Berth> &berths){
+bool GreedyShipScheduler::shouldDepartBerth( Ship &ship,std::vector<Berth> &berths){
     // 1. 船满了，前往虚拟点
-    if (ship.now_capacity <= 0)  return true;
+    if (ship.nowCapacity() <= 0)  return true;
     // 2. 游戏快结束了，前往虚拟点
     // todo 15000改成全局变量；缓冲时间变成超参
     else if(ship.berthId != -1 && 15000 - CURRENT_FRAME <= berths[ship.berthId].time + 2) return true;
@@ -220,13 +220,13 @@ BerthID GreedyShipScheduler::findBestBerthForShip(Ship &ship, const std::vector<
                 if(highestValue == 0){
                     assignBerthId = berth.id;
                     highestValue = berth.totalValue;
-                    absCapacity = std::abs(berth.residue_num - ship.now_capacity);
+                    absCapacity = std::abs(berth.residue_num - ship.nowCapacity());
                 }
                 // todo 容量匹配优先
-                else if(std::abs(berth.residue_num - ship.now_capacity) < absCapacity){
+                else if(std::abs(berth.residue_num - ship.nowCapacity()) < absCapacity){
                     assignBerthId = berth.id;
                     highestValue = berth.totalValue;
-                    absCapacity = std::abs(berth.residue_num - ship.now_capacity);
+                    absCapacity = std::abs(berth.residue_num - ship.nowCapacity());
                 }
             }
         }
@@ -243,7 +243,7 @@ bool GreedyShipScheduler::canMoveBerth(Ship &ship,const Berth &berth){
 
     // 如果船前往其他泊位后还有时间前往虚拟点，则返回true
     // todo 泊位移动距离和缓冲时间改成超参
-    int timeCost = berth.time + static_cast<int>(ship.now_capacity / berth.velocity);
+    int timeCost = berth.time + static_cast<int>(ship.nowCapacity() / berth.velocity);
     // 船在虚拟点
     if(ship.state == 1 && ship.berthId == -1) timeCost += berth.time;
     // 船在泊位上，并且目的地不同
@@ -258,16 +258,16 @@ void GreedyShipScheduler::updateBerthWhereShipMove(Ship &ship,std::vector<Berth>
     // 原泊位状态更新
     BerthID nowBerthId = ship.berthId;
     berths[nowBerthId].shipInBerthNum -= 1;
-    berths[nowBerthId].residue_num += ship.now_capacity;
+    berths[nowBerthId].residue_num += ship.nowCapacity();
     int startIndex = berths[nowBerthId].reached_goods.size() - berths[nowBerthId].residue_num;
-    for(int index = startIndex;index < berths[nowBerthId].reached_goods.size() && index < startIndex + ship.now_capacity; index++){
+    for(int index = startIndex;index < berths[nowBerthId].reached_goods.size() && index < startIndex + ship.nowCapacity(); index++){
         berths[nowBerthId].totalValue += berths[nowBerthId].reached_goods[index].value;
     }
     // 目标泊位状态更新
     berths[targetId].shipInBerthNum += 1;
-    berths[targetId].residue_num -= ship.now_capacity;
-    startIndex = berths[targetId].reached_goods.size() - berths[targetId].residue_num - ship.now_capacity;
-    for(int index = startIndex;index < berths[targetId].reached_goods.size() && index < startIndex + ship.now_capacity; index++){
+    berths[targetId].residue_num -= ship.nowCapacity();
+    startIndex = berths[targetId].reached_goods.size() - berths[targetId].residue_num - ship.nowCapacity();
+    for(int index = startIndex;index < berths[targetId].reached_goods.size() && index < startIndex + ship.nowCapacity(); index++){
         berths[targetId].totalValue -= berths[targetId].reached_goods[index].value;
     }
     #ifdef DEBUG

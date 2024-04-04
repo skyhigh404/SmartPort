@@ -45,7 +45,7 @@ private:
 
     // 判断船只是否需要前往虚拟点
     // 1. 容量满了； 2. 游戏快结束了
-    bool shouldDepartBerth(const Ship &ship,std::vector<Berth> &berths);
+    bool shouldDepartBerth( Ship &ship,std::vector<Berth> &berths);
 
     // 判断泊位上是否有货物可装载
     bool isThereGoodsToLoad(Berth &berth); 

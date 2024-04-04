@@ -95,6 +95,11 @@ enum class Direction
     SOUTH     // 下
 };
 
+enum class RotationDirection {
+    Clockwise = 0,        // 顺时针旋转
+    AntiClockwise = 1  // 逆时针旋转
+};
+
 // 有朝向的物体
 struct VectorPosition
 {

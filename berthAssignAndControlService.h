@@ -20,7 +20,7 @@ public:
     // 输出聚类结果
     void clusterResults();
 
-    BerthAssignAndControlService() {berthCluster=std::vector<int>(10,-1);}
+    BerthAssignAndControlService() {berthCluster=std::vector<int>(SHIPNUMS,-1);}
 
 private:
     std::vector<std::vector<Berth>>

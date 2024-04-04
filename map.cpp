@@ -381,7 +381,10 @@ std::vector<std::pair<int, int>> Map::computePointToBerthsDistances(Point2d posi
 
 int Map::cost(const VectorPosition &e1, const VectorPosition &e2) const
 {
-    int result = cost(e1.pos, e2.pos) + abs(VectorPosition::minimalRotationStep(e1.direction, e2.direction));
+    // 邻居节点的代价为 1，处在主航道则为 2
+    // TODO: 不能处理旋转后核心点的变化问题，下面的计算方法会增加旋转的代价
+    // int result = cost(e1.pos, e2.pos) + abs(VectorPosition::minimalRotationStep(e1.direction, e2.direction));
+    int result = 1;
     auto [topLeft, bottomRight] = SpatialUtils::getShipOccupancyRect(e2);
     for (int x = topLeft.x; x < bottomRight.x; ++x)
     {

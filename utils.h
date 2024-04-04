@@ -86,16 +86,87 @@ inline bool operator<(const Point2d &a, const Point2d &b)
     return std::tie(a.x, a.y) < std::tie(b.x, b.y);
 }
 
+
+enum class Direction
+{
+    EAST = 0, // 右
+    WEST,     // 左
+    NORTH,    // 上
+    SOUTH     // 下
+};
+
+// 有朝向的物体
+struct VectorPosition
+{
+    Point2d pos;         // 位置坐标
+    Direction direction; // 朝向
+
+    VectorPosition() : direction(Direction::EAST) {}
+    VectorPosition(Point2d _pos, Direction _d) : pos(_pos), direction(_d) {}
+    VectorPosition(const VectorPosition &other) : pos(other.pos), direction(other.direction) {}
+    VectorPosition(VectorPosition &&other) noexcept
+        : pos(std::exchange(other.pos, {-1, -1})), direction(std::exchange(other.direction, Direction::EAST)) {}
+    VectorPosition &operator=(const VectorPosition &other) // 拷贝赋值运算符
+    {
+        if (this != &other)
+        {
+            pos.x = other.pos.x;
+            pos.y = other.pos.y;
+            direction = other.direction;
+        }
+        return *this;
+    }
+    VectorPosition &operator=(VectorPosition &&other) noexcept // 移动赋值运算符
+    {
+        if (this != &other)
+        {
+            pos.x = std::exchange(other.pos.x, -1);
+            pos.y = std::exchange(other.pos.y, -1);
+            direction = std::exchange(other.direction, Direction::EAST);
+        }
+        return *this;
+    }
+    bool operator==(const VectorPosition &other) const {
+        return other.pos == other.pos && direction == other.direction;
+    }
+    bool operator!=(const VectorPosition &other) const {
+        return !(*this == other);
+    }
+    friend std::ostream &operator<<(std::ostream &os, const VectorPosition &vp) {
+        os << "(" << vp.pos.x << "," << vp.pos.y << "," << static_cast<int>(vp.direction) << ")";
+        return os;
+    }
+
+    // 旋转多少次（每次 90 度）可以达到目标方向，逆时针方向为正，取值范围 (-1, 2]
+    static inline int minimalRotationStep(Direction begin, Direction end) {
+        static const std::array<std::array<int, 4>, 4> rotationStepsTable  = {{
+            {0, 2, 1, -1},  // Comparisons for 0 
+            {2, 0, -1, 1},  // Comparisons for 1
+            {-1, 1, 0, 2},  // Comparisons for 2
+            {1, -1, 2, 0}   // Comparisons for 3
+        }};
+
+    return rotationStepsTable[static_cast<int>(begin)][static_cast<int>(end)];
+    }
+};
+
 namespace std
 {
-    /* implement hash function so we can put GridLocation into an unordered_set */
     template <>
     struct hash<Point2d>
     {
         std::size_t operator()(const Point2d &id) const noexcept
         {
-            // NOTE: better to use something like boost hash_combine
             return std::hash<int>()(id.x ^ (id.y << 16));
+        }
+    };
+
+    template <>
+    struct hash<VectorPosition>
+    {
+        std::size_t operator()(const VectorPosition &id) const noexcept
+        {
+            return std::hash<int>()(id.pos.x ^ (id.pos.y << 16) ^ (static_cast<int>(id.direction) << 24));
         }
     };
 }
@@ -240,9 +311,9 @@ namespace RobotActionSpace
 
     struct RobotAction
     {
-        RobotActionType type;     // 行动类型
-        Point2d destination; // 用于MOVE_TO_TARGET的目的地坐标
-        int targetId;        // 标识具体任务或对象的ID，例如货物ID或泊位ID
+        RobotActionType type; // 行动类型
+        Point2d destination;  // 用于MOVE_TO_TARGET的目的地坐标
+        int targetId;         // 标识具体任务或对象的ID，例如货物ID或泊位ID
 
         RobotAction(RobotActionType type) : type(type), destination(Point2d(-1, -1)), targetId(-1) {}
         RobotAction(RobotActionType type, Point2d destination)

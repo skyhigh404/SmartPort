@@ -4,6 +4,7 @@
 #include "goods.h"
 #include "map.h"
 #include "berth.h"
+#include "params.h"
 
 enum class AssetManagerName
 {
@@ -33,6 +34,7 @@ public:
 struct PurchaseDecision
 {
     AssetType assetType;
+    Point2d pos;  // 购买位置
     int quantity; // 购买数量
 };
 
@@ -49,5 +51,10 @@ public:
                                                                int currentFunds,
                                                                int currentTime) = 0;
     virtual AssetManagerName getAssetManagerName() = 0;
+    virtual void setParameter(const Params &params) = 0;
     virtual ~AssetManager() {}
+
+public:
+    const int robotPrice = 2000;
+    const int shipPrice = 8000;
 };

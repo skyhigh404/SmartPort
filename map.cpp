@@ -11,7 +11,7 @@ std::array<Point2d, 4> Map::DIRS = {
     /* East, West, North, South */
     Point2d{1, 0}, Point2d{-1, 0}, Point2d{0, -1}, Point2d{0, 1}};
 
-std::vector<Point2d> Map::neighbors(Point2d pos) const
+std::vector<Point2d> Map::neighbors(const Point2d &pos) const
 {
     std::vector<Point2d> results;
     results.reserve(4);
@@ -32,6 +32,44 @@ std::vector<Point2d> Map::neighbors(Point2d pos) const
     }
 
     return results;
+}
+
+std::vector<VectorPosition> Map::neighbors(const VectorPosition &vp) const
+{
+    std::vector<VectorPosition> results;
+    results.reserve(3);
+    // 前进 1 格或者旋转一次
+    // TODO: 某些区域进行了多次检查，可以进行优化
+    VectorPosition moveForward = Ship::moveForward(vp);
+    if(inBounds(moveForward) && passable(moveForward))
+        results.push_back(moveForward);
+    VectorPosition rotate = Ship::anticlockwiseRotation(vp);
+    if(inBounds(rotate) && passable(rotate))
+        results.push_back(rotate);
+    VectorPosition rotate = Ship::clockwiseRotation(vp);
+    if(inBounds(rotate) && passable(rotate))
+        results.push_back(rotate);
+    return results;
+}
+
+bool Map::isInMainRoad(const Point2d &pos) const
+{
+    MapItemSpace::MapItem item = getCell(pos);
+    return (item == MapItemSpace::MapItem::MAIN_ROAD ||
+            item == MapItemSpace::MapItem::ROBOT_SHOP ||
+            item == MapItemSpace::MapItem::BERTH ||
+            item == MapItemSpace::MapItem::HYBRID_LANE);
+}
+
+bool Map::isInSealane(const Point2d &pos) const
+{
+    MapItemSpace::MapItem item = getCell(pos);
+    return (item == MapItemSpace::MapItem::SEA_LANE ||
+            item == MapItemSpace::MapItem::SHIP_SHOP ||
+            item == MapItemSpace::MapItem::BERTH ||
+            item == MapItemSpace::MapItem::MOORING_AREA ||
+            item == MapItemSpace::MapItem::HYBRID_LANE ||
+            item == MapItemSpace::MapItem::DELIVERY_POINT);
 }
 
 std::string Map::drawMap(std::unordered_map<Point2d, double> *distances,
@@ -83,6 +121,22 @@ std::string Map::drawMap(std::unordered_map<Point2d, double> *distances,
                 oss << " B ";
             else if (item == MapItem::SPACE)
                 oss << " . ";
+            else if (item == MapItem::DELIVERY_POINT)
+                oss << " T ";
+            else if (item == MapItem::SEA_LANE)
+                oss << " ~ ";
+            else if (item == MapItem::HYBRID)
+                oss << " C ";
+            else if (item == MapItem::HYBRID_LANE)
+                oss << " c ";
+            else if (item == MapItem::MAIN_ROAD)
+                oss << " = ";
+            else if (item == MapItem::MOORING_AREA)
+                oss << " K ";
+            else if (item == MapItem::ROBOT_SHOP)
+                oss << " R ";
+            else if (item == MapItem::SHIP_SHOP)
+                oss << " S ";
             else
                 oss << " E ";
         }
@@ -123,6 +177,36 @@ void Map::computeDistancesToBerthViaBFS(BerthID id, const std::vector<Point2d> &
     berthDistanceMap[id] = dis;
 }
 
+void Map::computeMaritimeBerthDistanceViaBFS(BerthID id, const std::vector<Point2d> &positions)
+{
+    using std::vector, std::queue;
+    vector<vector<int>> dis(rows, vector<int>(cols, INT_MAX));
+    queue<Point2d> nextToVisitQueue;
+    for (const Point2d &pos : positions)
+    {
+        if (inBounds(pos) && seaPassable(pos))
+        {
+            dis[pos.x][pos.y] = 0;
+            nextToVisitQueue.push(pos);
+        }
+    }
+    while (!nextToVisitQueue.empty())
+    {
+        Point2d current = nextToVisitQueue.front();
+        nextToVisitQueue.pop();
+        for (const Point2d &dir : DIRS)
+        {
+            Point2d next{current.x + dir.x, current.y + dir.y};
+            if (inBounds(next) && seaPassable(next) && dis[next.x][next.y] == INT_MAX)
+            {
+                dis[next.x][next.y] = dis[current.x][current.y] + 1;
+                nextToVisitQueue.push(next);
+            }
+        }
+    }
+    maritimeBerthDistanceMap[id] = dis;
+}
+
 std::string Map::drawMap(std::vector<std::vector<int>> map, int field_width)
 {
     using std::string, std::find;
@@ -156,35 +240,39 @@ int Map::getDistanceToBerth(BerthID id, Point2d &position) const
 }
 
 
-std::vector<Point2d> Map::isCollisionRisk(int robotID, int framesAhead) const
-{
-    std::vector<Point2d> obstacle;
-    obstacle.reserve(5 * framesAhead);
-    for (int i = 0; i < robotPosition.size(); ++i)
-    {
-        if (i == robotID)
-            continue; // 不考虑自身
-        if (Point2d::calculateManhattanDistance(robotPosition[robotID], robotPosition[i]) <= 2 * framesAhead)
-        {
-            for (int j = -framesAhead; j <= framesAhead; ++j)
-            {
-                for (int k = -framesAhead; k <= framesAhead; ++k)
-                {
-                    Point2d next = Point2d(robotPosition[i].get().x + j, robotPosition[i].get().y + k);
-                    if (inBounds(next) && passable(next))
-                        obstacle.push_back(next);
-                }
-            }
-        }
-    }
-    return obstacle;
-}
+// std::vector<Point2d> Map::isCollisionRisk(int robotID, int framesAhead) const
+// {
+//     std::vector<Point2d> obstacle;
+//     obstacle.reserve(5 * framesAhead);
+//     for (int i = 0; i < robotPosition.size(); ++i)
+//     {
+//         if (i == robotID)
+//             continue; // 不考虑自身
+//         if (Point2d::calculateManhattanDistance(robotPosition[robotID], robotPosition[i]) <= 2 * framesAhead)
+//         {
+//             for (int j = -framesAhead; j <= framesAhead; ++j)
+//             {
+//                 for (int k = -framesAhead; k <= framesAhead; ++k)
+//                 {
+//                     Point2d next = Point2d(robotPosition[i].get().x + j, robotPosition[i].get().y + k);
+//                     if (inBounds(next) && passable(next))
+//                         obstacle.push_back(next);
+//                 }
+//             }
+//         }
+//     }
+//     return obstacle;
+// }
 
 void Map::addTemporaryObstacle(const Point2d& pos) {
     if (inBounds(pos)) {
         MapItemSpace::MapItem item = getCell(pos);
         if(item == MapItemSpace::MapItem::OBSTACLE || item == MapItemSpace::MapItem::SEA){
             LOGE("往障碍位置上放置临时障碍, pos: ", pos);
+            return;
+        }
+        else if(isInMainRoad(pos)){
+            LOGE("往主干道上放置临时障碍, pos: ", pos);
             return;
         }
         grid[pos.x][pos.y] = MapItemSpace::MapItem::ROBOT; // 标记为障碍物
@@ -199,7 +287,7 @@ void Map::removeTemporaryObstacle(const Point2d& pos) {
         if (it != temporaryObstaclesRefCount.end()) {
             if (--it->second <= 0) {
                 temporaryObstaclesRefCount.erase(it);
-                grid[pos.x][pos.y] = MapItemSpace::MapItem::SPACE;  // 恢复为空地
+                grid[pos.x][pos.y] = readOnlyGrid[pos.x][pos.y];  // 恢复为原始元素
             }
         }
     }
@@ -209,7 +297,7 @@ void Map::clearTemporaryObstacles() {
     for (const Point2d& pos : temporaryObstacles) {
         // 在清除前检查该位置是否确实是OBSTACLE，以防误清
         if (grid[pos.x][pos.y] == MapItemSpace::MapItem::ROBOT) {
-            grid[pos.x][pos.y] = MapItemSpace::MapItem::SPACE; // 恢复为空地
+            grid[pos.x][pos.y] = readOnlyGrid[pos.x][pos.y];  // 恢复为原始元素
         }
     }
     temporaryObstacles.clear(); // 清空临时障碍物列表

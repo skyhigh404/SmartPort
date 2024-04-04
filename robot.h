@@ -53,6 +53,12 @@ public:
     {
     }
 
+    //  购买机器人
+    static std::string lbot(const Point2d &pos)
+    {
+        return "lbot "s + std::to_string(pos.x) + " "s + std::to_string(pos.y);
+    }
+
     void assignGoodOrBerth()
     {
         targetid = -1;

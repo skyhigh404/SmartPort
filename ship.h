@@ -31,6 +31,12 @@ public:
           berthId(-1),
           remainingTransportTime(0) {}
 
+    //  购买船只
+    static std::string lboat(const Point2d &pos)
+    {
+        return "lboat "s + std::to_string(pos.x) + " "s + std::to_string(pos.y);
+    }
+
     // 重置船只到主航道
     std::string dept()
     {

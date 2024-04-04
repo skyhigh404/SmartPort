@@ -5,7 +5,6 @@
 #include <string>
 #include <unordered_map>
 #include <functional>
-#include "ship.h"
 #include "utils.h"
 namespace MapItemSpace
 {
@@ -82,18 +81,7 @@ public:
         return inBounds(pos.x, pos.y);
     }
 
-    inline bool inBounds(const VectorPosition &vp) const
-    {
-        auto [topLeft, bottomRight] = Ship::getShipOccupancyRect(vp);
-        for (int x = topLeft.x; x < bottomRight.x; ++x) {
-            for (int y = topLeft.y; y < bottomRight.y; ++y) {
-                if (!inBounds(Point2d(x, y))) {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
+    bool inBounds(const VectorPosition &vp) const;
 
     // 获取地图上某个位置的值
     inline MapItemSpace::MapItem getCell(int x, int y) const
@@ -124,18 +112,7 @@ public:
     }
 
     // 查询对有大小和位置的 vp 在海洋上是否可达
-    inline bool passable(const VectorPosition &vp) const
-    {
-        auto [topLeft, bottomRight] = Ship::getShipOccupancyRect(vp);
-        for (int x = topLeft.x; x < bottomRight.x; ++x) {
-            for (int y = topLeft.y; y < bottomRight.y; ++y) {
-                if (!seaPassable(Point2d(x, y))) {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
+    bool passable(const VectorPosition &vp) const;
 
     // 查询 pos 位置在海洋上是否可达
     inline bool seaPassable(const Point2d &pos) const
@@ -205,20 +182,7 @@ public:
         return Point2d::calculateManhattanDistance(pos1, pos2);
     }
     // 使用曼哈顿距离计算两个 VectorPosition 之间的代价，包含了转向代价
-    inline int cost(const VectorPosition &e1, const VectorPosition &e2) const
-    {
-        int result = cost(e1.pos, e2.pos) + abs(VectorPosition::minimalRotationStep(e1.direction, e2.direction));
-        auto [topLeft, bottomRight] = Ship::getShipOccupancyRect(e2);
-        for (int x = topLeft.x; x < bottomRight.x; ++x) {
-            for (int y = topLeft.y; y < bottomRight.y; ++y) {
-                if (isInSealane(Point2d(x, y))) {
-                    result += 1;
-                    break;
-                }
-            }
-        }
-        return result;
-    }
+    int cost(const VectorPosition &e1, const VectorPosition &e2) const;
 };
 
 std::string printVector(const std::vector<Point2d> &path);

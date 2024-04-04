@@ -40,13 +40,13 @@ std::vector<VectorPosition> Map::neighbors(const VectorPosition &vp) const
     results.reserve(3);
     // 前进 1 格或者旋转一次
     // TODO: 某些区域进行了多次检查，可以进行优化
-    VectorPosition moveForward = Ship::moveForward(vp);
+    VectorPosition moveForward = SpatialUtils::moveForward(vp);
     if(inBounds(moveForward) && passable(moveForward))
         results.push_back(moveForward);
-    VectorPosition rotate = Ship::anticlockwiseRotation(vp);
+    VectorPosition rotate = SpatialUtils::anticlockwiseRotation(vp);
     if(inBounds(rotate) && passable(rotate))
         results.push_back(rotate);
-    VectorPosition rotate = Ship::clockwiseRotation(vp);
+    VectorPosition rotate = SpatialUtils::clockwiseRotation(vp);
     if(inBounds(rotate) && passable(rotate))
         results.push_back(rotate);
     return results;
@@ -70,6 +70,38 @@ bool Map::isInSealane(const Point2d &pos) const
             item == MapItemSpace::MapItem::MOORING_AREA ||
             item == MapItemSpace::MapItem::HYBRID_LANE ||
             item == MapItemSpace::MapItem::DELIVERY_POINT);
+}
+
+bool Map::inBounds(const VectorPosition &vp) const
+{
+    auto [topLeft, bottomRight] = SpatialUtils::getShipOccupancyRect(vp);
+    for (int x = topLeft.x; x < bottomRight.x; ++x)
+    {
+        for (int y = topLeft.y; y < bottomRight.y; ++y)
+        {
+            if (!inBounds(Point2d(x, y)))
+            {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+bool Map::passable(const VectorPosition &vp) const
+{
+    auto [topLeft, bottomRight] = SpatialUtils::getShipOccupancyRect(vp);
+    for (int x = topLeft.x; x < bottomRight.x; ++x)
+    {
+        for (int y = topLeft.y; y < bottomRight.y; ++y)
+        {
+            if (!seaPassable(Point2d(x, y)))
+            {
+                return false;
+            }
+        }
+    }
+    return true;
 }
 
 std::string Map::drawMap(std::unordered_map<Point2d, double> *distances,
@@ -344,6 +376,24 @@ std::vector<std::pair<int, int>> Map::computePointToBerthsDistances(Point2d posi
     std::sort(result.begin(), result.end(), [](const std::pair<int, int>& a, const std::pair<int, int>& b) {
         return a.second < b.second;
     });
+    return result;
+}
+
+int Map::cost(const VectorPosition &e1, const VectorPosition &e2) const
+{
+    int result = cost(e1.pos, e2.pos) + abs(VectorPosition::minimalRotationStep(e1.direction, e2.direction));
+    auto [topLeft, bottomRight] = SpatialUtils::getShipOccupancyRect(e2);
+    for (int x = topLeft.x; x < bottomRight.x; ++x)
+    {
+        for (int y = topLeft.y; y < bottomRight.y; ++y)
+        {
+            if (isInSealane(Point2d(x, y)))
+            {
+                result += 1;
+                break;
+            }
+        }
+    }
     return result;
 }
 

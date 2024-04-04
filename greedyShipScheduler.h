@@ -54,10 +54,10 @@ private:
     bool isGoodsArrivingSoon(Berth &berth, std::vector<Goods> goods); 
 
     // 为船找到最佳泊位，返回泊位id
-    BerthID findBestBerthForShip( Ship &ship, const std::vector<Berth> &berths, const std::vector<Goods> &goods);
+    BerthID findBestBerthForShip( Ship &ship, std::vector<Berth> &berths, const std::vector<Goods> &goods);
 
     // 判断船可以前往其他泊位
-    bool canMoveBerth( Ship &ship,const Berth &Berth);
+    bool canMoveBerth( Ship &ship,Berth &Berth);
 
     // 处理船在路途的情况
     // 是否可以中途前往其他泊位（收益更高）

@@ -414,3 +414,16 @@ std::string printVector(const std::vector<Point2d> &path)
         oss << val << " ";
     return oss.str();
 }
+
+// 初始化泊位到交货点的距离变量
+void Map::initializeBerthToDeliveryDistances(BerthID berthId){
+    std::vector<std::pair<int, int>> distsToDelivery;
+    for(int deliveryId = 0;deliveryId < deliveryLocations.size(); deliveryId++){
+        Point2d pos = deliveryLocations[deliveryId];
+        distsToDelivery.push_back({deliveryId, maritimeBerthDistanceMap[berthId][pos.x][pos.y]});
+    }
+    // 升序排列
+    std::sort(distsToDelivery.begin(), distsToDelivery.end(), [](std::pair<int, int>& a,std::pair<int, int> &b){
+        return a.second < b.second;
+    });
+}

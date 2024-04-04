@@ -149,6 +149,8 @@ void GameManager::initializeComponents()
                 positions.push_back(berth.pos + Point2d(i, j));
 
         this->gameMap.computeDistancesToBerthViaBFS(berth.id, positions);
+        this->gameMap.computeMaritimeBerthDistanceViaBFS(berth.id, positions);
+        this->gameMap.initializeBerthToDeliveryDistances(berth.id);
     }
 
     // 3. 判断机器人是否 DEATH 状态
@@ -330,7 +332,7 @@ void GameManager::robotControl()
                 LOGI("機器人",robot.id,"放貨 ");
                 commandManager.addRobotCommand(robot.pull());
                 int x = robot.pos.x-berth.pos.x, y=robot.pos.y-berth.pos.y;
-                if(currentFrame < 15000 - berth.time){
+                if(currentFrame < 15000 - berth.timeToDelivery()){
                     Berth::maxLoadGoodNum += 1;
                     totalGetGoodsValue += goods[robot.carryingItemId].value;
                     berth.reached_goods.push_back(goods[robot.carryingItemId]);
@@ -542,7 +544,7 @@ StageType GameManager::nowStateType()
         for (auto &ship : ships)
             maxCapacity = std::max(maxCapacity, ship.capacity);
         for (auto &berth : berths)
-            minVelocity = std::min(minVelocity, berth.velocity), maxTime = std::max(maxTime, berth.time);
+            minVelocity = std::min(minVelocity, berth.velocity), maxTime = std::max(maxTime, berth.timeToDelivery());
 
         finalFrame = 15000 - maxTime * 3 - static_cast<int>(maxCapacity / minVelocity) * 2 - 500;
     }

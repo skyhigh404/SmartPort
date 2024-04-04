@@ -167,7 +167,7 @@ FinalShipScheduler::handleShipAtVirtualPoint(Ship& ship, std::vector<Berth> &ber
 void FinalShipScheduler::init(std::vector<Ship> &ships, std::vector<Berth> &berths, std::vector<Goods> &goods){
     // 初始化边界变量
     for(auto &ship : ships) maxCapacity = std::max(maxCapacity,ship.capacity);
-    for(auto &berth : berths) minVelocity = std::min(minVelocity,berth.velocity),maxTime = std::max(maxTime, berth.time);
+    for(auto &berth : berths) minVelocity = std::min(minVelocity,berth.velocity),maxTime = std::max(maxTime, berth.timeToDelivery());
     maxLoadTime = maxCapacity / minVelocity;
 
     // 更新船和泊位状态
@@ -229,7 +229,7 @@ void FinalShipScheduler::selectFinalAndBackupBerths(std::vector<Berth> &berths){
         std::vector<Berth> cluster_sort(clusters->at(index));
         // LOGI(index,"类泊位数量：",  cluster_sort.size());
         std::sort(cluster_sort.begin(), cluster_sort.end(),[](Berth &a, Berth &b){
-            return a.time < b.time;
+            return a.timeToDelivery() < b.timeToDelivery();
         });
         // LOGI("排序完毕");
         // 选取第一个作为终局泊位
@@ -266,7 +266,7 @@ void FinalShipScheduler::selectFinalAndBackupBerths(std::vector<Berth> &berths){
 
     // 终局泊位按照去虚拟点的时间排序
     std::sort(finalBerths.begin(), finalBerths.end(), [](Berth &a, Berth &b){
-        return a.time < b.time;
+        return a.timeToDelivery() < b.timeToDelivery();
     });
 }
 
@@ -414,7 +414,7 @@ bool FinalShipScheduler::isShipAtFinalBerth(Ship &ship){
 bool FinalShipScheduler::canReachBackupBerth(Ship &ship, std::vector<Berth> &berths){
     BerthID backupBerthId = getShipBackupBerth(ship);
     BerthID finalBerthId = getShipFinalBerth(ship);
-    int timeCost = berths[finalBerthId].time + 500 + maxLoadTime;
+    int timeCost = berths[finalBerthId].timeToDelivery() + 500 + maxLoadTime;
     if(ship.state != 0){
         timeCost += 500;
     }else{
@@ -428,7 +428,7 @@ bool FinalShipScheduler::canReachBackupBerth(Ship &ship, std::vector<Berth> &ber
 // 判断船是否有时间前往终局泊位
 bool FinalShipScheduler::canReachFinalBerth(Ship &ship, std::vector<Berth> &berths){
     BerthID finalBerthId = getShipFinalBerth(ship);
-    int timeCost = berths[finalBerthId].time + maxLoadTime;
+    int timeCost = berths[finalBerthId].timeToDelivery() + maxLoadTime;
     if(ship.state != 0){
         timeCost += 500;
     }else{
@@ -442,7 +442,7 @@ bool FinalShipScheduler::canReachFinalBerth(Ship &ship, std::vector<Berth> &bert
 // 判断船是否应该前往终局泊位
 bool FinalShipScheduler::shouldReachFinalBerth(Ship &ship, std::vector<Berth> &berths){
     BerthID finalBerthId = getShipFinalBerth(ship);
-    int timeCost = berths[finalBerthId].time + maxLoadTime;
+    int timeCost = berths[finalBerthId].timeToDelivery() + maxLoadTime;
     if(ship.state != 0){
         timeCost += 500;
     }else{
@@ -456,14 +456,14 @@ bool FinalShipScheduler::shouldReachFinalBerth(Ship &ship, std::vector<Berth> &b
 // 判断船是否能去虚拟点后再回来指定泊位，最后再前往虚拟点
 bool FinalShipScheduler::canDepartAndReturn(Ship &ship, Berth &berth, std::vector<Berth> &berths){
     //  todo 超参，可能并不需要maxTime个时间
-    int timeCost = berth.time * 2 + maxLoadTime + berths[ship.berthId].time;
+    int timeCost = berth.timeToDelivery() * 2 + maxLoadTime + berths[ship.berthId].timeToDelivery();
     if(timeCost + CURRENT_FRAME < 15000) return true;
     else return false;
 }
 
 // 判断船是否必须去虚拟点后再回来指定泊位，最后再前往虚拟点
 bool FinalShipScheduler::shouldDepartAndReturn(Ship &ship, Berth &berth, std::vector<Berth> &berths){
-    int timeCost = berth.time * 2 + maxLoadTime + berths[ship.berthId].time;
+    int timeCost = berth.timeToDelivery() * 2 + maxLoadTime + berths[ship.berthId].timeToDelivery();
     //  todo 超参，缓冲帧
     if(isTimeInWithinBounds(15000 - 2,timeCost + CURRENT_FRAME, 15000)) return true;
     else return false;
@@ -474,7 +474,7 @@ bool FinalShipScheduler::shouldDepartAndReturn(Ship &ship, Berth &berth, std::ve
 bool FinalShipScheduler::shouldDepartBerth(Ship &ship,std::vector<Berth> &berths){
     if (ship.nowCapacity() <= 0)  return true;
     if (ship.state == 0 || ship.berthId == -1) return false;
-    int timeCost = berths[ship.berthId].time;
+    int timeCost = berths[ship.berthId].timeToDelivery();
     if(isTimeInWithinBounds(15000 - 2,timeCost + CURRENT_FRAME, 15000)) return true;
     else return false;
 }

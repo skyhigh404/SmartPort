@@ -177,7 +177,7 @@ bool GreedyShipScheduler::shouldDepartBerth( Ship &ship,std::vector<Berth> &bert
     // todo 15000改成全局变量；缓冲时间变成超参
     // 泊位交货点时间
     // int timeToDeliveryLocation = berths[ship.berthId].
-    else if(ship.berthId != -1 && 15000 - CURRENT_FRAME <= berths[ship.berthId].time + 2) return true;
+    else if(ship.berthId != -1 && 15000 - CURRENT_FRAME <= berths[ship.berthId].timeToDelivery() + 2) return true;
     else return false;
 }
 
@@ -191,7 +191,7 @@ bool GreedyShipScheduler::isThereGoodsToLoad(Berth &berth){
 // 判断泊位最近有没有货物到来
 bool GreedyShipScheduler::isGoodsArrivingSoon(Berth &berth, std::vector<Goods> goods){
     // todo 15000后期修改成超参数
-    int timeToWait = std::min(TIME_TO_WAIT, 15000 - CURRENT_FRAME - berth.time - 5);
+    int timeToWait = std::min(TIME_TO_WAIT, 15000 - CURRENT_FRAME - berth.timeToDelivery() - 5);
     for(auto good : goods){
         if((good.status == 1 || good.status == 2)
         && good.distsToBerths[0].first == berth.id
@@ -205,7 +205,7 @@ bool GreedyShipScheduler::isGoodsArrivingSoon(Berth &berth, std::vector<Goods> g
 
 // 为船找到最佳泊位，返回泊位id（局部最优）
 // 考虑：泊位前往虚拟点的时间代价、泊位未来的收益、泊位货物量和船容量的匹配
-BerthID GreedyShipScheduler::findBestBerthForShip(Ship &ship, const std::vector<Berth> &berths, const std::vector<Goods> &goods){
+BerthID GreedyShipScheduler::findBestBerthForShip(Ship &ship, std::vector<Berth> &berths, const std::vector<Goods> &goods){
     // 泊位进行收益排序(将来一段时间)
     // std::vector<Berth> berths_sort(berths);
     // int currentFrame = CURRENT_FRAME;
@@ -237,7 +237,7 @@ BerthID GreedyShipScheduler::findBestBerthForShip(Ship &ship, const std::vector<
 }
 
 // 判断船可以前往其他泊位
-bool GreedyShipScheduler::canMoveBerth(Ship &ship,const Berth &berth){
+bool GreedyShipScheduler::canMoveBerth(Ship &ship,Berth &berth){
     // 路途中的船暂时不考虑调度
     if(ship.state == 0) return false;
     // 相同泊位返回true
@@ -245,9 +245,9 @@ bool GreedyShipScheduler::canMoveBerth(Ship &ship,const Berth &berth){
 
     // 如果船前往其他泊位后还有时间前往虚拟点，则返回true
     // todo 泊位移动距离和缓冲时间改成超参
-    int timeCost = berth.time + static_cast<int>(ship.nowCapacity() / berth.velocity);
+    int timeCost = berth.timeToDelivery() + static_cast<int>(ship.nowCapacity() / berth.velocity);
     // 船在虚拟点
-    if(ship.state == 1 && ship.berthId == -1) timeCost += berth.time;
+    if(ship.state == 1 && ship.berthId == -1) timeCost += berth.timeToDelivery();
     // 船在泊位上，并且目的地不同
     else if(ship.state == 1 || ship.state == 2) timeCost += 500;
 

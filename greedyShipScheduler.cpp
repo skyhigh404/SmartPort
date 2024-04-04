@@ -175,6 +175,8 @@ bool GreedyShipScheduler::shouldDepartBerth( Ship &ship,std::vector<Berth> &bert
     if (ship.nowCapacity() <= 0)  return true;
     // 2. 游戏快结束了，前往虚拟点
     // todo 15000改成全局变量；缓冲时间变成超参
+    // 泊位交货点时间
+    // int timeToDeliveryLocation = berths[ship.berthId].
     else if(ship.berthId != -1 && 15000 - CURRENT_FRAME <= berths[ship.berthId].time + 2) return true;
     else return false;
 }

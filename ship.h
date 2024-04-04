@@ -31,43 +31,56 @@ public:
           berthId(-1),
           remainingTransportTime(0) {}
 
-    // 重置船只到主航道
-    std::string dept(){
-        #ifdef DEBUG
-            // 船不在恢复状态
-            assert(state != 1);
-        #endif
-        return "dept";
+    //  购买船只
+    static std::string lboat(const Point2d &pos)
+    {
+        return "lboat "s + std::to_string(pos.x) + " "s + std::to_string(pos.y);
     }
 
     // 重置船只到主航道
-    std::string dept(){
-        #ifdef DEBUG
-            // 船不在恢复状态
-            assert(state != 1);
-        #endif
-        return "berth";
+    std::string dept()
+    {
+        using namespace std::string_literals;
+#ifdef DEBUG
+        // 船不在恢复状态
+        assert(state != 1);
+#endif
+        return "dept "s + std::to_string(id);
+    }
+
+    // 尝试将对应船靠泊到泊位上，会导致船进入恢复状态。
+    std::string berth()
+    {
+        using namespace std::string_literals;
+#ifdef DEBUG
+        // 船不在恢复状态
+        assert(state != 1);
+#endif
+        return "berth "s + std::to_string(id);
     }
 
     // 旋转命令
-    // 重置船只到主航道
-    std::string rot(RotationDirection rotDirection){
-        #ifdef DEBUG
-            // 船在正常行驶状态
-            assert(state == 0);
-        #endif
-        return "rot " + std::to_string(static_cast<int>(rotDirection));
+    std::string rot(RotationDirection rotDirection)
+    {
+        using namespace std::string_literals;
+#ifdef DEBUG
+        // 船在正常行驶状态
+        assert(state == 0);
+#endif
+        return "rot "s + std::to_string(static_cast<int>(rotDirection));
     }
 
     // 前进命令
-    std::string ship(){
-        #ifdef DEBUG
-            // 船在正常行驶状态
-            assert(state == 0);
-        #endif
-        return "ship";
+    std::string ship()
+    {
+        using namespace std::string_literals;
+#ifdef DEBUG
+        // 船在正常行驶状态
+        assert(state == 0);
+#endif
+        return "ship "s + std::to_string(id);
     }
-    
+
     // 装货,并返回转货的数量
     int loadGoods(int num)
     {

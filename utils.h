@@ -9,7 +9,6 @@
 #define DEBUG
 
 const int MAPROWS = 200, MAPCOLS = 200;
-const int ROBOTNUMS = 10, SHIPNUMS = 5, BERTHNUMS = 10;
 
 using BerthID = int;
 using RobotID = int;

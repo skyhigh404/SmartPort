@@ -107,6 +107,7 @@ struct VectorPosition
 
     VectorPosition() : direction(Direction::EAST) {}
     VectorPosition(Point2d _pos, Direction _d) : pos(_pos), direction(_d) {}
+    VectorPosition(int x_, int y_, Direction _d) : pos({x_, y_}), direction(_d) {}
     VectorPosition(const VectorPosition &other) : pos(other.pos), direction(other.direction) {}
     VectorPosition(VectorPosition &&other) noexcept
         : pos(std::exchange(other.pos, {-1, -1})), direction(std::exchange(other.direction, Direction::EAST)) {}
@@ -131,7 +132,7 @@ struct VectorPosition
         return *this;
     }
     bool operator==(const VectorPosition &other) const {
-        return other.pos == other.pos && direction == other.direction;
+        return pos == other.pos && direction == other.direction;
     }
     bool operator!=(const VectorPosition &other) const {
         return !(*this == other);

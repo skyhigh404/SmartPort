@@ -41,7 +41,7 @@ public:
     
 
 public:
-    void init(const Map& map, const std::vector<Berth> &berths); //初始化商店,可以在gamemanager中初始化
+    void init(const Map& map, const std::vector<Berth> &berths, const Map &gameMap); //初始化商店,可以在gamemanager中初始化
 
 private:
     // 超参数

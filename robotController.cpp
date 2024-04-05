@@ -310,8 +310,8 @@ const Robot & RobotController::decideWhoWaits(const Robot &robot1, const Robot &
 void RobotController::decideWhoToWaitAndRefindWhenTargetOverlap(Map &map, Robot &robot1, Robot &robot2)
 {
     // 首先获取两个机器人周围可移动的位置
-    const Path robot1Neighbors = map.neighbors(robot1.pos);
-    const Path robot2Neighbors = map.neighbors(robot2.pos);
+    const std::vector<Point2d> robot1Neighbors = map.neighbors(robot1.pos);
+    const std::vector<Point2d> robot2Neighbors = map.neighbors(robot2.pos);
     LOGI("robo1 旁边空位: ", robot1Neighbors.size(), "; ", robot1);
     LOGI("robo2 旁边空位: ", robot2Neighbors.size(), "; ", robot2);
 
@@ -417,8 +417,8 @@ void RobotController::makeRobotMoveToTempPos(const Robot &robot)
 
 void RobotController::resolveDeadlocks(Map &map, Robot &robot1, Robot &robot2)
 {
-    const Path robot1Neighbors = map.neighbors(robot1.pos);
-    const Path robot2Neighbors = map.neighbors(robot2.pos);
+    const std::vector<Point2d> robot1Neighbors = map.neighbors(robot1.pos);
+    const std::vector<Point2d> robot2Neighbors = map.neighbors(robot2.pos);
     LOGI("resolveDeadlocks");
     LOGI("robo1 旁边空位: ", robot1Neighbors.size(), " ",robot1);
     LOGI("robo2 旁边空位: ", robot2Neighbors.size(), " ", robot2);
@@ -445,7 +445,7 @@ void RobotController::runPathfinding(const Map &map, Robot &robot)
 {
     // 寻路不成功，设置机器人状态
     if (!robot.findPath(map)){
-        robot.path = Path();
+        robot.path = Path<Point2d>();
         robot.targetid = -1;
         robot.destination = Point2d(-1,-1);
         LOGI("尋路失敗",robot);

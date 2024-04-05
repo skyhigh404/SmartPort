@@ -4,7 +4,7 @@ GreedyRobotScheduler::GreedyRobotScheduler(std::vector<std::vector<Berth>> &_clu
     : clusters(_clusters), berthCluster(std::make_shared<std::vector<int>>(_berthCluster))
     // : clusters(_clusters), berthCluster(_berthCluster)
 {
-    assignment = vector<int>(BERTHNUMS, -1);
+    assignment = vector<int>(10, -1);
 }
 
 void GreedyRobotScheduler::scheduleRobots(const Map &map,
@@ -53,7 +53,7 @@ void GreedyRobotScheduler::setParameter(const Params &params)
 void GreedyRobotScheduler::assignRobotsByCluster(vector<Robot> &robots, const Map &map, vector<int> assignBound)
 {
     if (assignment.empty()) 
-        assignment = vector<int>(BERTHNUMS, -1);
+        assignment = vector<int>(10, -1);
         
     vector<bool> assigned(robots.size(), false);
     if (assignBound.empty())

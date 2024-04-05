@@ -25,7 +25,7 @@ public:
     int id;                 // 机器人 ID
     Point2d pos;            // 机器人目前位置
     int carryingItem;       // 0 表示未携带物品，1 表示携带物品
-    const int price = 2000; // 购买价格
+    // const int price = 2000; // 购买价格
     // int state;        // 0 表示恢复状态，1 表示正常运行状态
 public:
     RobotStatus status;
@@ -56,6 +56,7 @@ public:
     //  购买机器人
     static std::string lbot(const Point2d &pos)
     {
+        using namespace std::string_literals;
         return "lbot "s + std::to_string(pos.x) + " "s + std::to_string(pos.y);
     }
 

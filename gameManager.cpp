@@ -4,12 +4,12 @@
 #include <algorithm>
 #include <chrono>
 #include "log.h"
-#include "pathFinder.h"
 #include "greedyRobotScheduler.h"
 #include "greedyShipScheduler.h"
 #include "finalShipScheduler.h"
 
 using namespace std;
+int Ship::capacity = 0;
 int Goods::count = 0;
 int Berth::totalLoadGoodnum = 0;
 int Berth::maxLoadGoodNum = 0;
@@ -346,7 +346,7 @@ void GameManager::robotControl()
                 robot.carryingItem = 0;
                 robot.carryingItemId = -1;
                 robot.targetid = -1;
-                robot.path = Path();
+                robot.path = Path<Point2d>();
             }
             else {
                 // robot.targetid = -1;
@@ -361,7 +361,7 @@ void GameManager::robotControl()
             if ( (robot.status==MOVING_TO_BERTH && berths[robot.targetid].isEnable()==false) || (robot.status==MOVING_TO_GOODS && berths[goods[robot.targetid].distsToBerths[0].first].isEnable()==false)) {
                 robot.targetid = -1;
                 robot.destination = Point2d(-1,-1);
-                robot.path = Path();
+                robot.path = Path<Point2d>();
             }
         }
         LOGI("機器人調度進入終局");
@@ -417,26 +417,26 @@ void GameManager::update()
 
     LOGI("命令个数：",shipActions.size());
     // CommandManager.shipCommands
-    for (int i = 0; i < shipActions.size(); i++)
-    {
-        int ship_id = shipActions[i].first;
-        ShipActionSpace::ShipAction ship_action = shipActions[i].second;
-        LOGI("船:", ship_id);
-        LOGI("船的命令类型:", ship_action.type);
-        LOGI("船的执行id：",ship_action.targetId);
-        // 去虚拟点
-        if (ship_action.type == ShipActionSpace::ShipActionType::DEPART_BERTH)
-        {
-            // LOGI(ship_id,"前往虚拟点");
-            commandManager.addShipCommand(ships[ship_id].go(berths[ship_action.targetId].time));
-        }
-        // 去泊位
-        if (ship_action.type == ShipActionSpace::ShipActionType::MOVE_TO_BERTH)
-        {
-            // LOGI(ship_id,"分配去泊位",ship_action.targetId);
-            commandManager.addShipCommand(ships[ship_id].moveToBerth(ship_action.targetId));
-        }
-    }
+    // for (int i = 0; i < shipActions.size(); i++)
+    // {
+    //     int ship_id = shipActions[i].first;
+    //     ShipActionSpace::ShipAction ship_action = shipActions[i].second;
+    //     LOGI("船:", ship_id);
+    //     LOGI("船的命令类型:", ship_action.type);
+    //     LOGI("船的执行id：",ship_action.targetId);
+    //     // 去虚拟点
+    //     if (ship_action.type == ShipActionSpace::ShipActionType::DEPART_BERTH)
+    //     {
+    //         // LOGI(ship_id,"前往虚拟点");
+    //         commandManager.addShipCommand(ships[ship_id].go(berths[ship_action.targetId].time));
+    //     }
+    //     // 去泊位
+    //     if (ship_action.type == ShipActionSpace::ShipActionType::MOVE_TO_BERTH)
+    //     {
+    //         // LOGI(ship_id,"分配去泊位",ship_action.targetId);
+    //         commandManager.addShipCommand(ships[ship_id].moveToBerth(ship_action.targetId));
+    //     }
+    // }
     LOGI("船命令执行完毕");
 
     if(currentFrame>=14000 && currentFrame <= 14005){

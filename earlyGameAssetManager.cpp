@@ -35,8 +35,11 @@ std::vector<PurchaseDecision> EarlyGameAssetManager::makePurchaseDecision(const 
                                                     int currentTime)
 {
     // 判断要不要购买机器人/轮船
-    if (needToBuyRobot(robots, goods, gameMap, currentFunds)) {buyRobot()}
+    if (needToBuyRobot(robots, goods, gameMap, currentFunds)) {
+        buyRobot(robots, goods, gameMap, currentFunds);
+    }
     if (needToBuyShip(ships, goods, gameMap, currentFunds)) {}
+    return {};
 }
 
 void EarlyGameAssetManager::divideLandConnectedBlocks(const std::vector<Berth> &berths, const Map &map)
@@ -101,5 +104,10 @@ void EarlyGameAssetManager::buyRobot(const std::vector<Robot> &robots, const std
 }
 bool EarlyGameAssetManager::buyShip(const std::vector<Ship> &ships, const std::vector<Goods> &goods, const Map &gameMap, int currentFunds)
 {
+    return false;
+}
 
+void EarlyGameAssetManager::divideSeaConnectedBlocks()
+{
+    LOGE("divideSeaConnectedBlocks 未实现");
 }

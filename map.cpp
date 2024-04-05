@@ -46,7 +46,7 @@ std::vector<VectorPosition> Map::neighbors(const VectorPosition &vp) const
     VectorPosition rotate = SpatialUtils::anticlockwiseRotation(vp);
     if(inBounds(rotate) && passable(rotate))
         results.push_back(rotate);
-    VectorPosition rotate = SpatialUtils::clockwiseRotation(vp);
+    rotate = SpatialUtils::clockwiseRotation(vp);
     if(inBounds(rotate) && passable(rotate))
         results.push_back(rotate);
     return results;

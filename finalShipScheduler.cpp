@@ -1,4 +1,4 @@
-#include "FinalShipScheduler.h"
+#include "finalShipScheduler.h"
 
 //  设置参数
 void FinalShipScheduler::setParameter(const Params &params)

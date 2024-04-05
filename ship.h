@@ -16,7 +16,7 @@ public:
     VectorPosition shipLocAndDir; //  表示船舶位置和方向
     int state;                    // 0: 正常行驶状态, 1: 恢复状态, 2: 装载状态
     int berthId;                  // 目标泊位 ID
-    const int price = 8000;       // 购买价格
+    // const int price = 8000;       // 购买价格
 public:
     static int capacity; // 船的容量
     // int now_capacity;           // 船的剩余容量
@@ -34,6 +34,7 @@ public:
     //  购买船只
     static std::string lboat(const Point2d &pos)
     {
+        using namespace std::string_literals;
         return "lboat "s + std::to_string(pos.x) + " "s + std::to_string(pos.y);
     }
 

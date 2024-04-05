@@ -53,8 +53,12 @@ public:
         const std::unordered_map<Location, Location> &came_from);
 
 public:
-    inline int heuristic(Point2d pos1, Point2d pos2)
+    inline int heuristic(const Point2d &pos1, const Point2d &pos2)
     {
         return Point2d::calculateManhattanDistance(pos1, pos2);
+    }
+    inline int heuristic(const VectorPosition &vp1, const VectorPosition &vp2)
+    {
+        return Point2d::calculateManhattanDistance(vp1.pos, vp2.pos);
     }
 };

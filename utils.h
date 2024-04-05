@@ -154,6 +154,11 @@ struct VectorPosition
     }
 };
 
+inline bool operator<(const VectorPosition &a, const VectorPosition &b)
+{
+    return a.pos < b.pos || (a.pos==b.pos && static_cast<int>(a.direction) < static_cast<int>(b.direction));
+}
+
 namespace std
 {
     template <>

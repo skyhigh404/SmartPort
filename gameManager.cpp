@@ -26,8 +26,8 @@ int canUnload(Berth& berth, Point2d pos) {
         return 1;
 }
 
-std::vector<int> berthDistrubtGoodNumCount(BERTHNUMS,0);
-std::vector<int> berthDistrubtGoodValueCount(BERTHNUMS,0);
+std::vector<int> berthDistrubtGoodNumCount;
+std::vector<int> berthDistrubtGoodValueCount;
 
 void GameManager::initializeGame()
 {
@@ -96,6 +96,8 @@ void GameManager::initializeGame()
         cin >> id >> x >> y >> velocity;
         this->berths.emplace_back(id, Point2d(x, y), velocity);
     }
+    berthDistrubtGoodNumCount = std::vector<int>(this->berths.size(), 0);
+    berthDistrubtGoodValueCount = std::vector<int>(this->berths.size(), 0);
     LOGI("print berth init info");
     for (const auto &berth : this->berths)
         LOGI("ID: ", berth.id, " POS: ", berth.pos, " velocity: ", berth.velocity);
@@ -240,7 +242,7 @@ void GameManager::processFrameData()
         this->goods.push_back(good);
         
         int tempGoodDistrubtID = this->gameMap.getNearestBerthID(Point2d(goodsX, goodsY));
-        if(tempGoodDistrubtID>=0 && tempGoodDistrubtID<BERTHNUMS) {
+        if(tempGoodDistrubtID>=0 && tempGoodDistrubtID<berths.size()) {
             berthDistrubtGoodNumCount[tempGoodDistrubtID]++;
             berthDistrubtGoodValueCount[tempGoodDistrubtID] += value;
         }

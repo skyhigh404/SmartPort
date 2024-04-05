@@ -17,7 +17,7 @@ void BerthAssignAndControlService::clusterResults()
 void BerthAssignAndControlService::clusterBerths(const Map &map, std::vector<Berth> &berths)
 {
     LOGI("开始聚类");
-    berthCluster = std::vector<int>(BERTHNUMS , -1);
+    berthCluster = std::vector<int>(berths.size() , -1);
     std::vector<bool> clustered(berths.size(), false);
     // 连通性聚类
     for (int i = 0; i < berths.size(); i++)

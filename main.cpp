@@ -19,8 +19,8 @@ int main()
     LOGI("init finish");
 
     // 测试 A* 算法
-    // VectorPosition startPos(180, 10, Direction::EAST);
-    // VectorPosition targetPos(35, 108, Direction::EAST);
+    // VectorPosition startPos(197, 195, Direction::EAST);
+    // VectorPosition targetPos(96, 89, Direction::EAST);
     // if (startPos == targetPos)
     //     LOGE("startPos==targetPos");
 
@@ -78,9 +78,7 @@ int main()
         auto end = std::chrono::steady_clock::now();
         int time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
         LOGI("本帧处理时间：",time,"ms");
-        // if(time <=1){
-        //     std::this_thread::sleep_for(std::chrono::milliseconds(5));
-        // }
+        
         gameManager.outputCommands();
     }
 

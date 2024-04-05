@@ -15,80 +15,42 @@ int main()
 #endif
 
     GameManager gameManager;
-    // SimpleTransportStrategy simpleTransportStrategy;
-    // ImplicitEnumeration implicitEnumeration;
-    // FinalTransportStrategy finalTransportStrategy;
-    // FinalClusterTransportStrategy finalClusterTransportStrategy;
-    // gameManager.setShipScheduler(&simpleTransportStrategy);
-    // gameManager.setRobotScheduler(&simpleTransportStrategy);
     gameManager.initializeGame();
-    // 初始化聚类
-    // simpleTransportStrategy.initCluster(gameManager.berths,gameManager.gameMap);
-    // finalTransportStrategy.initCluster(gameManager.berths,gameManager.gameMap);
-    // implicitEnumeration.initCluster(gameManager.berths,gameManager.gameMap);
-    // finalClusterTransportStrategy.initCluster(gameManager.berths,gameManager.gameMap);
-    
-    // simpleTransportStrategy.setParameter();
-
-    // vector<int> assignBound;
-    // // 迷宫
-    // if (MAP_INDEX==MapFlag::LABYRINTH) {
-    //     assignBound = {1,2,3,2,2};
-    // }
-    // else if (MAP_INDEX==MapFlag::NORMAL) {
-    //     assignBound = {2,4,1,1,2};
-    // }
-    // else assignBound.clear();
-    // // assignBound.clear();
-    // simpleTransportStrategy.assignRobots(gameManager.robots, gameManager.gameMap, assignBound);
-    // // LOGI("1");
-    // for (int i=0;i<gameManager.RobotScheduler->clusters.size();i++) {
-    //     LOGI("类",i,"包含以下泊位：");
-    //     std::string op = "泊位id：";
-    //     for (int j=0;j<gameManager.RobotScheduler->clusters[i].size();j++) {
-    //         op += std::to_string(gameManager.RobotScheduler->clusters[i][j].id) + " ";
-    //     }
-    //     LOGI(op);
-    // }
-    // for (int i=0;i<gameManager.robots.size();i++) {
-    //     LOGI("机器人",i,"分配到类",simpleTransportStrategy.assignment[i]);
-    // }
-    // // return 0;
-
     LOGI("init finish");
 
-    // std::vector<std::vector<Berth>> res = ClusteringBerths(gameManager.berths, gameManager.gameMap);
-    // LOGI(res.size());
-    // for (int i=0;i<res.size();i++) {
-    //     LOGI("class ", i, ' ', res[i].size());
-    //     for (int j=0;j<res[i].size();j++) {
-    //         LOGI(res[i][j].pos);
-    //     }
-    // }
-    // return 0;
-
-
     // 测试 A* 算法
-    // AStarPathfinder astar;
-    // Point2d pos(47,10);
-    // LOGI("Start: ",gameManager.robots[0].pos," target: ", pos);
+    // VectorPosition startPos(180, 10, Direction::EAST);
+    // VectorPosition targetPos(35, 108, Direction::EAST);
+    // if (startPos == targetPos)
+    //     LOGE("startPos==targetPos");
+
+    // AStarPathfinder<VectorPosition, Map> astar;
+
+    // LOGI("Start: ",startPos," target: ", targetPos);
     
     // auto start = std::chrono::high_resolution_clock::now();
-    // std::variant<Path, PathfindingFailureReason> path = astar.findPath(gameManager.robots[0].pos,pos,gameManager.gameMap);
+    // std::variant<Path<VectorPosition>, PathfindingFailureReason> path = 
+    //     astar.findPath(startPos, targetPos, gameManager.gameMap);
     // auto stop = std::chrono::high_resolution_clock::now();
     // auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
     // LOGI("A* calculate take time: ",duration.count()," ms");
 
-    // std::vector<Point2d> *p = std::get_if<std::vector<Point2d>>(&path);
+    // std::vector<VectorPosition> *p = std::get_if<std::vector<VectorPosition>>(&path);
     // if(p){
-    //     LOGI("Log A* from point ", gameManager.robots[0].pos," to ",pos);
-    //     LOGI(gameManager.gameMap.drawMap(nullptr,nullptr, p, &gameManager.robots[0].pos, &pos));
+    //     LOGI("Log A* from point ", startPos," to ",targetPos);
+    //     std::vector<Point2d> path2D;
+    //     for(auto &point : *p)
+    //         path2D.push_back(point.pos);
+    //     LOGI(gameManager.gameMap.drawMap(nullptr,nullptr, &path2D, &startPos.pos, &targetPos.pos));
     // }
     // else{
     //     PathfindingFailureReason *p = std::get_if<PathfindingFailureReason>(&path);
     //     LOGI("Find path error.", static_cast<int>(*p));
     // }
     // return 0;
+
+
+    
     bool hasInitFinalShipScheduler = false; //判断终局船调度是否初始化
     while (1)
     {

@@ -85,8 +85,9 @@ void GameManager::initializeGame()
         }
     }
     this->gameMap.readOnlyGrid = this->gameMap.grid;
+
     // LOGI("Log init map info");
-    // LOGI(this->gameMap.drawMap())
+    // LOGI(this->gameMap.drawMap());
 
     // 初始化泊位
     int id, x, y, time, velocity, berthNum;

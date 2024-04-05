@@ -279,9 +279,9 @@ void GameManager::processFrameData()
         if (i >= this->ships.size())
             this->ships.emplace_back(Ship(shipId));
         this->ships[shipId].goodsCount = goodsCount;
-        this->ships[shipId].shipLocAndDir.pos.x = shipX;
-        this->ships[shipId].shipLocAndDir.pos.y = shipY;
-        this->ships[shipId].shipLocAndDir.direction = static_cast<Direction>(direction);
+        this->ships[shipId].locAndDir.pos.x = shipX;
+        this->ships[shipId].locAndDir.pos.y = shipY;
+        this->ships[shipId].locAndDir.direction = static_cast<Direction>(direction);
         this->ships[shipId].state = shipState;
     }
     // 确认已接收完本帧的所有数据

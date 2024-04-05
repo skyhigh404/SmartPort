@@ -220,6 +220,7 @@ public:
             return id < rhs.id;
     }
 
+    // 获取未来 n 帧 机器人路径上的点
     std::vector<Point2d> getLastPathPoint(size_t n) const
     {
         if (n <= path.size())

@@ -10,6 +10,8 @@ class BerthAssignAndControlService
 public:
     std::vector<std::vector<Berth>> clusters;   // 聚簇所得类
     std::vector<int> berthCluster; // 每个泊位所对应的类
+
+    const int CLUSTERNUMS = 5;  // todo 超参，暂时设定为聚类数量
 public:
     // 初始化
     void initialize(const Map &map, std::vector<Berth> &berths);
@@ -20,7 +22,7 @@ public:
     // 输出聚类结果
     void clusterResults();
 
-    BerthAssignAndControlService() {berthCluster=std::vector<int>(SHIPNUMS,-1);}
+    BerthAssignAndControlService() {berthCluster=std::vector<int>(CLUSTERNUMS,-1);}
 
 private:
     std::vector<std::vector<Berth>>

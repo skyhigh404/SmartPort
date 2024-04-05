@@ -129,7 +129,7 @@ public:
     bool findPath(const Map &map, const VectorPosition &dst)
     {
         destination = dst;
-        std::variant<Path<VectorPosition>, PathfindingFailureReason> path = pathFinder.findPath(pos, destination, map);
+        std::variant<Path<VectorPosition>, PathfindingFailureReason> path = pathFinder.findPath(locAndDir, destination, map);
         if (std::holds_alternative<Path<VectorPosition>>(path))
         {
             std::swap(this->path, std::get<Path<VectorPosition>>(path));
@@ -199,7 +199,7 @@ public:
             return "";
         }
 
-        LOGW("船舶路径出错 ship ", id, " from: ", pos, " to ", nextPos);
+        LOGW("船舶路径出错 ship ", id, " from: ", locAndDir, " to ", nextLocAndDir);
         return "";
     }
 };

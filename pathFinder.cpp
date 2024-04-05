@@ -18,7 +18,7 @@ AStarPathfinder<Location, Graph>::findPath(const Location &start,
         return PathfindingFailureReason::START_AND_END_POINT_SAME;
 
     std::unordered_map<Location, Location> came_from; // came_from 用于追踪路径
-    std::unordered_map<Location, int> cost_so_far;   // cost_so_far 用于记录到达每个点的成本
+    std::unordered_map<Location, int> cost_so_far;    // cost_so_far 用于记录到达每个点的成本
     aStarSearch(graph, start, goal, came_from, cost_so_far);
 
     // 如果未找到路径（即目标不在 came_from 中）
@@ -56,7 +56,9 @@ void AStarPathfinder<Location, Graph>::aStarSearch(const Graph &graph,
         {
             break;
         }
+#ifdef DEBUG
         calTime += 4;
+#endif
         for (const Location &next : graph.neighbors(current))
         {
             int new_cost = cost_so_far[current] + graph.cost(current, next);

@@ -59,9 +59,11 @@ void GameManager::initializeGame()
                 break;
             case 'R':
                 this->gameMap.setCell(i, j, MapItemSpace::MapItem::ROBOT_SHOP);
+                this->gameMap.robotShops.emplace_back(i, j);
                 break;
             case 'S':
                 this->gameMap.setCell(i, j, MapItemSpace::MapItem::SHIP_SHOP);
+                this->gameMap.shipShops.emplace_back(i, j);
                 break;
             case 'B':
                 this->gameMap.setCell(i, j, MapItemSpace::MapItem::BERTH);
@@ -154,6 +156,26 @@ void GameManager::initializeComponents()
         this->gameMap.computeDistancesToBerthViaBFS(berth.id, positions);
         this->gameMap.computeMaritimeBerthDistanceViaBFS(berth.id, positions);
         berth.distsToDelivery = this->gameMap.initializeBerthToDeliveryDistances(berth.id);
+    }
+
+    // 预先计算海图航线
+    std::vector<Point2d> nodes;
+    for (const auto &berth : this->berths)
+        nodes.push_back(berth.pos);
+    nodes.insert(nodes.end(),
+                this->gameMap.deliveryLocations.begin(),
+                this->gameMap.deliveryLocations.end());
+    nodes.insert(nodes.end(),
+                this->gameMap.shipShops.begin(),
+                this->gameMap.shipShops.end());
+    for(int i = 0; i < nodes.size(); ++i)
+    {
+        for(int j = i+1; j < nodes.size(); ++j)
+        {
+            VectorPosition startVP(nodes[i], Direction::EAST);
+            VectorPosition targetVP(nodes[j], Direction::EAST);
+            SeaRoute::findPath(this->gameMap, startVP, targetVP);
+        }
     }
 
     // 3. 判断机器人是否 DEATH 状态

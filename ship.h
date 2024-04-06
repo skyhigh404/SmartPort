@@ -323,6 +323,9 @@ public:
 
     // 前往泊位状态处理
     void updateMoveToBerthStatus(BerthID berthId, VectorPosition destination){
+        #ifdef DEBUG
+        assert(berthId != -1);
+        #endif
         shipStatus = ShipStatusSpace::ShipStatus::MOVING_TO_BERTH;
         this->berthId = berthId;
         //todo 方向如何确定

@@ -19,7 +19,7 @@ void GreedyShipScheduler::scheduleShips(Map &map, std::vector<Ship> &ships, std:
     for(auto &ship : ships){
         switch (ship.state) {
         case 0: // 在路途中 | 在交货点
-            handleShipOnRoute(ship, berths, goods);
+            handleShipOnRoute(map, ship, berths, goods);
             break;
         case 1: // 在恢复状态
         // action = ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::CONTINUE,-1); 
@@ -36,11 +36,11 @@ void GreedyShipScheduler::scheduleShips(Map &map, std::vector<Ship> &ships, std:
 }
 
 // 处理船在路途的情况
-void GreedyShipScheduler::handleShipOnRoute(Ship &ship,std::vector<Berth> &berths,std::vector<Goods> &goods){
+void GreedyShipScheduler::handleShipOnRoute(Map& map, Ship &ship,std::vector<Berth> &berths,std::vector<Goods> &goods){
     BerthID berthId = ship.berthId;
     // 船是空闲状态
     if (ship.isIdle()){
-        BerthID berthId = findBestBerthForShip(ship, berths, goods);
+        BerthID berthId = findBestBerthForShip(map, ship, berths, goods);
         ship.updateMoveToBerthStatus(berthId, VectorPosition(berths[berthId].pos, Direction::EAST));
         // return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::MOVE_TO_BERTH,berthId); 
     }
@@ -54,7 +54,7 @@ void GreedyShipScheduler::handleShipOnRoute(Ship &ship,std::vector<Berth> &berth
     }
     // 路径为空且到达交货点
     else if (ship.path.empty() && ship.reachDelivery()){
-        BerthID berthId = findBestBerthForShip(ship, berths, goods);
+        BerthID berthId = findBestBerthForShip(map, ship, berths, goods);
         ship.updateMoveToBerthStatus(berthId, VectorPosition(berths[berthId].pos, Direction::EAST));
         // return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::MOVE_TO_BERTH,berthId);
     }
@@ -92,7 +92,7 @@ void GreedyShipScheduler::handleShipAtBerth(Map &map, Ship &ship,std::vector<Ber
     }
     // 容量还多，等待分配泊位
     else{
-        BerthID berthId = findBestBerthForShip(ship, berths, goods);
+        BerthID berthId = findBestBerthForShip(map, ship, berths, goods);
         if(berthId != ship.berthId && berthId != -1) {
             ship.updateMoveToBerthStatus(berthId, VectorPosition(berths[berthId].pos, Direction::EAST));
         }
@@ -223,7 +223,7 @@ bool GreedyShipScheduler::isGoodsArrivingSoon(Berth &berth, std::vector<Goods> g
 
 // 为船找到最佳泊位，返回泊位id（局部最优）
 // 考虑：泊位前往虚拟点的时间代价、泊位未来的收益、泊位货物量和船容量的匹配
-BerthID GreedyShipScheduler::findBestBerthForShip(Ship &ship, std::vector<Berth> &berths, const std::vector<Goods> &goods){
+BerthID GreedyShipScheduler::findBestBerthForShip(Map& map, Ship &ship, std::vector<Berth> &berths, const std::vector<Goods> &goods){
     // 泊位进行收益排序(将来一段时间)
     // std::vector<Berth> berths_sort(berths);
     // int currentFrame = CURRENT_FRAME;
@@ -235,7 +235,7 @@ BerthID GreedyShipScheduler::findBestBerthForShip(Ship &ship, std::vector<Berth>
     int highestValue = 0;
     BerthID assignBerthId = -1;
     for(auto &berth : berths){
-        if(canMoveBerth(ship, berth) && berth.shipInBerthNum < MAX_SHIP_NUM){
+        if(canMoveBerth(map, ship, berth) && berth.shipInBerthNum < MAX_SHIP_NUM){
             if(berth.totalValue > highestValue){
                 if(highestValue == 0){
                     assignBerthId = berth.id;
@@ -255,21 +255,24 @@ BerthID GreedyShipScheduler::findBestBerthForShip(Ship &ship, std::vector<Berth>
 }
 
 // 判断船可以前往其他泊位
-bool GreedyShipScheduler::canMoveBerth(Ship &ship,Berth &berth){
-    // 路途中的船暂时不考虑调度
-    if(ship.state == 0) return false;
+bool GreedyShipScheduler::canMoveBerth(Map &map, Ship &ship,Berth &berth){
     // 相同泊位返回true
     if (ship.berthId == berth.id) return true;
 
     // 如果船前往其他泊位后还有时间前往虚拟点，则返回true
     // todo 泊位移动距离和缓冲时间改成超参
     int timeCost = berth.timeToDelivery() + static_cast<int>(ship.nowCapacity() / berth.velocity);
-    // 船在虚拟点
-    if(ship.state == 1 && ship.berthId == -1) timeCost += berth.timeToDelivery();
+    // 船在交货点
+    if(ship.reachDelivery()) timeCost += berth.timeToDelivery();
     // 船在泊位上，并且目的地不同
-    else if(ship.state == 1 || ship.state == 2) timeCost += 500;
+    else if(ship.berthId != -1){
+        // todo maritimeBerthDistanceMap包括泊位到泊位吗
+        Point2d targetBerthPos = berth.pos;
+        int timeToBerth = map.maritimeBerthDistanceMap[ship.id][targetBerthPos.x][targetBerthPos.y];
+        timeCost += timeToBerth;
+    } 
 
-    if (CURRENT_FRAME + timeCost + 2<= 15000) return true;
+    if (CURRENT_FRAME + timeCost + 10<= 15000) return true;
     else return false;
 }
 

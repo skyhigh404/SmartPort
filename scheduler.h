@@ -41,7 +41,7 @@ class ShipScheduler
 {
 public:
     // 总的调度函数，在子类里进一步封装实现
-    virtual std::vector<std::pair<ShipID, ShipActionSpace::ShipAction>>
+    virtual void
     scheduleShips(Map &map,
                   std::vector<Ship> &ships,
                   std::vector<Berth> &berths,

@@ -7,8 +7,7 @@ class GreedyShipScheduler : public ShipScheduler
 public:
     // 实现接口
     // todo 当前是局部最优，如果效果不佳，后续可以把多船分配泊位单独形成一类，通过模拟获取全局最优
-    std::vector<std::pair<ShipID, ShipActionSpace::ShipAction>>
-    scheduleShips(Map &map,
+    void scheduleShips(Map &map,
                   std::vector<Ship> &ships,
                   std::vector<Berth> &berths,
                   std::vector<Goods> &goods,
@@ -59,14 +58,9 @@ private:
     // 判断船可以前往其他泊位
     bool canMoveBerth( Ship &ship,Berth &Berth);
 
-    // 处理船在路途的情况
-    // 是否可以中途前往其他泊位（收益更高）
-    ShipActionSpace::ShipAction
-    handleShipOnRoute( Ship &ship,std::vector<Berth> &berths,std::vector<Goods> &goods);
+    void handleShipOnRoute( Ship &ship,std::vector<Berth> &berths,std::vector<Goods> &goods);
 
-    // 处理船在泊位上的情况
-    ShipActionSpace::ShipAction
-    handleShipAtBerth(Ship &ship,std::vector<Berth> &berths,std::vector<Goods> &goods);
+    void handleShipAtBerth(Map &map, Ship &ship,std::vector<Berth> &berths,std::vector<Goods> &goods);
 
     // 处理在虚拟点的情况
     ShipActionSpace::ShipAction

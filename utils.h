@@ -153,6 +153,7 @@ struct VectorPosition
 
     return rotationStepsTable[static_cast<int>(begin)][static_cast<int>(end)];
     }
+
 };
 
 inline bool operator<(const VectorPosition &a, const VectorPosition &b)

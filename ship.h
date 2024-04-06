@@ -238,6 +238,41 @@ public:
     bool isIdle(){
         return shipStatus == ShipStatus::IDLE;
     }
+
+    // 装货状态处理
+    void updateLoadStatus(){
+        shipStatus = ShipStatus::LOADING;
+        destination = VectorPosition({-1,-1}, Direction::EAST);
+        // 路径清空
+        path.clear();
+    }
+
+    // 前往泊位状态处理
+    void updateMoveToBerthStatus(BerthID berthId, VectorPosition destination){
+        shipStatus = ShipStatus::MOVING_TO_BERTH;
+        this->berthId = berthId;
+        //todo 方向如何确定
+        this->destination = destination;
+        // 路径清空
+        path.clear();
+    }
+
+    // 前往交货点状态处理
+    void updateMoveToDeliveryStatus(VectorPosition destination){
+        shipStatus = ShipStatus::MOVING_TO_DELIVERY;
+        this->berthId = -1;
+        // todo方向如何确定
+        destination = destination;
+        // 路径清空
+        path.clear();
+    }
+
+    // 判断目的地位置是否合法
+    bool isDestinationValid(){
+        if (destination.pos.x == -1 || destination.pos.y == -1) return false;
+        else return true;
+    }
+
 };
 
 struct pair_hash

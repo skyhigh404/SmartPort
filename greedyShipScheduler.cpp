@@ -9,7 +9,7 @@ void GreedyShipScheduler::setParameter(const Params &params)
     CAPACITY_GAP = params.CAPACITY_GAP;
 }
 
-std::vector<std::pair<ShipID, ShipActionSpace::ShipAction>> GreedyShipScheduler::scheduleShips(Map &map, std::vector<Ship> &ships, std::vector<Berth> &berths, std::vector<Goods> &goods, std::vector<Robot> &robots) {
+void GreedyShipScheduler::scheduleShips(Map &map, std::vector<Ship> &ships, std::vector<Berth> &berths, std::vector<Goods> &goods, std::vector<Robot> &robots) {
     //需要迁移，更新泊位和货物的状态
     updateBerthStatus(ships, berths, goods);
 
@@ -19,43 +19,44 @@ std::vector<std::pair<ShipID, ShipActionSpace::ShipAction>> GreedyShipScheduler:
     for(auto &ship : ships){
         switch (ship.state) {
         case 0: // 在路途中 | 在交货点
-            action = handleShipOnRoute(ship, berths, goods);
+            handleShipOnRoute(ship, berths, goods);
             break;
         case 1: // 在恢复状态
-        action = ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::CONTINUE,-1); 
+        // action = ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::CONTINUE,-1); 
+            break;
         case 2: // 装载状态 && 在泊位
-            action = handleShipAtBerth(ship, berths, goods);
+            handleShipAtBerth(map, ship, berths, goods);
             // action = handleShipWaiting(ship, berths, goods);
             break;
         }
-        // 解决冲突情况
-        actions.push_back(std::make_pair(ship.id,action));
+        // // 解决冲突情况
+        // actions.push_back(std::make_pair(ship.id,action));
     }
-    return actions;
+    // return actions;
 }
 
 // 处理船在路途的情况
-ShipActionSpace::ShipAction
-GreedyShipScheduler::handleShipOnRoute(Ship &ship,std::vector<Berth> &berths,std::vector<Goods> &goods){
+void GreedyShipScheduler::handleShipOnRoute(Ship &ship,std::vector<Berth> &berths,std::vector<Goods> &goods){
     BerthID berthId = ship.berthId;
     // 船是空闲状态
     if (ship.isIdle()){
         BerthID berthId = findBestBerthForShip(ship, berths, goods);
-        return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::MOVE_TO_BERTH,berthId); 
+        ship.updateMoveToBerthStatus(berthId, VectorPosition(berths[berthId].pos, Direction::EAST));
+        // return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::MOVE_TO_BERTH,berthId); 
     }
 
     //  如果路径不为空
     if (!ship.path.empty()){
-        return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::CONTINUE,-1);
     }
     // 路径为空且到达泊位
     else if (ship.path.empty() && ship.reachBerth()){
-        return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::BERTH,-1);
+        ship.updateLoadStatus();
     }
     // 路径为空且到达交货点
     else if (ship.path.empty() && ship.reachDestination()){
         BerthID berthId = findBestBerthForShip(ship, berths, goods);
-        return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::MOVE_TO_BERTH,berthId);
+        ship.updateMoveToBerthStatus(berthId, VectorPosition(berths[berthId].pos, Direction::EAST));
+        // return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::MOVE_TO_BERTH,berthId);
     }
     else{
         // 路径不为空就到达目的地
@@ -64,13 +65,13 @@ GreedyShipScheduler::handleShipOnRoute(Ship &ship,std::vector<Berth> &berths,std
 }
 
 // 处理船在泊位上的情况
-ShipActionSpace::ShipAction
-GreedyShipScheduler::handleShipAtBerth(Ship &ship,std::vector<Berth> &berths,std::vector<Goods> &goods){
+void GreedyShipScheduler::handleShipAtBerth(Map &map, Ship &ship,std::vector<Berth> &berths,std::vector<Goods> &goods){
     // 分配交货点id
     int deliveryId = allocateDelivery(berths[ship.berthId]);
     // 前往交货点
     if(shouldDepartBerth(ship, berths)){
-        return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::MOVE_TO_DELIVERY,deliveryId);
+        ship.updateMoveToDeliveryStatus(VectorPosition(map.deliveryLocations[deliveryId], Direction::EAST));
+        // return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::MOVE_TO_DELIVERY,deliveryId);
     }
     // 有货转货
     else if(isThereGoodsToLoad(berths[ship.berthId])){
@@ -78,22 +79,23 @@ GreedyShipScheduler::handleShipAtBerth(Ship &ship,std::vector<Berth> &berths,std
         int shipment = std::min(static_cast<int>(berths[berthId].reached_goods.size()),berths[berthId].velocity);
         int res = ship.loadGoods(shipment); // 装货
         berths[berthId].reached_goods.erase(berths[berthId].reached_goods.begin(),berths[berthId].reached_goods.begin() + res);
-        return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::CONTINUE,-1);
+        return;
     }
     // 容量不多，考虑是否直接去虚拟点
     else if(ship.capacityScale() < ABLE_DEPART_SCALE){
         // 附件有货，再等等
-        if (isGoodsArrivingSoon(berths[ship.berthId], goods)) return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::CONTINUE, -1);
-        // 附件没货，直接去虚拟点
-        else return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::MOVE_TO_DELIVERY,deliveryId);
+        if (isGoodsArrivingSoon(berths[ship.berthId], goods)) return;
+        // 附件没货，直接去送货点
+        else {
+            ship.updateMoveToDeliveryStatus(VectorPosition(map.deliveryLocations[deliveryId], Direction::EAST));
+        }
     }
     // 容量还多，等待分配泊位
     else{
         BerthID berthId = findBestBerthForShip(ship, berths, goods);
         if(berthId != ship.berthId && berthId != -1) {
-            return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::MOVE_TO_BERTH, berthId);
+            ship.updateMoveToBerthStatus(berthId, VectorPosition(berths[berthId].pos, Direction::EAST));
         }
-        else return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::CONTINUE, -1);
     }
 
 }

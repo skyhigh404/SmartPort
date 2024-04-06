@@ -419,25 +419,24 @@ void GameManager::robotControl()
 void GameManager::shipControl(){
 
     // 执行船调度
-    std::vector<std::pair<ShipID, ShipActionSpace::ShipAction>> actions = this->shipScheduler->scheduleShips(this->gameMap, this->ships, this->berths, this->goods, this->robots);
-    for(auto &action : actions){
-        switch (action.second.type)
-        {
-        case ShipActionSpace::ShipActionType::BERTH:  //靠泊
-            commandManager.addShipCommand(ships[action.first].berth());
-            ships[action.first].shipStatus = ShipStatus::LOADING;
-            ships[action.first].destination = VectorPosition({-1,-1}, Direction::EAST);
-            break;
-        
-        default:
-            break;
-        }
-    }
+    this->shipScheduler->scheduleShips(this->gameMap, this->ships, this->berths, this->goods, this->robots);
     // 对需要移动的船执行shipControl
     // todo 修改为海洋单行路
     shipController->runController(gameMap, this->singleLaneManager);
     // 执行指令
-    
+    for (Ship& ship : ships) {
+        // 恢复状态
+        if (ship.state == 1) continue;
+        // 靠泊
+        if (ship.shipStatus == ShipStatus::LOADING && ship.state == 0){
+            commandManager.addShipCommand(ship.berth());
+        }
+        // 移动指令
+        else if(! ship.path.empty()){
+            string command = ship.movetoNextPosture();
+            commandManager.addShipCommand(command);
+        }
+    }
 }
 
 

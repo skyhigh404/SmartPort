@@ -59,6 +59,7 @@ public:
 
     // 估算当前泊位前往最近交货点的时间
     int timeToDelivery(){
+        // todo 后续要先分配交货点id
         // todo 后续考虑单行路 | 排队时间
         // todo 后续考虑船的核心点（准确位置）以及缓冲时间
         return distsToDelivery[0].second;

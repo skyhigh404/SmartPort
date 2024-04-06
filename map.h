@@ -152,7 +152,7 @@ public:
     // 获取距离为 n 格内除 robotPos 外的其他机器人坐标
     std::vector<Point2d> getNearbyTemporaryObstacles(const Point2d &robotPos, int n) const;
     // 初始化泊位到交货点的距离变量
-    void initializeBerthToDeliveryDistances(BerthID berthId);
+    std::vector<std::pair<int, int>> initializeBerthToDeliveryDistances(BerthID berthId);
 
 public:
     // This outputs a grid. Pass in a distances map if you want to print

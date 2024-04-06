@@ -82,4 +82,7 @@ private:
     // 当船从当前泊位移动到其他泊位时，更新泊位相关参数
     void updateBerthWhereShipMove(Ship &ship,std::vector<Berth> &berths,BerthID targetId);
 
+    // 分配最近的交货点
+    int allocateDelivery(Berth &berth);
+
 };

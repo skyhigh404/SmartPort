@@ -36,7 +36,7 @@ std::vector<std::pair<ShipID, ShipActionSpace::ShipAction>> FinalShipScheduler::
             else if(shouldDepartBerth(ship, berths)){
                 LOGI("船应该前往虚拟点");
                 ship.info();
-                action = ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::DEPART_BERTH,ship.berthId);
+                action = ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::MOVE_TO_DELIVERY,ship.berthId);
             }
             // 船在候选泊位上
             else if(isShipAtBackupBerth(ship)){
@@ -74,7 +74,7 @@ FinalShipScheduler::handleShipAtBackupBerth(Ship& ship, std::vector<Berth> &bert
     if(shouldDepartAndReturn(ship, berths[finalBerthId], berths) && ship.capacityScale() < 0.8){
         // 禁用候选泊位
         berths[backupBerthId].disable();
-        return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::DEPART_BERTH, ship.berthId);
+        return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::MOVE_TO_DELIVERY, ship.berthId);
     }
     //  必须前往最终泊位
     else if (shouldReachFinalBerth(ship, berths)){
@@ -112,7 +112,7 @@ FinalShipScheduler::handleShipAtFinalBerth(Ship& ship, std::vector<Berth> &berth
     berths[backupBerthId].disable();
     // 容量不多，判断能否前往虚拟点
     if (ship.capacityScale() < ABLE_DEPART_SCALE && shouldDepartAndReturn(ship, berths[finalBerthId], berths)){
-        return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::DEPART_BERTH, ship.berthId);
+        return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::MOVE_TO_DELIVERY, ship.berthId);
     }
     //  有货装货
     else if(isThereGoodsToLoad(berths[finalBerthId])){
@@ -129,7 +129,7 @@ FinalShipScheduler::handleShipNotAtAssignedBerth(Ship& ship, std::vector<Berth> 
     BerthID finalBerthId = getShipFinalBerth(ship);
     // 判断船的容量是否需要去虚拟点
     if(ship.capacityScale() < ABLE_DEPART_SCALE){
-        return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::DEPART_BERTH, ship.berthId);
+        return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::MOVE_TO_DELIVERY, ship.berthId);
     }
     // 判断船是否能前往候选泊位
     else if(canReachBackupBerth(ship, berths)){

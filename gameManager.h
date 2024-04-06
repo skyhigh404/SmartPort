@@ -57,6 +57,7 @@ public:
     void update();                // 更新
     void outputCommands();        // 输出每帧的控制指令
     void robotControl();          // 运行机器人控制器
+    void shipControl();            //运行船控制器
     void updateSingleLaneLocks(); // 维护单行路的锁
     StageType nowStateType();
 

@@ -143,7 +143,7 @@ void GameManager::initializeComponents()
     //     this->gameMap.robotPosition.push_back(robot.pos);
 
     // 2. 使用 BFS 计算地图上每个点到泊位的距离
-    for (const auto &berth : this->berths)
+    for (auto &berth : this->berths)
     {
         vector<Point2d> positions;
         // 泊位大小 4x4
@@ -153,7 +153,7 @@ void GameManager::initializeComponents()
 
         this->gameMap.computeDistancesToBerthViaBFS(berth.id, positions);
         this->gameMap.computeMaritimeBerthDistanceViaBFS(berth.id, positions);
-        this->gameMap.initializeBerthToDeliveryDistances(berth.id);
+        berth.distsToDelivery = this->gameMap.initializeBerthToDeliveryDistances(berth.id);
     }
 
     // 3. 判断机器人是否 DEATH 状态
@@ -305,7 +305,7 @@ void GameManager::robotControl()
 
         // 机器人状态更新
         if (robot.carryingItem==0) robot.status = MOVING_TO_GOODS;
-        else robot.status = MOVING_TO_BERTH;
+        else robot.status = RobotStatus::MOVING_TO_BERTH;
     }
 
     // 对所有可能的机器人执行取货或放货指令，更新状态
@@ -316,7 +316,7 @@ void GameManager::robotControl()
                 commandManager.addRobotCommand(robot.get());
                 robot.carryingItem = 1;
                 robot.carryingItemId = robot.targetid;
-                robot.status = MOVING_TO_BERTH;
+                robot.status = RobotStatus::MOVING_TO_BERTH;
                 goods[robot.targetid].TTL = INT_MAX;
                 robot.targetid = -1;
                 // Berth::maxLoadGoodNum += 1;
@@ -394,6 +394,30 @@ void GameManager::robotControl()
     
 }
 
+void GameManager::shipControl(){
+
+    // 执行船调度
+    std::vector<std::pair<ShipID, ShipActionSpace::ShipAction>> actions = this->shipScheduler->scheduleShips(this->gameMap, this->ships, this->berths, this->goods, this->robots);
+    for(auto &action : actions){
+        switch (action.second.type)
+        {
+        case ShipActionSpace::ShipActionType::BERTH:  //靠泊
+            commandManager.addShipCommand(ships[action.first].berth());
+            ships[action.first].shipStatus = ShipStatus::LOADING;
+            ships[action.first].destination = VectorPosition({-1,-1}, Direction::EAST);
+            break;
+        
+        default:
+            break;
+        }
+    }
+    // 对需要移动的船执行shipControl
+    // todo 修改为海洋单行路
+    shipController->runController(gameMap, this->singleLaneManager);
+    // 执行指令
+    
+}
+
 
 void GameManager::update()
 {   
@@ -426,7 +450,7 @@ void GameManager::update()
     //     LOGI("船的命令类型:", ship_action.type);
     //     LOGI("船的执行id：",ship_action.targetId);
     //     // 去虚拟点
-    //     if (ship_action.type == ShipActionSpace::ShipActionType::DEPART_BERTH)
+    //     if (ship_action.type == ShipActionSpace::ShipActionType::MOVE_TO_DELIVERY)
     //     {
     //         // LOGI(ship_id,"前往虚拟点");
     //         commandManager.addShipCommand(ships[ship_id].go(berths[ship_action.targetId].time));

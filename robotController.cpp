@@ -137,8 +137,8 @@ RobotController::detectNextFrameConflict(const Map &map, const SingleLaneManager
             const Robot& robot2 = robots[j];
             int currentSingleLaneID2 = singleLaneManager.getSingleLaneId(robot2.pos);
             int nextFrameSingleLaneID2 = singleLaneManager.getSingleLaneId(robot2.nextPos);
-            // 检测下一帧是否在主干道上，如果是，则不会发生碰撞
-            if(map.isInMainRoad(robot1.nextPos) || map.isInMainRoad(robot2.nextPos)){
+            // 检测下一帧是否同时在主干道上，如果是，则不会发生碰撞
+            if(map.isInMainRoad(robot1.nextPos) && map.isInMainRoad(robot2.nextPos)){
                 continue;
             }
             // 检查下一帧前往位置是否相同，移动机器人撞上静止机器人也在这种情况内

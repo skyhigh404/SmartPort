@@ -313,6 +313,8 @@ void GameManager::processFrameData()
         this->ships[shipId].locAndDir.pos.y = shipY;
         this->ships[shipId].locAndDir.direction = static_cast<Direction>(direction);
         this->ships[shipId].state = shipState;
+        // 检查是否要 pop path
+        this->ships[shipId].updatePath();
     }
     // 确认已接收完本帧的所有数据
     string ok;

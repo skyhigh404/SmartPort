@@ -247,7 +247,8 @@ public:
     // 更新下一帧位置
     void updateNextPos()
     {
-        if (!path.empty())
+        // 正常航行状态才会前进
+        if (!path.empty() && state == 0)
             // 寻路算法输出的路径是逆序存储的，以提高弹出效率
             nextLocAndDir = this->path.back();
         // 如果路径为空，则船舶下一帧不移动

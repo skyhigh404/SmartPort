@@ -199,7 +199,6 @@ bool GreedyShipScheduler::shouldDepartBerth( Ship &ship,std::vector<Berth> &bert
     else return false;
 }
 
-
 // 判断泊位上是否有货物可装载
 bool GreedyShipScheduler::isThereGoodsToLoad(Berth &berth){
     if(berth.reached_goods.size() != 0) return true;

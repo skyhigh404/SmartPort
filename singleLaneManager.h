@@ -77,6 +77,9 @@ public:
     std::vector<std::vector<MapItemSpace::MapItem>> grid;    //原地图
     std::vector<std::vector<VisitType>> visited; // 访问过的位置
 
+    Map map = Map(-1, -1);   // 临时地图
+    
+
     int nextSingleLaneId = 1;   // 单行路的路径
 
     SingleLaneManager(){}
@@ -87,6 +90,7 @@ public:
         this->grid = map.grid;
         singleLaneMap = std::vector<std::vector<int>>(map.rows,std::vector<int>(map.cols,-1));
         visited = std::vector<std::vector<VisitType>>(map.rows,std::vector<VisitType>(map.cols,VisitType::UNVISITED));
+        this->map = map;
 
         // 找到所有单行路
         findAllSingleLanes();
@@ -186,7 +190,8 @@ public:
     bool isValid(const Point2d& pos) { return pos.x >= 0 && pos.x < rows && pos.y >= 0 && pos.y < cols; }
 
     bool canPass(const Point2d& pos) {
-        return grid[pos.x][pos.y] == MapItemSpace::MapItem::SPACE || grid[pos.x][pos.y] == MapItemSpace::MapItem::BERTH;
+        // return grid[pos.x][pos.y] == MapItemSpace::MapItem::SPACE || grid[pos.x][pos.y] == MapItemSpace::MapItem::BERTH;
+        return map.passable(pos);
     }
 
     // 判断是否是拐角
@@ -287,11 +292,11 @@ public:
         // 路到尽头了
         if (!isValid(pos) || visited[pos.x][pos.y] == VisitType::VISITED) return;
         visited[pos.x][pos.y] = VisitType::VISITED;
-        // LOGI("有效");
-        if (!canPass(pos)){
-            return;
-        }
-        // LOGI("可通行");
+        // 不可通行
+        if (!canPass(pos)) return;
+        // 主干道
+        if (map.isInMainRoad(pos)) return;
+        
         int num = countObstacle(pos);
         if(num < 2 || num ==4) return;
         // LOGI(pos,",当前位置周围障碍数量:",countObstacle(pos));

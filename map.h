@@ -53,7 +53,9 @@ public:
     // std::vector<std::reference_wrapper<Point2d>> robotPosition;  // 实时记录机器人位置（不建议使用）
     std::vector<Point2d> temporaryObstacles;                     // 临时障碍物的位置
     std::unordered_map<Point2d, int> temporaryObstaclesRefCount; // 对障碍物进行计数
-    std::vector<Point2d> deliveryLocations;   //交货点位置
+    std::vector<Point2d> deliveryLocations;                      // 交货点位置
+    std::vector<Point2d> robotShops;                             // 机器人购买位置
+    std::vector<Point2d> shipShops;                              // 船舶购买位置
 
 public:
     Map(int rows, int cols)

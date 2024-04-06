@@ -13,10 +13,14 @@ int main()
 #ifdef DEBUG
     Log::initLog("../log/log.log");
 #endif
+    auto start = std::chrono::high_resolution_clock::now();
 
     GameManager gameManager;
     gameManager.initializeGame();
-    LOGI("init finish");
+    
+    auto stop = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+    LOGI("Init finish, cost time: ",duration.count()," ms");
 
     // 测试 A* 算法
     // VectorPosition startPos(197, 195, Direction::EAST);

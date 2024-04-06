@@ -41,6 +41,7 @@ public:
     }
     void setParameter(const Params &params) override;
 
+    void init(const Map& map, const std::vector<Berth> &berths) override; //初始化商店,可以在gamemanager中初始化
 public:
     std::vector<Point2d> robotShops;
     std::vector<Point2d> shipShops;
@@ -52,7 +53,6 @@ public:
     std::vector<int> purchasedShipNum;
 
 public:
-    void init(const Map& map, const std::vector<Berth> &berths, const Map &gameMap); //初始化商店,可以在gamemanager中初始化
 
 private:
     // 超参数

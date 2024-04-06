@@ -6,7 +6,7 @@ void EarlyGameAssetManager::setParameter(const Params &params)
 
 }
 
-void EarlyGameAssetManager::init(const Map& map, const std::vector<Berth> &berths, const Map &gameMap)
+void EarlyGameAssetManager::init(const Map& map, const std::vector<Berth> &berths)
 {
     // 创建机器人、轮船商店
     for (int i=0;i<map.rows;i++) {

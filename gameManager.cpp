@@ -7,6 +7,7 @@
 #include "greedyRobotScheduler.h"
 #include "greedyShipScheduler.h"
 #include "finalShipScheduler.h"
+#include "earlyGameAssetManager.h"
 
 using namespace std;
 int Ship::capacity = 0;
@@ -217,10 +218,16 @@ void GameManager::initializeComponents()
     robotScheduler = std::make_shared<GreedyRobotScheduler>(clusters, berthCluster);
     // 11. 注册船舶调度函数
     shipScheduler = std::make_shared<GreedyShipScheduler>();
+    // 注册资产管理类
+    assetManager = std::make_shared<EarlyGameAssetManager>();
     // 12. 对机器人调度函数更新Params
     this->robotScheduler->setParameter(params);
     // 13. 对船舶调度函数更新Params
     this->shipScheduler->setParameter(params);
+    // 对资产管理类更新Params
+    this->assetManager->setParameter(params);
+    // 初始化资产管理类
+    this->assetManager->init(this->gameMap, berths);
 }
 
 void GameManager::processFrameData()
@@ -306,6 +313,8 @@ void GameManager::processFrameData()
         this->ships[shipId].locAndDir.pos.y = shipY;
         this->ships[shipId].locAndDir.direction = static_cast<Direction>(direction);
         this->ships[shipId].state = shipState;
+        // 检查是否要 pop path
+        this->ships[shipId].updatePath();
     }
     // 确认已接收完本帧的所有数据
     string ok;
@@ -440,6 +449,21 @@ void GameManager::shipControl(){
     }
 }
 
+void GameManager::assetControl()
+{
+    std::vector<PurchaseDecision> purchaseDecisions =
+        assetManager->makePurchaseDecision(gameMap, goods, robots, ships, berths,
+                                           currentMoney, currentFrame);
+    for (const auto &purchaseDecision : purchaseDecisions)
+    {
+        if (purchaseDecision.assetType == AssetType::ROBOT)
+            for (int i = 0; i < purchaseDecision.quantity; ++i)
+                commandManager.addRobotCommand(Robot::lbot(purchaseDecision.pos));
+        else if (purchaseDecision.assetType == AssetType::SHIP)
+            for (int i = 0; i < purchaseDecision.quantity; ++i)
+                commandManager.addShipCommand(Ship::lboat(purchaseDecision.pos));
+    }
+}
 
 void GameManager::update()
 {   
@@ -491,6 +515,9 @@ void GameManager::update()
     //     }
     // }
     LOGI("船命令执行完毕");
+
+    assetControl();
+
 
     if(currentFrame>=14000 && currentFrame <= 14005){
         LOGI("skipFrame: ", skipFrame, ", totalGetGoodsValue: ", totalGetGoodsValue);

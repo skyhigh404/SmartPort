@@ -48,7 +48,7 @@ public:
     // 寻路并存储
     static bool findPath(const Map &map, const VectorPosition &start, const VectorPosition &destination)
     {
-        if (getInstance().seaRoutes.find(std::make_pair(start.pos, destination.pos)) !=
+        if (getInstance().seaRoutes.find(std::make_pair(start, destination)) !=
             getInstance().seaRoutes.end())
             return true;
 

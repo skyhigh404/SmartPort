@@ -235,6 +235,7 @@ public:
         return seaRout;
     }
 
+    // 寻路并存储
     static bool findPath(const Map &map, const VectorPosition &start, const VectorPosition &destination)
     {
         if (getInstance().seaRoutes.find(std::make_pair(start.pos, destination.pos)) !=
@@ -257,15 +258,27 @@ public:
         }
     }
 
-    // 获取航线路径
-    static std::vector<VectorPosition> getPath(const VectorPosition &start, const VectorPosition &destination)
+    // 获取航线路径，寻找匹配的核心点位置
+    static std::vector<VectorPosition> getPath(const Map &map, const VectorPosition &start, const VectorPosition &destination)
     {
         std::vector<VectorPosition> path;
         if (getInstance().seaRoutes.find(std::make_pair(start.pos, destination.pos)) !=
             getInstance().seaRoutes.end())
-        {
             path = getInstance().seaRoutes[std::make_pair(start.pos, destination.pos)];
-        }
+        // if(!path.empty())
+        // {
+        //     // TODO: 目前不考虑不可达的情况
+        //     // 查看起点位姿和路径起点位姿是否相同
+        //     if (start != path.back()) {
+        //         std::variant<Path<VectorPosition>, PathfindingFailureReason> tempPath = getInstance().pathFinder.findPath(start, path.back(), map);
+        //         Path<VectorPosition> route = std::get<Path<VectorPosition>>(tempPath);
+
+        //     }
+        //     // 查看终点位姿和路径终点位姿是否相同
+        //     if (destination != path.front()) {
+                
+        //     }
+        // }
 
         return path;
     }

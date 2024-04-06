@@ -174,7 +174,8 @@ void GameManager::initializeComponents()
         {
             VectorPosition startVP(nodes[i], Direction::EAST);
             VectorPosition targetVP(nodes[j], Direction::EAST);
-            SeaRoute::findPath(this->gameMap, startVP, targetVP);
+            if(!SeaRoute::findPath(this->gameMap, startVP, targetVP))
+                LOGW("Can't find path from ", nodes[i], ", to ", nodes[j]);
         }
     }
 

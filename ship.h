@@ -6,6 +6,70 @@
 #include "map.h"
 #include "pathFinder.h"
 #include "assert.h"
+
+struct pair_hash
+{
+    template <class T1, class T2>
+    std::size_t operator()(const std::pair<T1, T2> &pair) const
+    {
+        auto hash1 = std::hash<T1>{}(pair.first);
+        auto hash2 = std::hash<T2>{}(pair.second);
+        return (hash1 + 0x9e3779b9) ^ hash2;
+    }
+};
+
+class SeaRoute
+{
+private:
+    std::unordered_map<std::pair<VectorPosition, VectorPosition>, std::vector<VectorPosition>, pair_hash> seaRoutes;
+    AStarPathfinder<VectorPosition, Map> pathFinder;
+
+    SeaRoute() {}
+    SeaRoute(const SeaRoute &) = delete;
+    SeaRoute &operator=(const SeaRoute &) = delete;
+
+public:
+    static SeaRoute &getInstance()
+    {
+        static SeaRoute seaRout;
+        return seaRout;
+    }
+
+    // 寻路并存储
+    static bool findPath(const Map &map, const VectorPosition &start, const VectorPosition &destination)
+    {
+        if (getInstance().seaRoutes.find(std::make_pair(start.pos, destination.pos)) !=
+            getInstance().seaRoutes.end())
+            return true;
+
+        LOGI("Start: ",start," target: ", destination);
+        std::variant<Path<VectorPosition>, PathfindingFailureReason> path = getInstance().pathFinder.findPath(start, destination, map);
+        if (std::holds_alternative<Path<VectorPosition>>(path))
+        {
+            Path<VectorPosition> route = std::get<Path<VectorPosition>>(path);
+            route.push_back(start);
+            getInstance().seaRoutes[std::make_pair(start, destination)] = route;
+            std::reverse(route.begin(), route.end());
+            getInstance().seaRoutes[std::make_pair(destination, start)] = route;
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    // 获取航线路径，航线的起点和终点朝向都是 EAST
+    static std::vector<VectorPosition> getPath(const Map &map, const VectorPosition &start, const VectorPosition &destination)
+    {
+        std::vector<VectorPosition> path;
+        if (getInstance().seaRoutes.find(std::make_pair(start, destination)) !=
+            getInstance().seaRoutes.end())
+            path = getInstance().seaRoutes[std::make_pair(start, destination)];
+        return path;
+    }
+};
+
 enum ShipStatus
 {
     IDLE,            // 船处于空闲状态，等待新的任务分配
@@ -138,6 +202,13 @@ public:
     bool findPath(const Map &map, const VectorPosition &dst)
     {
         destination = dst;
+        Path<VectorPosition> route = SeaRoute::getPath(map, locAndDir, destination);
+        if(!route.empty())
+        {
+            this->path = route;
+            return true;
+        }
+        // 如果没有寻找到预先存储的路径
         std::variant<Path<VectorPosition>, PathfindingFailureReason> path = pathFinder.findPath(locAndDir, destination, map);
         if (std::holds_alternative<Path<VectorPosition>>(path))
         {
@@ -275,79 +346,6 @@ public:
 
 };
 
-struct pair_hash
-{
-    template <class T1, class T2>
-    std::size_t operator()(const std::pair<T1, T2> &pair) const
-    {
-        auto hash1 = std::hash<T1>{}(pair.first);
-        auto hash2 = std::hash<T2>{}(pair.second);
-        return (hash1 + 0x9e3779b9) ^ hash2;
-    }
-};
 
-class SeaRoute
-{
-private:
-    std::unordered_map<std::pair<Point2d, Point2d>, std::vector<VectorPosition>, pair_hash> seaRoutes;
-    AStarPathfinder<VectorPosition, Map> pathFinder;
 
-    SeaRoute() {}
-    SeaRoute(const SeaRoute &) = delete;
-    SeaRoute &operator=(const SeaRoute &) = delete;
 
-public:
-    static SeaRoute &getInstance()
-    {
-        static SeaRoute seaRout;
-        return seaRout;
-    }
-
-    // 寻路并存储
-    static bool findPath(const Map &map, const VectorPosition &start, const VectorPosition &destination)
-    {
-        if (getInstance().seaRoutes.find(std::make_pair(start.pos, destination.pos)) !=
-            getInstance().seaRoutes.end())
-            return true;
-
-        LOGI("Start: ",start," target: ", destination);
-        std::variant<Path<VectorPosition>, PathfindingFailureReason> path = getInstance().pathFinder.findPath(start, destination, map);
-        if (std::holds_alternative<Path<VectorPosition>>(path))
-        {
-            Path<VectorPosition> route = std::get<Path<VectorPosition>>(path);
-            getInstance().seaRoutes[std::make_pair(start.pos, destination.pos)] = route;
-            std::reverse(route.begin(), route.end());
-            getInstance().seaRoutes[std::make_pair(destination.pos, start.pos)] = route;
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
-
-    // 获取航线路径，寻找匹配的核心点位置
-    static std::vector<VectorPosition> getPath(const Map &map, const VectorPosition &start, const VectorPosition &destination)
-    {
-        std::vector<VectorPosition> path;
-        if (getInstance().seaRoutes.find(std::make_pair(start.pos, destination.pos)) !=
-            getInstance().seaRoutes.end())
-            path = getInstance().seaRoutes[std::make_pair(start.pos, destination.pos)];
-        // if(!path.empty())
-        // {
-        //     // TODO: 目前不考虑不可达的情况
-        //     // 查看起点位姿和路径起点位姿是否相同
-        //     if (start != path.back()) {
-        //         std::variant<Path<VectorPosition>, PathfindingFailureReason> tempPath = getInstance().pathFinder.findPath(start, path.back(), map);
-        //         Path<VectorPosition> route = std::get<Path<VectorPosition>>(tempPath);
-
-        //     }
-        //     // 查看终点位姿和路径终点位姿是否相同
-        //     if (destination != path.front()) {
-                
-        //     }
-        // }
-
-        return path;
-    }
-};

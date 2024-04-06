@@ -6,8 +6,8 @@ void ShipController::runController(Map &map, const SingleLaneManager &singleLane
     // 为所有需要寻路算法的船调用寻路算法，给定新目标位置
     for (Ship &ship : ships){
         if (ship.state != 0) continue;
-        else if (ship.shipStatus != ShipStatus::MOVING_TO_BERTH &&
-        ship.shipStatus != ShipStatus::MOVING_TO_DELIVERY) continue;
+        else if (ship.shipStatus != ShipStatusSpace::ShipStatus::MOVING_TO_BERTH &&
+        ship.shipStatus != ShipStatusSpace::ShipStatus::MOVING_TO_DELIVERY) continue;
         if (needPathfinding(ship)){
             runPathfinding(map, ship);
         }
@@ -58,10 +58,10 @@ void ShipController::runController(Map &map, const SingleLaneManager &singleLane
 
 bool ShipController::needPathfinding(Ship &ship)
 {
-    if (ship.shipStatus==MOVING_TO_BERTH && ship.berthId !=-1 && ship.isDestinationValid() && ship.path.empty()) {
+    if (ship.shipStatus== ShipStatusSpace::ShipStatus::MOVING_TO_BERTH && ship.berthId !=-1 && ship.isDestinationValid() && ship.path.empty()) {
         return true;
     }
-    if (ship.shipStatus==MOVING_TO_DELIVERY && ship.isDestinationValid() && ship.path.empty()) {
+    if (ship.shipStatus== ShipStatusSpace::ShipStatus::MOVING_TO_DELIVERY && ship.isDestinationValid() && ship.path.empty()) {
         return true;
     }
     return false;
@@ -73,11 +73,11 @@ void ShipController::runPathfinding(const Map &map, Ship &ship)
     if (!ship.findPath(map)){
         ship.path = Path<VectorPosition>();
         ship.destination = VectorPosition();
-        LOGI("尋路失敗",ship);
+        LOGI("尋路失敗",ship.id);
     }
     // 寻路成功，设置船状态
     else{
-        LOGI("寻路成功",ship);
+        LOGI("寻路成功",ship.id);
         ;
     }
 }

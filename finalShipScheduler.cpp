@@ -12,51 +12,51 @@ void FinalShipScheduler::setParameter(const Params &params)
 FinalShipScheduler::FinalShipScheduler(const std::vector<int> &berthCluster, const std::vector<std::vector<Berth>> &clusters)
     : berthCluster(std::make_shared<std::vector<int>>(berthCluster)),clusters(std::make_shared<std::vector<std::vector<Berth>>>(clusters)){}
 
-std::vector<std::pair<ShipID, ShipActionSpace::ShipAction>> FinalShipScheduler::scheduleShips(Map &map, std::vector<Ship> &ships, std::vector<Berth> &berths, std::vector<Goods> &goods, std::vector<Robot> &robots) {
-    // 1. 选定终局泊位和候选泊位，分配船只
-    if(!hasInit) init(ships, berths, goods);    
+// std::vector<std::pair<ShipID, ShipActionSpace::ShipAction>> FinalShipScheduler::scheduleShips(Map &map, std::vector<Ship> &ships, std::vector<Berth> &berths, std::vector<Goods> &goods, std::vector<Robot> &robots) {
+//     // 1. 选定终局泊位和候选泊位，分配船只
+//     if(!hasInit) init(ships, berths, goods);    
 
-    std::vector<std::pair<ShipID, ShipActionSpace::ShipAction>> actions;
-    ShipActionSpace::ShipAction action;
-    for(auto &ship : ships){
-        switch (ship.state)
-        {
-        case 0:
-            // 船在途中不做调度
-            LOGI(ship.id,"在途中，不做调度");
-            ship.info();
-            action = ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::CONTINUE, ship.berthId);
-            break;
-        default:
-            // 船在虚拟点
-            if(ship.berthId == -1){
-                action = handleShipAtVirtualPoint(ship, berths);
-            }
-            // 船应该前往虚拟点
-            else if(shouldDepartBerth(ship, berths)){
-                LOGI("船应该前往虚拟点");
-                ship.info();
-                action = ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::MOVE_TO_DELIVERY,ship.berthId);
-            }
-            // 船在候选泊位上
-            else if(isShipAtBackupBerth(ship)){
-                action = handleShipAtBackupBerth(ship, berths);
-            }
-            // 船在终局泊位上
-            else {
-                #ifdef DEBUG
-                ship.info();
-                assert(isShipAtFinalBerth(ship));
-                #endif
-                action = handleShipAtFinalBerth(ship, berths);
-            }
-            break;
-        }
-        // 解决冲突情况
-        actions.push_back(std::make_pair(ship.id,action));
-    }
-    return actions;
-}
+//     std::vector<std::pair<ShipID, ShipActionSpace::ShipAction>> actions;
+//     ShipActionSpace::ShipAction action;
+//     for(auto &ship : ships){
+//         switch (ship.state)
+//         {
+//         case 0:
+//             // 船在途中不做调度
+//             LOGI(ship.id,"在途中，不做调度");
+//             ship.info();
+//             action = ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::CONTINUE, ship.berthId);
+//             break;
+//         default:
+//             // 船在虚拟点
+//             if(ship.berthId == -1){
+//                 action = handleShipAtVirtualPoint(ship, berths);
+//             }
+//             // 船应该前往虚拟点
+//             else if(shouldDepartBerth(ship, berths)){
+//                 LOGI("船应该前往虚拟点");
+//                 ship.info();
+//                 action = ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::MOVE_TO_DELIVERY,ship.berthId);
+//             }
+//             // 船在候选泊位上
+//             else if(isShipAtBackupBerth(ship)){
+//                 action = handleShipAtBackupBerth(ship, berths);
+//             }
+//             // 船在终局泊位上
+//             else {
+//                 #ifdef DEBUG
+//                 ship.info();
+//                 assert(isShipAtFinalBerth(ship));
+//                 #endif
+//                 action = handleShipAtFinalBerth(ship, berths);
+//             }
+//             break;
+//         }
+//         // 解决冲突情况
+//         actions.push_back(std::make_pair(ship.id,action));
+//     }
+//     return actions;
+// }
 
 // 处理船在候选泊位的情况
 ShipActionSpace::ShipAction

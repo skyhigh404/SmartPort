@@ -53,7 +53,7 @@ void GreedyShipScheduler::handleShipOnRoute(Ship &ship,std::vector<Berth> &berth
         ship.updateLoadStatus();
     }
     // 路径为空且到达交货点
-    else if (ship.path.empty() && ship.reachDestination()){
+    else if (ship.path.empty() && ship.reachDelivery()){
         BerthID berthId = findBestBerthForShip(ship, berths, goods);
         ship.updateMoveToBerthStatus(berthId, VectorPosition(berths[berthId].pos, Direction::EAST));
         // return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::MOVE_TO_BERTH,berthId);
@@ -301,4 +301,5 @@ void GreedyShipScheduler::updateBerthWhereShipMove(Ship &ship,std::vector<Berth>
 //  todo 后续和timeToDelivery统一起来
 int GreedyShipScheduler::allocateDelivery( Berth &berth){
     int deliveryId = berth.distsToDelivery[0].first;
+    return deliveryId;
 }

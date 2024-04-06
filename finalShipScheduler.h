@@ -8,12 +8,11 @@ class FinalShipScheduler : public ShipScheduler
 public:
     // 实现接口
     // todo 当前是局部最优，如果效果不佳，后续可以把多船分配泊位单独形成一类，通过模拟获取全局最优
-    std::vector<std::pair<ShipID, ShipActionSpace::ShipAction>>
-    scheduleShips(Map &map,
+    void scheduleShips(Map &map,
                   std::vector<Ship> &ships,
                   std::vector<Berth> &berths,
                   std::vector<Goods> &goods,
-                  std::vector<Robot> &robots) override;
+                  std::vector<Robot> &robots) override{}
     // 设置参数
     void setParameter(const Params &params) override;
     // 返回调度器名字

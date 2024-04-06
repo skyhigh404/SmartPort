@@ -46,7 +46,7 @@ public:
         : id(id),
           pos(pos),
           carryingItem(0),
-          status(IDLE),
+          status(RobotStatus::IDLE),
           carryingItemId(-1),
           targetid(-1),
           nextPos(-1, -1)

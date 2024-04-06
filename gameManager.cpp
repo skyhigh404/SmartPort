@@ -428,7 +428,7 @@ void GameManager::shipControl(){
         // 恢复状态
         if (ship.state == 1) continue;
         // 靠泊
-        if (ship.shipStatus == ShipStatus::LOADING && ship.state == 0){
+        if (ship.shipStatus == ShipStatusSpace::ShipStatus::LOADING && ship.state == 0){
             commandManager.addShipCommand(ship.berth());
         }
         // 移动指令
@@ -455,13 +455,19 @@ void GameManager::update()
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
     LOGI("robotControl时长:",duration.count(),"ms");
 
-    if(shipDebugOutput){LOGI("船只开始调度");};
-    auto ship_start = std::chrono::high_resolution_clock::now();
-    std::vector<std::pair<ShipID, ShipActionSpace::ShipAction>> shipActions = this->shipScheduler->scheduleShips(this->gameMap, this->ships, this->berths, this->goods, this->robots);
-    auto ship_end = std::chrono::high_resolution_clock::now();
-    LOGI("调度船只时长:",std::chrono::duration_cast<std::chrono::milliseconds>(ship_end - ship_start).count(),"ms");
+    start = std::chrono::steady_clock::now();
+    shipControl();
+    end = std::chrono::steady_clock::now();
+    duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    LOGI("shipControl时长:",duration.count(),"ms");
 
-    LOGI("命令个数：",shipActions.size());
+    // if(shipDebugOutput){LOGI("船只开始调度");};
+    // auto ship_start = std::chrono::high_resolution_clock::now();
+    // std::vector<std::pair<ShipID, ShipActionSpace::ShipAction>> shipActions = this->shipScheduler->scheduleShips(this->gameMap, this->ships, this->berths, this->goods, this->robots);
+    // auto ship_end = std::chrono::high_resolution_clock::now();
+    // LOGI("调度船只时长:",std::chrono::duration_cast<std::chrono::milliseconds>(ship_end - ship_start).count(),"ms");
+
+    // LOGI("命令个数：",shipActions.size());
     // CommandManager.shipCommands
     // for (int i = 0; i < shipActions.size(); i++)
     // {

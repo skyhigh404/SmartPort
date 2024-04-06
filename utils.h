@@ -153,6 +153,7 @@ struct VectorPosition
 
     return rotationStepsTable[static_cast<int>(begin)][static_cast<int>(end)];
     }
+
 };
 
 inline bool operator<(const VectorPosition &a, const VectorPosition &b)
@@ -361,7 +362,7 @@ enum ActionType
     PICK_UP_GOODS,
     DROP_OFF_GOODS,
     MOVE_TO_BERTH,
-    DEPART_BERTH,
+    MOVE_TO_DELIVERY,
     FIND_PATH,
     FAIL,
     CONTINUE
@@ -409,9 +410,10 @@ namespace ShipActionSpace
 {
     enum ShipActionType
     {
-        MOVE_TO_BERTH,
-        DEPART_BERTH,
-        CONTINUE
+        MOVE_TO_BERTH,  // 前往泊位
+        MOVE_TO_DELIVERY,   //  离开泊位，前往送货点
+        CONTINUE,   // 维持当前调度
+        BERTH,  //靠泊
     };
 
     struct ShipAction

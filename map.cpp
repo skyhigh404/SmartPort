@@ -419,7 +419,7 @@ std::string printVector(const std::vector<Point2d> &path)
 }
 
 // 初始化泊位到交货点的距离变量
-void Map::initializeBerthToDeliveryDistances(BerthID berthId){
+std::vector<std::pair<int, int>> Map::initializeBerthToDeliveryDistances(BerthID berthId){
     std::vector<std::pair<int, int>> distsToDelivery;
     for(int deliveryId = 0;deliveryId < deliveryLocations.size(); deliveryId++){
         Point2d pos = deliveryLocations[deliveryId];
@@ -429,4 +429,5 @@ void Map::initializeBerthToDeliveryDistances(BerthID berthId){
     std::sort(distsToDelivery.begin(), distsToDelivery.end(), [](std::pair<int, int>& a,std::pair<int, int> &b){
         return a.second < b.second;
     });
+    return distsToDelivery;
 }

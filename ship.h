@@ -6,6 +6,13 @@
 #include "map.h"
 #include "pathFinder.h"
 #include "assert.h"
+enum ShipStatus
+{
+    IDLE,            // 船处于空闲状态，等待新的任务分配
+    MOVING_TO_DELIVERY, // 船正在移动至指定货物位置。
+    MOVING_TO_BERTH, // 船正在移动至指定泊位。
+    LOADING,       // 船正在装货物。
+};
 
 class Ship
 {
@@ -15,6 +22,7 @@ public:
     VectorPosition locAndDir; //  表示船舶位置和方向
     int state;                // 0: 正常行驶状态, 1: 恢复状态, 2: 装载状态
     int berthId;              // 目标泊位 ID
+    ShipStatus shipStatus;  // 船的状态
     // const int price = 8000;       // 购买价格
 public:
     static int capacity;        // 船的容量
@@ -34,7 +42,8 @@ public:
           state(0),
           berthId(-1),
           remainingTransportTime(0),
-          nextLocAndDir(-1, -1, Direction::EAST) {}
+          nextLocAndDir(-1, -1, Direction::EAST),
+          shipStatus(ShipStatus::IDLE) {}
 
     //  购买船只
     static std::string lboat(const Point2d &pos)
@@ -205,6 +214,65 @@ public:
         LOGW("船舶路径出错 ship ", id, " from: ", locAndDir, " to ", nextLocAndDir);
         return "";
     }
+
+    // 判断是否到达目的地
+    bool reachDestination(){
+        if (destination.pos == locAndDir.pos) return true;
+        else return false;
+    }
+
+    // 判断是否到达泊位
+    // todo 需要判断是否进入泊位范围内
+    bool reachBerth(){
+        if (reachDestination() && shipStatus == ShipStatus::MOVING_TO_BERTH) return true;
+        else return false;
+    }
+    
+    // 判断是否到达交货点
+    bool reachBerth(){
+        if (reachDestination() && shipStatus == ShipStatus::MOVING_TO_DELIVERY) return true;
+        else return false;
+    }
+
+    // 判断船是否空闲
+    bool isIdle(){
+        return shipStatus == ShipStatus::IDLE;
+    }
+
+    // 装货状态处理
+    void updateLoadStatus(){
+        shipStatus = ShipStatus::LOADING;
+        destination = VectorPosition({-1,-1}, Direction::EAST);
+        // 路径清空
+        path.clear();
+    }
+
+    // 前往泊位状态处理
+    void updateMoveToBerthStatus(BerthID berthId, VectorPosition destination){
+        shipStatus = ShipStatus::MOVING_TO_BERTH;
+        this->berthId = berthId;
+        //todo 方向如何确定
+        this->destination = destination;
+        // 路径清空
+        path.clear();
+    }
+
+    // 前往交货点状态处理
+    void updateMoveToDeliveryStatus(VectorPosition destination){
+        shipStatus = ShipStatus::MOVING_TO_DELIVERY;
+        this->berthId = -1;
+        // todo方向如何确定
+        destination = destination;
+        // 路径清空
+        path.clear();
+    }
+
+    // 判断目的地位置是否合法
+    bool isDestinationValid(){
+        if (destination.pos.x == -1 || destination.pos.y == -1) return false;
+        else return true;
+    }
+
 };
 
 struct pair_hash

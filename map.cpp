@@ -231,8 +231,14 @@ void Map::computeMaritimeBerthDistanceViaBFS(BerthID id, const std::vector<Point
             Point2d next{current.x + dir.x, current.y + dir.y};
             if (inBounds(next) && seaPassable(next) && dis[next.x][next.y] == INT_MAX)
             {
-                dis[next.x][next.y] = dis[current.x][current.y] + 1;
-                nextToVisitQueue.push(next);
+                if (passable(VectorPosition(next, Direction::EAST)) ||
+                    passable(VectorPosition(next, Direction::WEST)) ||
+                    passable(VectorPosition(next, Direction::NORTH)) ||
+                    passable(VectorPosition(next, Direction::SOUTH)))
+                {
+                    dis[next.x][next.y] = dis[current.x][current.y] + 1;
+                    nextToVisitQueue.push(next);
+                }
             }
         }
     }

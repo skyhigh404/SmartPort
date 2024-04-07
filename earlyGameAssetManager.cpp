@@ -3,7 +3,11 @@
 
 void EarlyGameAssetManager::setParameter(const Params &params)
 {
-
+    maxRobotNum = params.maxRobotNum;
+    maxShipNum = params.maxShipNum;
+    robotPurchaseAssign = params.robotPurchaseAssign;
+    shipPurchaseAssign = params.shipPurchaseAssign;
+    startNum = params.startNum;
 }
 
 void EarlyGameAssetManager::init(const Map& map, const std::vector<Berth> &berths)
@@ -22,7 +26,7 @@ void EarlyGameAssetManager::init(const Map& map, const std::vector<Berth> &berth
         }
     }
 
-    divideLandAndSeaConnectedBlocks(berths, gameMap);
+    divideLandAndSeaConnectedBlocks(berths, map);
     purchasedRobotNum = std::vector<int>(landseaBlocks.size(), 0);
     purchasedShipNum = std::vector<int>(landseaBlocks.size(), 0);
     // robotPurchaseAssign = std::vector<int>(landseaBlocks.size(), 0);
@@ -234,11 +238,15 @@ Point2d EarlyGameAssetManager::buyShip(const std::vector<Ship> &ships, const std
 
 Point2d EarlyGameAssetManager::getProperRobotShop(LandSeaBlock& block, const Map &gameMap)
 {
+    if (!block.robotShops.empty())
+    return block.robotShops[0];
     //未完成
-return Point2d(-1,-1);
+    return Point2d(-1,-1);
 }
 Point2d EarlyGameAssetManager::getProperShipShop(LandSeaBlock& block, const Map &gameMap)
 {
+    if (!block.shipShops.empty())
+        return block.shipShops[0];
     //未完成
-return Point2d(-1,-1);
+    return Point2d(-1,-1);
 }

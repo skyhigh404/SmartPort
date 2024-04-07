@@ -3,7 +3,11 @@
 
 void EarlyGameAssetManager::setParameter(const Params &params)
 {
-
+    maxRobotNum = params.maxRobotNum;
+    maxShipNum = params.maxShipNum;
+    robotPurchaseAssign = params.robotPurchaseAssign;
+    shipPurchaseAssign = params.shipPurchaseAssign;
+    startNum = params.startNum;
 }
 
 void EarlyGameAssetManager::init(const Map& map, const std::vector<Berth> &berths)

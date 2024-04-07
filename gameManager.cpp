@@ -269,6 +269,7 @@ void GameManager::processFrameData()
     gameMap.clearTemporaryObstacles();
 
     cin >> this->currentFrame >> this->currentMoney;
+    LOGI("当前帧数：", this->currentFrame, ",当前金额：", this->currentMoney);
     int skipFrame = this->currentFrame - CURRENT_FRAME - 1;
     this->skipFrame += skipFrame;
     if(skipFrame)
@@ -286,6 +287,7 @@ void GameManager::processFrameData()
     // 读取变化货物
     // TODO: 使用Map::computePointToBerthsDistances计算货物到泊位距离
     cin >> newItemCount;
+    LOGI("变化货物数量：", newItemCount);
     while (newItemCount--)
     {
         cin >> goodsX >> goodsY >> value;
@@ -302,8 +304,9 @@ void GameManager::processFrameData()
         }
     }
     // 读取机器人状态
-    int robotNum, robotId;
+    int robotNum=0, robotId;
     std::cin >> robotNum;
+    LOGI("机器人数目：",robotNum);
     for (int i = 0; i < robotNum; ++i)
     {
         cin >> robotId >> carrying >> robotX >> robotY;
@@ -326,6 +329,7 @@ void GameManager::processFrameData()
     // 读取船舶状态
     int shipNum, shipId, goodsCount, shipX, shipY, direction, shipState;
     std::cin >> shipNum;
+    LOGI("轮船数目：", shipNum);
     for (int i = 0; i < shipNum; ++i)
     {
         cin >> shipId >> goodsCount >> shipX >> shipY >> direction >> shipState;
@@ -348,6 +352,7 @@ void GameManager::processFrameData()
         berth.unreached_goods = std::vector<Goods>();
         // berth.reached_goods = std::vector<Goods>();
     }
+    LOGI("processFrameData done");
 }
 
 

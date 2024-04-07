@@ -59,24 +59,24 @@ int main()
     while (1)
     {
         gameManager.processFrameData();
-        // 切换调度函数
-        switch (gameManager.nowStateType())
-        {
-        case StageType::BEGIN:
-            //  不做切换
-            break;
-        case StageType::FINAL:
-            // 初始化
-            if (!hasInitFinalShipScheduler){
-                #ifdef DEBUG
-                LOGI("进去终局船调度");
-                #endif
-                gameManager.shipScheduler = std::make_shared<FinalShipScheduler>(gameManager.berthAssignAndControlService.berthCluster,
-                gameManager.berthAssignAndControlService.clusters);
-                hasInitFinalShipScheduler = true;
-            }
-            break;
-        }
+        // // 切换调度函数
+        // switch (gameManager.nowStateType())
+        // {
+        // case StageType::BEGIN:
+        //     //  不做切换
+        //     break;
+        // case StageType::FINAL:
+        //     // 初始化
+        //     if (!hasInitFinalShipScheduler){
+        //         #ifdef DEBUG
+        //         LOGI("进去终局船调度");
+        //         #endif
+        //         gameManager.shipScheduler = std::make_shared<FinalShipScheduler>(gameManager.berthAssignAndControlService.berthCluster,
+        //         gameManager.berthAssignAndControlService.clusters);
+        //         hasInitFinalShipScheduler = true;
+        //     }
+        //     break;
+        // }
         auto start = std::chrono::steady_clock::now();
         gameManager.update();
         auto end = std::chrono::steady_clock::now();

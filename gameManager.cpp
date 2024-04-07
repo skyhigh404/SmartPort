@@ -232,6 +232,7 @@ void GameManager::initializeComponents()
     Params params(MAP_TYPE);
     // 8. 初始化 RobotController
     this->robotController = std::make_shared<RobotController>(this->robots);
+    this->shipController = std::make_shared<ShipController>(this->ships);
     // 9. 对泊位进行聚类
     this->berthAssignAndControlService.initialize(this->gameMap,this->berths);
     std::vector<int> &berthCluster = this->berthAssignAndControlService.berthCluster;

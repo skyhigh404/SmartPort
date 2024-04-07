@@ -2,6 +2,8 @@
 
 // 控制船的整体调度
 void ShipController::runController(Map &map, const SingleLaneManager &singleLaneManager){
+    // LOGI("shipController::runController");
+    // LOGI("ship num:",ships.empty());
     auto start = std::chrono::steady_clock::now();
     // 为所有需要寻路算法的船调用寻路算法，给定新目标位置
     for (Ship &ship : ships){
@@ -54,6 +56,7 @@ void ShipController::runController(Map &map, const SingleLaneManager &singleLane
     countTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
     if(countTime > 10)
         LOGI("shipController 冲突处理时间: ",countTime," ms, i: ", tryTime);
+    // LOGI("shipcontroller执行完毕");
 }
 
 bool ShipController::needPathfinding(Ship &ship)

@@ -12,11 +12,14 @@ void GreedyShipScheduler::setParameter(const Params &params)
 void GreedyShipScheduler::scheduleShips(Map &map, std::vector<Ship> &ships, std::vector<Berth> &berths, std::vector<Goods> &goods, std::vector<Robot> &robots) {
     //需要迁移，更新泊位和货物的状态
     updateBerthStatus(ships, berths, goods);
+    // LOGI("初始化泊位状态完毕");
 
     // 2. 决定调度策略
     std::vector<std::pair<ShipID, ShipActionSpace::ShipAction>> actions;
     ShipActionSpace::ShipAction action;
+    // LOGI("ship num：",ships.size());
     for(auto &ship : ships){
+        ship.info();
         switch (ship.state) {
         case 0: // 在路途中 | 在交货点
             handleShipOnRoute(map, ship, berths, goods);
@@ -38,6 +41,9 @@ void GreedyShipScheduler::scheduleShips(Map &map, std::vector<Ship> &ships, std:
 // 处理船在路途的情况
 void GreedyShipScheduler::handleShipOnRoute(Map& map, Ship &ship,std::vector<Berth> &berths,std::vector<Goods> &goods){
     BerthID berthId = ship.berthId;
+    // LOGI("handleShipOnRoute");
+    ship.info();
+
     // 船是空闲状态
     if (ship.isIdle()){
         BerthID berthId = findBestBerthForShip(map, ship, berths, goods);
@@ -229,6 +235,7 @@ BerthID GreedyShipScheduler::findBestBerthForShip(Map& map, Ship &ship, std::vec
     // std::sort(berths_sort.begin(), berths_sort.end(),[ship](Berth a,Berth berths){
     //     // 如果剩余时间不够,则优先级最低
     // });
+    LOGI("findBestBerthForShip");
     // todo 考虑泊位运输虚拟点时间的代价
     int absCapacity = 0;
     int highestValue = 0;

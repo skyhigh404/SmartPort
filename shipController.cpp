@@ -1,9 +1,9 @@
 #include "shipController.h"
 
 // 控制船的整体调度
-void ShipController::runController(Map &map, const SingleLaneManager &singleLaneManager){
+void ShipController::runController(Map &map,std::vector<Ship> &ships, const SingleLaneManager &singleLaneManager){
     // LOGI("shipController::runController");
-    // LOGI("ship num:",ships.empty());
+    // LOGI("ship num:",ships.size());
     auto start = std::chrono::steady_clock::now();
     // 为所有需要寻路算法的船调用寻路算法，给定新目标位置
     for (Ship &ship : ships){

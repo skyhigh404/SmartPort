@@ -17,7 +17,7 @@ void GreedyShipScheduler::scheduleShips(Map &map, std::vector<Ship> &ships, std:
     // 2. 决定调度策略
     std::vector<std::pair<ShipID, ShipActionSpace::ShipAction>> actions;
     ShipActionSpace::ShipAction action;
-    // LOGI("ship num：",ships.size());
+    // LOGI("scheduler ship num：",ships.size());
     for(auto &ship : ships){
         ship.info();
         switch (ship.state) {

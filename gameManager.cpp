@@ -232,7 +232,7 @@ void GameManager::initializeComponents()
     Params params(MAP_TYPE);
     // 8. 初始化 RobotController
     this->robotController = std::make_shared<RobotController>(this->robots);
-    this->shipController = std::make_shared<ShipController>(this->ships);
+    this->shipController = std::make_shared<ShipController>();
     // 9. 对泊位进行聚类
     this->berthAssignAndControlService.initialize(this->gameMap,this->berths);
     std::vector<int> &berthCluster = this->berthAssignAndControlService.berthCluster;
@@ -455,7 +455,7 @@ void GameManager::shipControl(){
     this->shipScheduler->scheduleShips(this->gameMap, this->ships, this->berths, this->goods, this->robots);
     // 对需要移动的船执行shipControl
     // todo 修改为海洋单行路
-    shipController->runController(gameMap, this->singleLaneManager);
+    shipController->runController(gameMap,this->ships, this->singleLaneManager);
     auto end = std::chrono::steady_clock::now();
     LOGI("shipControl: ",std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()," ms");
     // 执行指令

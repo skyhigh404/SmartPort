@@ -54,7 +54,8 @@ public:
     
 
 public:
-    ShipController(std::vector<Ship> &ships) : ships(ships) {}
+    // ShipController(std::vector<Ship> &ships) : ships(ships) {}
+    ShipController() {}
 
     // 为所有需要寻路算法的船调用寻路算法
     // 更新所有船下一步位置
@@ -63,7 +64,7 @@ public:
     // 解决冲突（重新寻路或等待，根据它们的代价来判断）
     // 直至解决冲突
     // 确定下一步所有船的行动
-    void runController(Map &map, const SingleLaneManager &singleLaneManager);
+    void runController(Map &map,std::vector<Ship> &ships, const SingleLaneManager &singleLaneManager);
 
 private:
     void reset(){
@@ -110,6 +111,6 @@ private:
 
     
 private:
-    std::vector<Ship> &ships;
+    // std::vector<Ship> &ships;
     std::unordered_map<int, std::vector<ResolutionAction>> ShipResolutionActions;
 };

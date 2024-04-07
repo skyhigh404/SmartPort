@@ -120,12 +120,12 @@ public:
     //     }
     // }
 
-    inline int getSingleLaneId(const Point2d& point) const {
-        if (point.x >= 0 && point.x < rows && point.y >= 0 && point.y < cols) {
-            return singleLaneMap[point.x][point.y];
-        }
-        return -1; // 超出边界
-    }
+    // inline int getSingleLaneId(const Point2d& point) const {
+    //     if (point.x >= 0 && point.x < rows && point.y >= 0 && point.y < cols) {
+    //         return singleLaneMap[point.x][point.y];
+    //     }
+    //     return -1; // 超出边界
+    // }
 
     // // 根据提供的位置，判断是否在单行道的入口处
     // bool isEnteringSingleLane(int laneId, const Point2d& entryPoint) const {
@@ -404,14 +404,8 @@ public:
                         // LOGI("单行路", laneId,"-------------------");
                         markSingleLaneIdToMap(map, path, laneId);
 
-                        // if(countObstacle(path[0]) == 3){
-                        //     singleLaneLocks[laneId].startPos = singleLaneLocks[laneId].endPos;
-                        //     singleLaneLocks[laneId].endPos = {-1,-1};
-                        //     std::reverse(std::begin(singleLanes[laneId]),std::end(singleLanes[laneId]));
-                        // }
-                        // if(countObstacle(path.back()) == 3){
-                        //     singleLaneLocks[laneId].endPos = {-1,-1};
-                        // }
+                        // 获取单行路两边边界，并初始化锁
+                        singleLaneLocks[laneId] = SeaSingleLaneLock(getBorderPos(map, path.front()), getBorderPos(map, path.back()));
                     }
                 }
                 auto end = std::chrono::steady_clock::now();

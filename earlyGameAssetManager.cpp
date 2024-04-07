@@ -42,12 +42,17 @@ std::vector<PurchaseDecision> EarlyGameAssetManager::makePurchaseDecision(const 
                                                     int currentFunds,
                                                     int currentTime)
 {
+    PurchaseDecision robotDecision, shipDecision;
     // 判断要不要购买机器人/轮船
     if (needToBuyRobot(robots, goods, gameMap, currentFunds)) {
-        buyRobot(robots, goods, gameMap, currentFunds);
+        Point2d shopPos = buyRobot(robots, goods, gameMap, currentFunds);
+        robotDecision = PurchaseDecision{AssetType::ROBOT, shopPos, 1};
     }
-    if (needToBuyShip(ships, goods, gameMap, currentFunds)) {}
-    return {};
+    if (needToBuyShip(ships, goods, gameMap, currentFunds)) {
+        Point2d shopPos = buyShip(ships, goods, gameMap, currentFunds);
+        shipDecision = PurchaseDecision{AssetType::SHIP, shopPos, 1};
+    }
+    return {robotDecision, shipDecision};
 }
 
 void EarlyGameAssetManager::divideLandConnectedBlocks(const std::vector<Berth> &berths, const Map &map)

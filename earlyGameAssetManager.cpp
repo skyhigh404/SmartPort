@@ -48,6 +48,7 @@ std::vector<PurchaseDecision> EarlyGameAssetManager::makePurchaseDecision(const 
         Point2d shopPos = buyRobot(robots, goods, gameMap, currentFunds);
         LOGI("购买机器人，当前资金：", currentFunds, "，购买点：", shopPos);
         // 资金减去价格
+        currentFunds -= robotPrice;
         robotDecision = PurchaseDecision{AssetType::ROBOT, shopPos, 1};
     }
     if (needToBuyShip(ships, goods, gameMap, currentFunds)) {
@@ -215,7 +216,7 @@ bool EarlyGameAssetManager::needToBuyShip(const std::vector<Ship> &ships, const 
 
 Point2d EarlyGameAssetManager::buyRobot(const std::vector<Robot> &robots, const std::vector<Goods> &goods, const Map &gameMap, int currentFunds)
 {
-    for (int phase=0; phase<robotPurchaseAssign.size(); phase++) {
+    for (int phase=0; phase<robotPurchaseAssign[0].size(); phase++) {
         // 按阶段进行购买
         for (int i=0; i<landseaBlocks.size(); i++) {
             // 当前联通块已完成本阶段购买
@@ -231,7 +232,7 @@ Point2d EarlyGameAssetManager::buyRobot(const std::vector<Robot> &robots, const 
 
 Point2d EarlyGameAssetManager::buyShip(const std::vector<Ship> &ships, const std::vector<Goods> &goods, const Map &gameMap, int currentFunds)
 {
-    for (int phase=0; phase<shipPurchaseAssign.size(); phase++) {
+    for (int phase=0; phase<shipPurchaseAssign[0].size(); phase++) {
         // 按阶段进行购买
         for (int i=0; i<landseaBlocks.size(); i++) {
             // 当前联通块已完成本阶段购买

@@ -13,11 +13,11 @@ struct Params
     bool PartitionScheduling = false; // 是否分区调度
     
     // 购买策略超参
-    int maxRobotNum = 4;    // 最多购买机器人数目
-    int maxShipNum = 1;     // 最多购买船只数目
+    int maxRobotNum = 8;    // 最多购买机器人数目
+    int maxShipNum = 2;     // 最多购买船只数目
     std::vector<std::vector<int>> robotPurchaseAssign = {{4, 4, 4, 5, 6, 7, 8, 9, 10}, {1, 2, 3, 4, 5, 6}, {1, 2, 3, 4, 5, 6}};
     // std::vector<std::vector<int>> shipPurchaseAssign = {{4, 4, 4, 5, 6, 7, 8, 9, 10}, {1, 2, 3, 4, 5, 6}, {1, 2, 3, 4, 5, 6}};
-    std::vector<std::vector<int>> shipPurchaseAssign = {{1, 1, 1}, {0, 0, 0}, {0, 0, 0}};
+    std::vector<std::vector<int>> shipPurchaseAssign = {{1, 2, 3}, {0, 0, 0}, {0, 0, 0}};
     int startNum = 1;       // 最初的数目（机器人、轮船）
 
     //  泊位超参

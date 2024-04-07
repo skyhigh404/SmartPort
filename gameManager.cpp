@@ -19,15 +19,9 @@ int CURRENT_FRAME = 0;  //当前帧数
 MapFlag MAP_TYPE = MapFlag::ERROR;  // LABYRINTH: 图二、迷宫;NORMAL:图一、正常图;UNKNOWN；图三未知图;ERROR :默认值
 int last_assign = 0;
 inline int canUnload(Point2d pos, const Map& map) {
-    // int x = pos.x-berth.pos.x, y=pos.y-berth.pos.y;
     if (map.readOnlyGrid[pos.x][pos.y]==MapItemSpace::MapItem::BERTH) 
         return 1;
     else return 0;
-    // if (x<0 || x>3 || y<0 || y>3) {
-    //     return 0;
-    // }
-    // else 
-    //     return 1;
 }
 
 std::vector<int> berthDistrubtGoodNumCount;

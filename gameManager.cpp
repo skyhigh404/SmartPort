@@ -145,7 +145,7 @@ void GameManager::initializeComponents()
     // for (Robot &robot : this->robots)
     //     this->gameMap.robotPosition.push_back(robot.pos);
 
-    // 2. 使用 BFS 计算地图上每个点到泊位的距离
+    // 1. 使用 BFS 计算地图上每个点到泊位的距离
     for (auto &berth : this->berths)
     {
         vector<Point2d> positions;
@@ -159,7 +159,7 @@ void GameManager::initializeComponents()
         berth.distsToDelivery = this->gameMap.initializeBerthToDeliveryDistances(berth.id);
     }
 
-    // 预先计算海图航线
+    // 2. 预先计算海图航线
     std::vector<Point2d> nodes;
     for (const auto &berth : this->berths)
         nodes.push_back(berth.pos);
@@ -173,6 +173,7 @@ void GameManager::initializeComponents()
     {
         for(int j = i+1; j < nodes.size(); ++j)
         {
+            // TODO: 考虑不可通行的情况
             VectorPosition startVP(nodes[i], Direction::EAST);
             VectorPosition targetVP(nodes[j], Direction::EAST);
             if(!SeaRoute::findPath(this->gameMap, startVP, targetVP))
@@ -218,15 +219,15 @@ void GameManager::initializeComponents()
     robotScheduler = std::make_shared<GreedyRobotScheduler>(clusters, berthCluster);
     // 11. 注册船舶调度函数
     shipScheduler = std::make_shared<GreedyShipScheduler>();
-    // 注册资产管理类
+    // 12. 注册资产管理类
     assetManager = std::make_shared<EarlyGameAssetManager>();
-    // 12. 对机器人调度函数更新Params
+    // 13. 对机器人调度函数更新Params
     this->robotScheduler->setParameter(params);
-    // 13. 对船舶调度函数更新Params
+    // 14. 对船舶调度函数更新Params
     this->shipScheduler->setParameter(params);
-    // 对资产管理类更新Params
+    // 15. 对资产管理类更新Params
     this->assetManager->setParameter(params);
-    // 初始化资产管理类
+    // 16. 初始化资产管理类
     this->assetManager->init(this->gameMap, berths);
 }
 

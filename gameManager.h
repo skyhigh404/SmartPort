@@ -37,6 +37,7 @@ public:
     Map gameMap;
     CommandManager commandManager;
     SingleLaneManager singleLaneManager;
+    SeaSingleLaneManager seaSingleLaneManager;
     std::vector<Robot> robots;
     std::vector<Ship> ships;
     std::vector<Goods> goods;

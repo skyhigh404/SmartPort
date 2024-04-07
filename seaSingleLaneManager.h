@@ -175,7 +175,7 @@ public:
         visited[Direction::EAST] = visited[Direction::WEST] = std::vector<std::vector<VisitType>>(map.rows,std::vector<VisitType>(map.cols,VisitType::UNVISITED));
         visited[Direction::NORTH] = visited[Direction::SOUTH] = std::vector<std::vector<VisitType>>(map.rows,std::vector<VisitType>(map.cols,VisitType::UNVISITED));
         // 初始化地图
-        initMap();
+        initMap(map);
         // 找到所有单行路
         findAllSingleLanes(map);
     }
@@ -186,22 +186,28 @@ public:
     bool canSeaPass(const Map &map, const VectorPosition& vecPos) {
         // return grid[pos.x][pos.y] == MapItemSpace::MapItem::SPACE || grid[pos.x][pos.y] == MapItemSpace::MapItem::BERTH;
         std::pair<Point2d,Point2d> shipSpace = SpatialUtils::getShipOccupancyRect(vecPos);
-        for(int x = shipSpace.first.x; x < shipSpace.second.x; x++){
-            for( int y = shipSpace.second.y; y < shipSpace.second.y; y++){
+        // LOGI("船体空间：", shipSpace.first," ", shipSpace.second);
+        for(int x = shipSpace.first.x; x <= shipSpace.second.x; x++){
+            for(int y = shipSpace.first.y; y <= shipSpace.second.y; y++){
                 // 节点无效 || 不可通行 || 在主航道内
                 // todo 后期考虑是否去掉 主航道内判断
-                if (!map.inBounds(Point2d(x, y)) || !map.seaPassable(Point2d(x, y)) || map.isInSealane(Point2d(x,y)))
+                // LOGI("seaPass：",Point2d(x,y),"，地图元素：",static_cast<int>(map.getCell({x,y})));
+                // LOGI("判断结果：",!map.inBounds(Point2d(x, y)), !map.seaPassable(Point2d(x, y)) , map.isInSealane(Point2d(x,y)));
+                if (!map.inBounds(Point2d(x, y)) || !map.seaPassable(Point2d(x, y)) || map.isInSealane(Point2d(x,y))){
+                    // LOGI("不可通行");
                     return false;
+                }       
             }
         }
+        // LOGI("可通行");
         return true;
     }
 
     // 传入船的占地空间，判断是否全部可用
     bool canSeaPass(const Map &map, const std::pair<Point2d,Point2d> shipSpace) {
         // return grid[pos.x][pos.y] == MapItemSpace::MapItem::SPACE || grid[pos.x][pos.y] == MapItemSpace::MapItem::BERTH;
-        for(int x = shipSpace.first.x; x < shipSpace.second.x; x++){
-            for( int y = shipSpace.second.y; y < shipSpace.second.y; y++){
+        for(int x = shipSpace.first.x; x <= shipSpace.second.x; x++){
+            for( int y = shipSpace.first.y; y <= shipSpace.second.y; y++){
                 // 节点有效并可同行
                 if (!map.inBounds(Point2d(x, y)) || !map.seaPassable(Point2d(x, y)))
                     return false;
@@ -230,10 +236,11 @@ public:
     }
 
     // 空地或者泊位用0初始化，其他用-1初始化
-    void initMap(){
+    void initMap(const Map &map){
         for(int i=0;i < rows; i++){
             for(int j=0;j < cols;j++){
-                if(grid[i][j] == MapItemSpace::MapItem::SPACE ||grid[i][j] == MapItemSpace::MapItem::BERTH){
+                // 可通行
+                if(map.seaPassable({i, j})){
                     singleLaneMap[i][j] = 0;
                 }
                 else{
@@ -253,18 +260,26 @@ public:
         // 判断周围是否有通行空间
         std::vector<VectorPosition> corePointList;
         std::unordered_map<Direction,std::vector<Point2d>> coreOffsetByDirection;
-        coreOffsetByDirection[Direction::EAST] = coreOffsetByDirection[Direction::WEST] = std::vector<Point2d>{{0,1},{0,2},{0,-1},{0,-2}};
-        coreOffsetByDirection[Direction::NORTH] = coreOffsetByDirection[Direction::SOUTH] = std::vector<Point2d>{{1,0},{2,0},{-1,0},{-2,0}};
+        coreOffsetByDirection[Direction::EAST] = coreOffsetByDirection[Direction::WEST] = std::vector<Point2d>{{1,0},{2,0},{-1,0},{-2,0}};  // 竖直方向，x轴偏移
+        coreOffsetByDirection[Direction::NORTH] = coreOffsetByDirection[Direction::SOUTH] = std::vector<Point2d>{{0,1},{0,2},{0,-1},{0,-2}};    // 水平方向，y轴偏移
         for(auto &offset : coreOffsetByDirection[vecPos.direction]){
             corePointList.push_back(VectorPosition(vecPos.pos + offset, vecPos.direction));
         }
         int num = 0;
         // 超过两个可以通行，则失败
         for(auto &corePoint : corePointList){
-            if(map.inBounds(corePoint.pos) && canSeaPass(map, vecPos)) num++;
+            // LOGI("扩大搜索范围：",corePoint);
+            if(map.inBounds(corePoint.pos) && canSeaPass(map, corePoint)){
+                num++;
+                // LOGI("核心点偏移坐标：", corePoint.pos, "可通行", "地图元素：",static_cast<int>(map.getCell(corePoint.pos)));
+                // std::pair<Point2d,Point2d> shipSpace = SpatialUtils::getShipOccupancyRect(corePoint);
+                // LOGI("船体空间：", shipSpace.first," ", shipSpace.second);
+            }
+            // else LOGI("核心点偏移坐标：", corePoint.pos, "不可通行");
             // todo 缩小搜索空间
-            visited[vecPos.direction][corePoint.pos.x][corePoint.pos.y] = VisitType::VISITED;
+            if(map.inBounds(corePoint.pos)) visited[vecPos.direction][corePoint.pos.x][corePoint.pos.y] = VisitType::VISITED;
         }
+        // LOGI("通行数量：",num);
         if(num >= 2) return false;
         else return true;
     }
@@ -288,10 +303,6 @@ public:
             path.insert(path.begin(),vecPos);
         }
         
-
-        // std::vector<Point2d> directions = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
-        // int validDirections = 0;
-        // Point2d nextStep;
         std::vector<VectorPosition> nextSteps = std::vector<VectorPosition>{SpatialUtils::moveForward(vecPos),
         SpatialUtils::clockwiseRotation(vecPos), SpatialUtils::anticlockwiseRotation(vecPos)};  // 前进一格、顺时针、逆时针，不考虑后退
 
@@ -309,65 +320,89 @@ public:
         std::pair<Point2d, Point2d> borderPos = {Point2d(vecPos.pos), Point2d(vecPos.pos)};
         int count = 0;  //限制寻找的次数
         if(vecPos.direction == Direction::EAST || vecPos.direction == Direction::WEST){
-            
-            while(map.inBounds(borderPos.first) && map.seaPassable(borderPos.first) && !map.isInSealane(borderPos.first)){
-                borderPos.first.y -= 1;
-
-                count++;
-                if(count > 5) {count = 0;break;}
-            }
-            borderPos.first.y += 1;
-            while(map.inBounds(borderPos.second) && map.seaPassable(borderPos.second) && !map.isInSealane(borderPos.second)){
-                borderPos.second.y += 1;
-
-                count++;
-                if(count > 5) {count = 0;break;}
-            }
-            borderPos.second.y -= 1;
-        }else{
+            // 竖直方向，x轴
             while(map.inBounds(borderPos.first) && map.seaPassable(borderPos.first) && !map.isInSealane(borderPos.first)){
                 borderPos.first.x -= 1;
-
                 count++;
-                if(count > 5) {count = 0;break;}
+                if(count > 4) {count = 0;break;}
             }
             borderPos.first.x += 1;
             while(map.inBounds(borderPos.second) && map.seaPassable(borderPos.second) && !map.isInSealane(borderPos.second)){
                 borderPos.second.x += 1;
 
                 count++;
-                if(count > 5) {count = 0;break;}
+                if(count > 4) {count = 0;break;}
             }
             borderPos.second.x -= 1;
+        }else{
+            // 水平方向，y轴
+            while(map.inBounds(borderPos.first) && map.seaPassable(borderPos.first) && !map.isInSealane(borderPos.first)){
+                borderPos.first.y -= 1;
+
+                count++;
+                if(count > 4) {count = 0;break;}
+            }
+            borderPos.first.y += 1;
+            while(map.inBounds(borderPos.second) && map.seaPassable(borderPos.second) && !map.isInSealane(borderPos.second)){
+                borderPos.second.y += 1;
+
+                count++;
+                if(count > 4) {count = 0;break;}
+            }
+            borderPos.second.y -= 1;
         }
         return borderPos;
+    }
+
+    void markSingleLaneIdToMap(const Map &map, std::vector<VectorPosition> &path, int laneId){
+        for(auto& point : path){
+            // 获取边界坐标
+            std::pair<Point2d, Point2d> borderPos = getBorderPos(map, point);
+            // LOGI("单行路点：",point.pos);
+            // LOGI("边界：",borderPos.first," ", borderPos.second);
+            if (point.direction == Direction::EAST || point.direction == Direction::WEST){
+                // 竖直方向 x轴
+                for (int i = borderPos.first.x; i <= borderPos.second.x; i++) singleLaneMap[i][point.pos.y] = laneId;
+            }
+            else{
+                for (int i = borderPos.first.y; i <= borderPos.second.y; i++) singleLaneMap[point.pos.x][i] = laneId;
+            }
+            // LOGI(point);
+        }
+        // 分别以头尾节点获取占地空间并赋值
+        std::vector<std::pair<Point2d, Point2d>> shipSpaces;
+        shipSpaces.push_back(SpatialUtils::getShipOccupancyRect(path.front()));
+        if (path.front() != path.back()) shipSpaces.push_back(SpatialUtils::getShipOccupancyRect(path.back()));
+        for (auto &shipSpace : shipSpaces){
+            for(int x = shipSpace.first.x; x <= shipSpace.second.x; x++){
+                for(int y = shipSpace.first.y; y <= shipSpace.second.y; y++){
+                    singleLaneMap[x][y] = laneId;   
+                }
+            }
+        }
+
     }
 
 
     // 找到所有单行路
     void findAllSingleLanes(const Map &map) {
+        std::vector<Direction> searchDirections = {Direction::EAST, Direction::SOUTH};
         for (int x = 0; x < rows; ++x) {
             for (int y = 0; y < cols; ++y) {
                 auto start = std::chrono::steady_clock::now();
+                for (auto &nowDirection : searchDirections){
                 if (canSeaPass(map, VectorPosition({x, y},Direction::EAST)) && visited[Direction::EAST][x][y] == VisitType::UNVISITED) {
+                    // LOGI("坐标：",x," ",y,",正在访问");
                     std::vector<VectorPosition> path;
                     findSingleLaneFromPoint(map, VectorPosition({x, y}, Direction::EAST), path,true);
+                    // LOGI("路径长度：", path.size());
                     if (path.size() != 0) {
                         int laneId = nextSingleLaneId++;
                         singleLanes[laneId] = path; // 保存找到的单行路路径
                         // singleLaneLocks[laneId] = SeaSingleLaneLock(path[0],path.back()); // 默认锁为解锁状态
                         // 对单行路地图进行标记
-                        for(auto& point : path){
-                            // 获取边界坐标
-                            std::pair<Point2d, Point2d> borderPos = getBorderPos(map, point);
-                            if (point.direction == Direction::EAST || point.direction == Direction::WEST){
-                                for (int i = borderPos.first.y; i <= borderPos.first.y; i++) singleLaneMap[point.pos.x][i] = laneId;
-                            }
-                            else{
-                                for (int i = borderPos.first.x; i <= borderPos.first.x; i++) singleLaneMap[i][point.pos.y] = laneId;
-                            }
-                            // LOGI(point);
-                        }
+                        // LOGI("单行路", laneId,"-------------------");
+                        markSingleLaneIdToMap(map, path, laneId);
 
                         // if(countObstacle(path[0]) == 3){
                         //     singleLaneLocks[laneId].startPos = singleLaneLocks[laneId].endPos;
@@ -381,6 +416,7 @@ public:
                 }
                 auto end = std::chrono::steady_clock::now();
                 int findTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+            }
                 // LOGI("当前寻找坐标：",x,",",y,",耗费时间：",findTime);
             }
         }

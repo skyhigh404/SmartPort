@@ -44,6 +44,8 @@ void BerthAssignAndControlService::clusterBerths(const Map &map, std::vector<Ber
         }
     }
     LOGI("泊位联通块数量：", clusters.size());
+    LOGI("第一个类的数量：", clusters[0].size());
+    LOGI("类的数量：", CLUSTERNUMS);
     // 距离聚类
     while (clusters.size() < CLUSTERNUMS)
     {

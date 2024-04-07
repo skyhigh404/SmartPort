@@ -108,10 +108,6 @@ void GameManager::initializeGame()
 
     // 初始化船舶
     cin >> Ship::capacity;
-    // for (int i = 0; i < SHIPNUMS; ++i)
-    // {
-    //     LOGI("Ship ", this->ships[i].id," capacity: ", this->ships[i].capacity);
-    // }
 
     // 初始化数据读取完成
     // 进行其他部件的初始化
@@ -133,7 +129,12 @@ void GameManager::initializeGame()
     // 打印单行路
     // LOGI("单行路数量：",this->singleLaneManager.singleLanes.size());
     // int singleLaneSize = this->singleLaneManager.singleLanes.size();
-    // LOGI(this->gameMap.drawMap(nullptr, nullptr, nullptr, nullptr, nullptr));
+    LOGI("原地图：");
+    LOGI(this->gameMap.drawMap(nullptr, nullptr, nullptr, nullptr, nullptr));
+    LOGI("水路单行路数量：",this->seaSingleLaneManager.singleLanes.size());
+    int seaSingleLaneSize = this->seaSingleLaneManager.singleLanes.size();
+    LOGI("水路单行路：");
+    LOGI(this->gameMap.drawMap(this->seaSingleLaneManager.singleLaneMap, 6));
     // LOGI("Log berth 0 BFS map.");
     // LOGI(Map::drawMap(this->gameMap.berthDistanceMap[9],12));
     // exit(0);
@@ -226,6 +227,7 @@ void GameManager::initializeComponents()
         berth.registerObserver(this);
     // 5. 初始化单行路
     this->singleLaneManager.init(gameMap);
+    this->seaSingleLaneManager.init(gameMap);
     // 6. 判断地图类型，后续封装在其他函数中实现
     MAP_TYPE = MapFlag::NORMAL;
     // 7. 读取参数

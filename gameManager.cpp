@@ -18,13 +18,16 @@ int Berth::deliverGoodNum = 0;
 int CURRENT_FRAME = 0;  //当前帧数
 MapFlag MAP_TYPE = MapFlag::ERROR;  // LABYRINTH: 图二、迷宫;NORMAL:图一、正常图;UNKNOWN；图三未知图;ERROR :默认值
 int last_assign = 0;
-int canUnload(Berth& berth, Point2d pos) {
-    int x = pos.x-berth.pos.x, y=pos.y-berth.pos.y;
-    if (x<0 || x>3 || y<0 || y>3) {
-        return 0;
-    }
-    else 
+inline int canUnload(Point2d pos, const Map& map) {
+    // int x = pos.x-berth.pos.x, y=pos.y-berth.pos.y;
+    if (map.readOnlyGrid[pos.x][pos.y]==MapItemSpace::MapItem::BERTH) 
         return 1;
+    else return 0;
+    // if (x<0 || x>3 || y<0 || y>3) {
+    //     return 0;
+    // }
+    // else 
+    //     return 1;
 }
 
 std::vector<int> berthDistrubtGoodNumCount;
@@ -98,6 +101,7 @@ void GameManager::initializeGame()
     for (int i = 0; i < berthNum; ++i)
     {
         cin >> id >> x >> y >> velocity;
+        // LOGI(id, ' ', x, ' ', y, ' ', velocity);
         this->berths.emplace_back(id, Point2d(x, y), velocity);
     }
     berthDistrubtGoodNumCount = std::vector<int>(this->berths.size(), 0);
@@ -271,6 +275,7 @@ void GameManager::processFrameData()
     gameMap.clearTemporaryObstacles();
 
     cin >> this->currentFrame >> this->currentMoney;
+    LOGI("当前帧数：", this->currentFrame, ",当前金额：", this->currentMoney);
     int skipFrame = this->currentFrame - CURRENT_FRAME - 1;
     this->skipFrame += skipFrame;
     if(skipFrame)
@@ -288,6 +293,7 @@ void GameManager::processFrameData()
     // 读取变化货物
     // TODO: 使用Map::computePointToBerthsDistances计算货物到泊位距离
     cin >> newItemCount;
+    LOGI("变化货物数量：", newItemCount);
     while (newItemCount--)
     {
         cin >> goodsX >> goodsY >> value;
@@ -304,8 +310,9 @@ void GameManager::processFrameData()
         }
     }
     // 读取机器人状态
-    int robotNum, robotId;
+    int robotNum=0, robotId;
     std::cin >> robotNum;
+    LOGI("机器人数目：",robotNum);
     for (int i = 0; i < robotNum; ++i)
     {
         cin >> robotId >> carrying >> robotX >> robotY;
@@ -328,6 +335,7 @@ void GameManager::processFrameData()
     // 读取船舶状态
     int shipNum, shipId, goodsCount, shipX, shipY, direction, shipState;
     std::cin >> shipNum;
+    LOGI("轮船数目：", shipNum);
     for (int i = 0; i < shipNum; ++i)
     {
         cin >> shipId >> goodsCount >> shipX >> shipY >> direction >> shipState;
@@ -350,6 +358,7 @@ void GameManager::processFrameData()
         berth.unreached_goods = std::vector<Goods>();
         // berth.reached_goods = std::vector<Goods>();
     }
+    LOGI("processFrameData done");
 }
 
 
@@ -358,7 +367,7 @@ void GameManager::robotControl()
     bool robotDebugOutput = true;
     // 机器人状态更新
     for (Robot& robot:robots) {
-        if (robot.status==DEATH) continue;
+        // if (robot.status==DEATH) continue;
 
         // 机器人状态更新
         if (robot.carryingItem==0) robot.status = MOVING_TO_GOODS;
@@ -367,7 +376,7 @@ void GameManager::robotControl()
 
     // 对所有可能的机器人执行取货或放货指令，更新状态
     for (Robot& robot : robots) {
-        if (robot.status==DEATH) continue;
+        // if (robot.status==DEATH) continue;
         if (robot.status==MOVING_TO_GOODS && robot.targetid!=-1 && robot.pos == goods[robot.targetid].pos) {
             if (goods[robot.targetid].TTL>0) {
                 commandManager.addRobotCommand(robot.get());
@@ -388,7 +397,7 @@ void GameManager::robotControl()
         else if(robot.status==MOVING_TO_BERTH && robot.targetid!=-1) {
             Berth &berth = berths[robot.targetid];
             // LOGI(robot);
-            if (canUnload(berth, robot.pos)) {
+            if (canUnload(robot.pos, gameMap)) {
                 LOGI("機器人",robot.id,"放貨 ");
                 commandManager.addRobotCommand(robot.pull());
                 int x = robot.pos.x-berth.pos.x, y=robot.pos.y-berth.pos.y;

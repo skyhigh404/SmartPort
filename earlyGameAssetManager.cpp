@@ -46,11 +46,15 @@ std::vector<PurchaseDecision> EarlyGameAssetManager::makePurchaseDecision(const 
     // 判断要不要购买机器人/轮船
     if (needToBuyRobot(robots, goods, gameMap, currentFunds)) {
         Point2d shopPos = buyRobot(robots, goods, gameMap, currentFunds);
+        LOGI("购买机器人，当前资金：", currentFunds, "，购买点：", shopPos);
+        // 资金减去价格
         robotDecision = PurchaseDecision{AssetType::ROBOT, shopPos, 1};
     }
     if (needToBuyShip(ships, goods, gameMap, currentFunds)) {
         Point2d shopPos = buyShip(ships, goods, gameMap, currentFunds);
-        shipDecision = PurchaseDecision{AssetType::SHIP, shopPos, 1};
+        LOGI("购买轮船，当前资金：", currentFunds, "，购买点：", shopPos);
+        if (shopPos==Point2d(-1,-1)) shipDecision = PurchaseDecision{};
+        else shipDecision = PurchaseDecision{AssetType::SHIP, shopPos, 1};
     }
     return {robotDecision, shipDecision};
 }
@@ -232,6 +236,7 @@ Point2d EarlyGameAssetManager::buyShip(const std::vector<Ship> &ships, const std
         for (int i=0; i<landseaBlocks.size(); i++) {
             // 当前联通块已完成本阶段购买
             if (purchasedShipNum[i] >= shipPurchaseAssign[i][phase]) continue;
+            // 加入timeSchudeler
             // 为当前联通块购买机器人：找合适的购买点
             purchasedShipNum[i]++; // 暂时在这更新，可能要移动到processFramedata去
             return getProperShipShop(landseaBlocks[i], gameMap);

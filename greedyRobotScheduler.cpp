@@ -356,25 +356,6 @@ void GreedyRobotScheduler::findBerthForRobot(Robot &robot,
         return;
     }
 
-    Point2d dest(-1, -1);
-    int nearest = INT_MAX;
-    // 去曼哈顿距离最近且有空的位置
-    for (int i = 3; i >= 0; i--)
-    {
-        for (int j = 3; j >= 0; j--)
-        {
-            if (map.cost(robot.pos, Point2d(berth.pos.x + i, berth.pos.y + j)) < nearest)
-            {
-                dest = Point2d(berth.pos.x + i, berth.pos.y + j);
-                nearest = map.cost(robot.pos, Point2d(berth.pos.x + i, berth.pos.y + j));
-            }
-        }
-    }
-    if (nearest == INT_MAX)
-    {
-        LOGI("findBerthForRobot：机器人", robot.id, "分配到泊位", berth.id, "失败");
-        robot.assignGoodOrBerth();
-        return;
-    }
+    LOGI("findBerthForRobot：机器人", robot.id, "分配到泊位", berth.id);
     robot.assignGoodOrBerth(berth.id, berth.pos);
 }

@@ -22,7 +22,7 @@ void EarlyGameAssetManager::init(const Map& map, const std::vector<Berth> &berth
         }
     }
 
-    divideLandAndSeaConnectedBlocks(berths, gameMap);
+    divideLandAndSeaConnectedBlocks(berths, map);
     purchasedRobotNum = std::vector<int>(landseaBlocks.size(), 0);
     purchasedShipNum = std::vector<int>(landseaBlocks.size(), 0);
     // robotPurchaseAssign = std::vector<int>(landseaBlocks.size(), 0);

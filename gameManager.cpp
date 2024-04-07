@@ -449,12 +449,14 @@ void GameManager::robotControl()
 }
 
 void GameManager::shipControl(){
-
+    auto start = std::chrono::steady_clock::now();
     // 执行船调度
     this->shipScheduler->scheduleShips(this->gameMap, this->ships, this->berths, this->goods, this->robots);
     // 对需要移动的船执行shipControl
     // todo 修改为海洋单行路
     shipController->runController(gameMap, this->singleLaneManager);
+    auto end = std::chrono::steady_clock::now();
+    LOGI("shipControl: ",std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()," ms");
     // 执行指令
     for (Ship& ship : ships) {
         // 恢复状态

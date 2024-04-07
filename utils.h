@@ -15,6 +15,14 @@ using RobotID = int;
 using ShipID = int;
 using GoodsID = int;
 
+// 单行路寻找标记
+enum VisitType
+{
+    VISITED,
+    // FINAL_READY,
+    UNVISITED
+};
+
 struct Point2d
 {
     int x, y;

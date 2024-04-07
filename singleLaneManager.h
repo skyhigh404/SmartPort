@@ -8,13 +8,6 @@
 #include "map.h"
 #include "robot.h"
 
-enum VisitType
-{
-    VISITED,
-    // FINAL_READY,
-    UNVISITED
-};
-
 struct SingleLaneLock
 {
     Point2d startPos;

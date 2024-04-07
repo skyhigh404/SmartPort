@@ -160,27 +160,48 @@ void GameManager::initializeComponents()
     }
 
     // 2. 预先计算海图航线
-    std::vector<Point2d> nodes;
-    for (const auto &berth : this->berths)
-        nodes.push_back(berth.pos);
-    nodes.insert(nodes.end(),
-                this->gameMap.deliveryLocations.begin(),
-                this->gameMap.deliveryLocations.end());
-    nodes.insert(nodes.end(),
-                this->gameMap.shipShops.begin(),
-                this->gameMap.shipShops.end());
-    for(int i = 0; i < nodes.size(); ++i)
+    // 计算泊位之间的航线
+    for(int i = 0; i < berths.size(); ++i)
     {
-        for(int j = i+1; j < nodes.size(); ++j)
+        for(int j = i+1; j < berths.size(); ++j)
         {
-            // TODO: 考虑不可通行的情况
-            VectorPosition startVP(nodes[i], Direction::EAST);
-            VectorPosition targetVP(nodes[j], Direction::EAST);
+            if(gameMap.maritimeBerthDistanceMap[i].at(berths[j].pos.x).at(berths[j].pos.y) >= INT_MAX)
+                continue;
+            VectorPosition startVP(berths[i].pos, Direction::EAST);
+            VectorPosition targetVP(berths[j].pos, Direction::EAST);
             if(!SeaRoute::findPath(this->gameMap, startVP, targetVP))
-                LOGW("Can't find path from ", nodes[i], ", to ", nodes[j]);
+                LOGW("Can't find path from ", startVP, ", to ",targetVP);
         }
     }
-
+    // 计算泊位到交货点的航线
+    for(int i = 0; i < berths.size(); ++i)
+    {
+        for(int j = 0; j < gameMap.deliveryLocations.size(); ++j)
+        {
+            Point2d deliveryLocation = gameMap.deliveryLocations[j];
+            if(gameMap.maritimeBerthDistanceMap[i].at(deliveryLocation.x).at(deliveryLocation.y) >= INT_MAX)
+                continue;
+            VectorPosition startVP(berths[i].pos, Direction::EAST);
+            VectorPosition targetVP(deliveryLocation, Direction::EAST);
+            if(!SeaRoute::findPath(this->gameMap, startVP, targetVP))
+                LOGW("Can't find path from ", startVP, ", to ",targetVP);
+        }
+    }
+    // 计算船舶购买点到泊位的航线
+    for(int i = 0; i < berths.size(); ++i)
+    {
+        for(int j = 0; j < gameMap.shipShops.size(); ++j)
+        {
+            Point2d shipShop = gameMap.shipShops[j];
+            if(gameMap.maritimeBerthDistanceMap[i].at(shipShop.x).at(shipShop.y) >= INT_MAX)
+                continue;
+            VectorPosition startVP(berths[i].pos, Direction::EAST);
+            VectorPosition targetVP(shipShop, Direction::EAST);
+            if(!SeaRoute::findPath(this->gameMap, startVP, targetVP))
+                LOGW("Can't find path from ", startVP, ", to ",targetVP);
+        }
+    }
+    
     // 3. 判断机器人是否 DEATH 状态
     for (auto &robot : this->robots)
     {

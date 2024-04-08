@@ -75,9 +75,9 @@ bool Map::isInSealane(const Point2d &pos) const
 bool Map::inBounds(const VectorPosition &vp) const
 {
     auto [topLeft, bottomRight] = SpatialUtils::getShipOccupancyRect(vp);
-    for (int x = topLeft.x; x < bottomRight.x; ++x)
+    for (int x = topLeft.x; x <= bottomRight.x; ++x)
     {
-        for (int y = topLeft.y; y < bottomRight.y; ++y)
+        for (int y = topLeft.y; y <= bottomRight.y; ++y)
         {
             if (!inBounds(Point2d(x, y)))
             {
@@ -91,9 +91,9 @@ bool Map::inBounds(const VectorPosition &vp) const
 bool Map::passable(const VectorPosition &vp) const
 {
     auto [topLeft, bottomRight] = SpatialUtils::getShipOccupancyRect(vp);
-    for (int x = topLeft.x; x < bottomRight.x; ++x)
+    for (int x = topLeft.x; x <= bottomRight.x; ++x)
     {
-        for (int y = topLeft.y; y < bottomRight.y; ++y)
+        for (int y = topLeft.y; y <= bottomRight.y; ++y)
         {
             if (!seaPassable(Point2d(x, y)))
             {
@@ -392,9 +392,9 @@ int Map::cost(const VectorPosition &e1, const VectorPosition &e2) const
     // int result = cost(e1.pos, e2.pos) + abs(VectorPosition::minimalRotationStep(e1.direction, e2.direction));
     int result = 1;
     auto [topLeft, bottomRight] = SpatialUtils::getShipOccupancyRect(e2);
-    for (int x = topLeft.x; x < bottomRight.x; ++x)
+    for (int x = topLeft.x; x <= bottomRight.x; ++x)
     {
-        for (int y = topLeft.y; y < bottomRight.y; ++y)
+        for (int y = topLeft.y; y <= bottomRight.y; ++y)
         {
             if (isInSealane(Point2d(x, y)))
             {

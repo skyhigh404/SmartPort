@@ -15,8 +15,8 @@ class Berth
 {
     // 泊位间移动时间 500 帧
 public:
-    int id;       // 泊位 ID
-    Point2d pos;  // 该泊位上轮船靠泊时，轮船核心点对应坐标
+    int id;      // 泊位 ID
+    Point2d pos; // 该泊位上轮船靠泊时，轮船核心点对应坐标
     // int time;     // 该泊位轮船运输到虚拟点的时间(虚拟点移动到泊位的时间同)，即产生价值的时间，时间用帧数表示。
     int velocity; // Velocity(1 <= Velocity <= 5)表示该泊位的装载速度，即每帧可以装载的物品数。
 
@@ -25,17 +25,17 @@ private:
     BerthObserver *observer; // 泊位的观察者
 public:
     // int category;            // 标识该泊位聚类后的类别
+    Direction orientation; // 泊位朝向，即轮船靠泊时轮船的方向
 
 public:
-    int stockpile;                      // 泊位堆积的货物量
-    int stockpileValue;                 // 泊位堆积的货物的价值
-    std::vector<Goods> reached_goods;   // 堆积货物的列表
-    std::vector<Goods> unreached_goods; // 未到达货物的列表
-    int residue_num = 0;                // 泊位当前剩余无法装在的货物数量，每帧重新计算
-    int totalValue = 0;                 // 泊位当前理论收益，每帧重新计算
-    int shipInBerthNum = 0;             // 泊位上船的数量
+    int stockpile;                                    // 泊位堆积的货物量
+    int stockpileValue;                               // 泊位堆积的货物的价值
+    std::vector<Goods> reached_goods;                 // 堆积货物的列表
+    std::vector<Goods> unreached_goods;               // 未到达货物的列表
+    int residue_num = 0;                              // 泊位当前剩余无法装在的货物数量，每帧重新计算
+    int totalValue = 0;                               // 泊位当前理论收益，每帧重新计算
+    int shipInBerthNum = 0;                           // 泊位上船的数量
     std::vector<std::pair<int, int>> distsToDelivery; // 存储货物到港口的距离，第一个是交货点id（默认在交货点集合中的index），第二个是距离，应该为升序存储
-
 
     std::vector<std::vector<int>> storageSlots; // 16个格子，-1表示没有机器人，否则表示机器人id
 public:
@@ -44,12 +44,11 @@ public:
     static int maxLoadGoodNum;   // 理论最大装货数量
     static int deliverGoodNum;   // 送达货物数量
 
-
     Berth(int id, Point2d pos, int velocity)
         : id(id),
           pos(pos),
-        //   time(time),
           velocity(velocity),
+          orientation(Direction::EAST),
           isEnabled(true),
           stockpile(0),
           stockpileValue(0)
@@ -58,7 +57,8 @@ public:
     }
 
     // 估算当前泊位前往最近交货点的时间
-    int timeToDelivery(){
+    int timeToDelivery()
+    {
         // todo 后续要先分配交货点id
         // todo 后续考虑单行路 | 排队时间
         // todo 后续考虑船的核心点（准确位置）以及缓冲时间
@@ -66,7 +66,8 @@ public:
     }
 
     // 判断泊位是否启用
-    bool isEnable() const {
+    bool isEnable() const
+    {
         return isEnabled;
     }
 
@@ -93,12 +94,11 @@ public:
     // 通知观察者
     void notifyObservers()
     {
-        if(observer)
+        if (observer)
             observer->onBerthStatusChanged(id, isEnabled);
         else
             LOGE("没有注册观察者");
     }
-
 
     // 打印泊位信息
     void info()

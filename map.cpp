@@ -245,6 +245,20 @@ void Map::computeMaritimeBerthDistanceViaBFS(BerthID id, const std::vector<Point
     maritimeBerthDistanceMap[id] = dis;
 }
 
+Direction Map::computeBerthOrientation(const Point2d &pos)
+{
+    // TODO: 这里只假设给的点是泊位左上角，比较粗糙
+    for(int i = 0; i < 2; ++i) {
+        for(int j = 0; j < 3; ++j) {
+            Point2d tmp = pos + Point2d(i, j);
+            // 不是朝右的，那就是朝下的
+            if (!inBounds(tmp) && getCell(tmp) != MapItemSpace::MapItem::BERTH)
+                return Direction::SOUTH;
+        } 
+    }
+    return Direction::EAST;
+}
+
 std::string Map::drawMap(std::vector<std::vector<int>> map, int field_width)
 {
     using std::string, std::find;

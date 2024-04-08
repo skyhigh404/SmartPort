@@ -95,8 +95,9 @@ void GameManager::initializeGame()
     for (int i = 0; i < berthNum; ++i)
     {
         cin >> id >> x >> y >> velocity;
-        // LOGI(id, ' ', x, ' ', y, ' ', velocity);
-        this->berths.emplace_back(id, Point2d(x, y), velocity);
+        Berth berth(id, Point2d(x,y), velocity);
+        berth.orientation = this->gameMap.computeBerthOrientation(berth.pos);
+        this->berths.push_back(berth);
     }
     berthDistrubtGoodNumCount = std::vector<int>(this->berths.size(), 0);
     berthDistrubtGoodValueCount = std::vector<int>(this->berths.size(), 0);
@@ -168,8 +169,8 @@ void GameManager::initializeComponents()
                 continue;
             if(gameMap.maritimeBerthDistanceMap[i].at(berths[j].pos.x).at(berths[j].pos.y) >= INT_MAX)
                 continue;
-            VectorPosition startVP(berths[i].pos, Direction::EAST);
-            VectorPosition targetVP(berths[j].pos, Direction::EAST);
+            VectorPosition startVP(berths[i].pos, berths[i].orientation);
+            VectorPosition targetVP(berths[j].pos, berths[j].orientation);
             if(!SeaRoute::findPath(this->gameMap, startVP, targetVP))
                 LOGW("Can't find path from ", startVP, ", to ",targetVP);
         }
@@ -182,7 +183,7 @@ void GameManager::initializeComponents()
             Point2d deliveryLocation = gameMap.deliveryLocations[j];
             if(gameMap.maritimeBerthDistanceMap[i].at(deliveryLocation.x).at(deliveryLocation.y) >= INT_MAX)
                 continue;
-            VectorPosition startVP(berths[i].pos, Direction::EAST);
+            VectorPosition startVP(berths[i].pos, berths[i].orientation);
             VectorPosition targetVP(deliveryLocation, Direction::EAST);
             if (!SeaRoute::findPath(this->gameMap, startVP, targetVP) ||
                 !SeaRoute::findPath(this->gameMap, targetVP, startVP))
@@ -198,7 +199,7 @@ void GameManager::initializeComponents()
             if(gameMap.maritimeBerthDistanceMap[i].at(shipShop.x).at(shipShop.y) >= INT_MAX)
                 continue;
             VectorPosition startVP(shipShop, Direction::EAST);
-            VectorPosition targetVP(berths[i].pos, Direction::EAST);
+            VectorPosition targetVP(berths[i].pos, berths[i].orientation);
             if (!SeaRoute::findPath(this->gameMap, startVP, targetVP))
                 LOGW("Can't find path from ", startVP, ", to ",targetVP);
         }

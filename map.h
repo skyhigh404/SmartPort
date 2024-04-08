@@ -143,6 +143,8 @@ public:
     void computeDistancesToBerthViaBFS(BerthID id, const std::vector<Point2d> &positions);
     // 计算泊位到地图上所有海洋点的距离，不可通行的记录为 INT_MAX
     void computeMaritimeBerthDistanceViaBFS(BerthID id, const std::vector<Point2d> &positions);
+    // 计算泊位朝向
+    Direction computeBerthOrientation(const Point2d &pos);
     // 获取当前帧地图的变化，即机器人的位置，将其视为障碍（除自己外），预测未来 n 帧是否有碰撞风险
     // std::vector<Point2d> isCollisionRisk(int robotID, int framesAhead) const;
     // 添加一个临时障碍物，即机器人

@@ -23,8 +23,8 @@ int main()
     LOGI("Init finish, cost time: ",duration.count()," ms");
 
     // 测试 A* 算法
-    // VectorPosition startPos(197, 195, Direction::EAST);
-    // VectorPosition targetPos(96, 89, Direction::EAST);
+    // VectorPosition startPos(49, 120, Direction::EAST);
+    // VectorPosition targetPos(169, 99, Direction::EAST);
     // if (startPos == targetPos)
     //     LOGE("startPos==targetPos");
 
@@ -32,19 +32,22 @@ int main()
 
     // LOGI("Start: ",startPos," target: ", targetPos);
     
-    // auto start = std::chrono::high_resolution_clock::now();
+    // start = std::chrono::high_resolution_clock::now();
     // std::variant<Path<VectorPosition>, PathfindingFailureReason> path = 
     //     astar.findPath(startPos, targetPos, gameManager.gameMap);
-    // auto stop = std::chrono::high_resolution_clock::now();
-    // auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+    // stop = std::chrono::high_resolution_clock::now();
+    // duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
     // LOGI("A* calculate take time: ",duration.count()," ms");
 
     // std::vector<VectorPosition> *p = std::get_if<std::vector<VectorPosition>>(&path);
     // if(p){
     //     LOGI("Log A* from point ", startPos," to ",targetPos);
     //     std::vector<Point2d> path2D;
-    //     for(auto &point : *p)
+    //     for(auto &point : *p){
     //         path2D.push_back(point.pos);
+    //         // LOGI(point);
+    //     }
+        
     //     LOGI(gameManager.gameMap.drawMap(nullptr,nullptr, &path2D, &startPos.pos, &targetPos.pos));
     // }
     // else{

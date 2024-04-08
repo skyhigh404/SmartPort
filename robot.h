@@ -81,7 +81,7 @@ public:
         // 没有移动到预定位置
         else if (nextPos != Point2d(-1, -1) && nextPos != pos)
         {
-            LOGW(id, " 没有移动到预定位置, current pos: ", pos, " next pos: ", nextPos);
+            LOGW("Robot ", id, " 没有移动到预定位置, current pos: ", pos, " next pos: ", nextPos);
         }
     }
 

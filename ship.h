@@ -59,8 +59,8 @@ public:
             Path<VectorPosition> route = std::get<Path<VectorPosition>>(path);
             route.push_back(start);
             getInstance().seaRoutes[std::make_pair(start, destination)] = route;
-            std::reverse(route.begin(), route.end());
-            getInstance().seaRoutes[std::make_pair(destination, start)] = route;
+            // std::reverse(route.begin(), route.end());
+            // getInstance().seaRoutes[std::make_pair(destination, start)] = route;
             return true;
         }
         else
@@ -204,11 +204,18 @@ public:
     // 寻路
     bool findPath(const Map &map, const VectorPosition &dst)
     {
+        LOGI("船舶寻路 from ", locAndDir, " to ", dst);
         destination = dst;
         Path<VectorPosition> route = SeaRoute::getPath(map, locAndDir, destination);
         if(!route.empty())
         {
             this->path = route;
+
+            // std::vector<Point2d> path2D;
+            // for(auto &point : this->path)
+            //     path2D.push_back(point.pos);
+            // LOGI(map.drawMap(nullptr, nullptr, &path2D, &locAndDir.pos, &destination.pos));
+
             return true;
         }
         // 如果没有寻找到预先存储的路径
@@ -240,7 +247,7 @@ public:
         // 没有移动到预定位置
         else if (nextLocAndDir != VectorPosition(-1, -1, Direction::EAST) && nextLocAndDir != locAndDir)
         {
-            LOGW(id, " 没有移动到预定位置, current pos: ", locAndDir, " next pos: ", nextLocAndDir);
+            LOGW("Ship ",id, " 没有移动到预定位置, current pos: ", locAndDir, " next pos: ", nextLocAndDir);
         }
     }
 
@@ -351,6 +358,15 @@ public:
         else return true;
     }
 
+    friend std::ostream &operator<<(std::ostream &os, const Ship &ship)
+    {
+        os << "Ship id: " << ship.id << " locAndDir: " << ship.locAndDir << " nextlocAndDir: " << ship.nextLocAndDir << " dst: " << ship.destination << " path: " << ship.path.size() << ", ";
+        for (int i = (int)ship.path.size() - 1; i >= std::max(0, (int)ship.path.size() - 3); --i)
+        {
+            os << ship.path[i];
+        }
+        return os;
+    }
 };
 
 

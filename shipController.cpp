@@ -7,6 +7,8 @@ void ShipController::runController(Map &map,std::vector<Ship> &ships, const Sing
     auto start = std::chrono::steady_clock::now();
     // 为所有需要寻路算法的船调用寻路算法，给定新目标位置
     for (Ship &ship : ships){
+        // LOGI(ship);
+
         if (ship.state != 0) continue;
         else if (ship.shipStatus != ShipStatusSpace::ShipStatus::MOVING_TO_BERTH &&
         ship.shipStatus != ShipStatusSpace::ShipStatus::MOVING_TO_DELIVERY) continue;

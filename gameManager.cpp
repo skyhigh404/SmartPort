@@ -127,12 +127,12 @@ void GameManager::initializeGame()
     // 打印单行路
     // LOGI("单行路数量：",this->singleLaneManager.singleLanes.size());
     // int singleLaneSize = this->singleLaneManager.singleLanes.size();
-    LOGI("原地图：");
-    LOGI(this->gameMap.drawMap(nullptr, nullptr, nullptr, nullptr, nullptr));
-    LOGI("水路单行路数量：",this->seaSingleLaneManager.singleLanes.size());
-    int seaSingleLaneSize = this->seaSingleLaneManager.singleLanes.size();
-    LOGI("水路单行路：");
-    LOGI(this->gameMap.drawMap(this->seaSingleLaneManager.singleLaneMap, 6));
+    // LOGI("原地图：");
+    // LOGI(this->gameMap.drawMap(nullptr, nullptr, nullptr, nullptr, nullptr));
+    // LOGI("水路单行路数量：",this->seaSingleLaneManager.singleLanes.size());
+    // int seaSingleLaneSize = this->seaSingleLaneManager.singleLanes.size();
+    // LOGI("水路单行路：");
+    // LOGI(this->gameMap.drawMap(this->seaSingleLaneManager.singleLaneMap, 6));
     // LOGI("Log berth 0 BFS map.");
     // LOGI(Map::drawMap(this->gameMap.berthDistanceMap[9],12));
     // exit(0);
@@ -162,8 +162,10 @@ void GameManager::initializeComponents()
     // 计算泊位之间的航线
     for(int i = 0; i < berths.size(); ++i)
     {
-        for(int j = i+1; j < berths.size(); ++j)
+        for(int j = 0; j < berths.size(); ++j)
         {
+            if(i == j)
+                continue;
             if(gameMap.maritimeBerthDistanceMap[i].at(berths[j].pos.x).at(berths[j].pos.y) >= INT_MAX)
                 continue;
             VectorPosition startVP(berths[i].pos, Direction::EAST);
@@ -182,8 +184,9 @@ void GameManager::initializeComponents()
                 continue;
             VectorPosition startVP(berths[i].pos, Direction::EAST);
             VectorPosition targetVP(deliveryLocation, Direction::EAST);
-            if(!SeaRoute::findPath(this->gameMap, startVP, targetVP))
-                LOGW("Can't find path from ", startVP, ", to ",targetVP);
+            if (!SeaRoute::findPath(this->gameMap, startVP, targetVP) ||
+                !SeaRoute::findPath(this->gameMap, targetVP, startVP))
+                LOGW("Can't find path from ", startVP, ", to ", targetVP);
         }
     }
     // 计算船舶购买点到泊位的航线
@@ -196,7 +199,8 @@ void GameManager::initializeComponents()
                 continue;
             VectorPosition startVP(berths[i].pos, Direction::EAST);
             VectorPosition targetVP(shipShop, Direction::EAST);
-            if(!SeaRoute::findPath(this->gameMap, startVP, targetVP))
+            if (!SeaRoute::findPath(this->gameMap, startVP, targetVP) ||
+                !SeaRoute::findPath(this->gameMap, targetVP, startVP))
                 LOGW("Can't find path from ", startVP, ", to ",targetVP);
         }
     }

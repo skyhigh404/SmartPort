@@ -197,10 +197,9 @@ void GameManager::initializeComponents()
             Point2d shipShop = gameMap.shipShops[j];
             if(gameMap.maritimeBerthDistanceMap[i].at(shipShop.x).at(shipShop.y) >= INT_MAX)
                 continue;
-            VectorPosition startVP(berths[i].pos, Direction::EAST);
-            VectorPosition targetVP(shipShop, Direction::EAST);
-            if (!SeaRoute::findPath(this->gameMap, startVP, targetVP) ||
-                !SeaRoute::findPath(this->gameMap, targetVP, startVP))
+            VectorPosition startVP(shipShop, Direction::EAST);
+            VectorPosition targetVP(berths[i].pos, Direction::EAST);
+            if (!SeaRoute::findPath(this->gameMap, startVP, targetVP))
                 LOGW("Can't find path from ", startVP, ", to ",targetVP);
         }
     }

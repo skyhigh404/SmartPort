@@ -71,7 +71,7 @@ void AStarPathfinder<Location, Graph>::aStarSearch(const Graph &graph,
             }
         }
     }
-    LOGI("A* 搜索节点个数：", calTime);
+    // LOGI("A* 搜索节点个数：", calTime);
     // LOGI("优先队列长度：",frontier.elements.size());
 }
 

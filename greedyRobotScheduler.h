@@ -23,7 +23,6 @@ public:
 
     GreedyRobotScheduler(std::vector<std::vector<Berth>> &_clusters, std::vector<int> &_berthCluster);
 
-
 private:
     // 需要用到的超参数
     float TTL_ProfitWeight;

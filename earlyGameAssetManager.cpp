@@ -44,22 +44,24 @@ std::vector<PurchaseDecision> EarlyGameAssetManager::makePurchaseDecision(const 
                                                     int currentFunds,
                                                     int currentTime)
 {
-    PurchaseDecision robotDecision, shipDecision;
+    std::vector<PurchaseDecision> purchaseDecisions;
     // 判断要不要购买机器人/轮船
     if (needToBuyRobot(robots, goods, gameMap, currentFunds)) {
         Point2d shopPos = buyRobot(robots, goods, gameMap, currentFunds);
         LOGI("购买机器人，当前资金：", currentFunds, "，购买点：", shopPos);
-        // 资金减去价格
-        currentFunds -= robotPrice;
-        robotDecision = PurchaseDecision{AssetType::ROBOT, shopPos, 1};
+        if (shopPos != Point2d(-1,-1)) {
+            currentFunds -= robotPrice;
+            purchaseDecisions.push_back(PurchaseDecision{AssetType::ROBOT, shopPos, 1});
+        }
     }
     if (needToBuyShip(ships, goods, gameMap, currentFunds, currentTime)) {
         Point2d shopPos = buyShip(ships, goods, gameMap, currentFunds);
         LOGI("购买轮船，当前资金：", currentFunds, "，购买点：", shopPos);
-        if (shopPos==Point2d(-1,-1)) shipDecision = PurchaseDecision{};
-        else shipDecision = PurchaseDecision{AssetType::SHIP, shopPos, 1};
+        if (shopPos != Point2d(-1,-1))
+            purchaseDecisions.push_back(PurchaseDecision{AssetType::SHIP, shopPos, 1});
     }
-    return {robotDecision, shipDecision};
+    // return {robotDecision, shipDecision};
+    return purchaseDecisions;
 }
 
 void EarlyGameAssetManager::calBerthsEstimateValue(std::vector<Berth>& berths, const Map& map)

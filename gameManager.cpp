@@ -161,20 +161,20 @@ void GameManager::initializeComponents()
 
     // 2. 预先计算海图航线
     // 计算泊位之间的航线
-    for(int i = 0; i < berths.size(); ++i)
-    {
-        for(int j = 0; j < berths.size(); ++j)
-        {
-            if(i == j)
-                continue;
-            if(gameMap.maritimeBerthDistanceMap[i].at(berths[j].pos.x).at(berths[j].pos.y) >= INT_MAX)
-                continue;
-            VectorPosition startVP(berths[i].pos, berths[i].orientation);
-            VectorPosition targetVP(berths[j].pos, berths[j].orientation);
-            if(!SeaRoute::findPath(this->gameMap, startVP, targetVP))
-                LOGW("Can't find path from ", startVP, ", to ",targetVP);
-        }
-    }
+    // for(int i = 0; i < berths.size(); ++i)
+    // {
+    //     for(int j = 0; j < berths.size(); ++j)
+    //     {
+    //         if(i == j)
+    //             continue;
+    //         if(gameMap.maritimeBerthDistanceMap[i].at(berths[j].pos.x).at(berths[j].pos.y) >= INT_MAX)
+    //             continue;
+    //         VectorPosition startVP(berths[i].pos, berths[i].orientation);
+    //         VectorPosition targetVP(berths[j].pos, berths[j].orientation);
+    //         if(!SeaRoute::findPath(this->gameMap, startVP, targetVP))
+    //             LOGW("Can't find path from ", startVP, ", to ",targetVP);
+    //     }
+    // }
     // 计算泊位到交货点的航线
     for(int i = 0; i < berths.size(); ++i)
     {

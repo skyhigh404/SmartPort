@@ -30,6 +30,7 @@ void EarlyGameAssetManager::init(const Map& map, std::vector<Berth> &berths)
     }
 
     divideLandAndSeaConnectedBlocks(berths, map);
+    
     purchasedRobotNum = std::vector<int>(landseaBlocks.size(), 0);
     purchasedShipNum = std::vector<int>(landseaBlocks.size(), 0);
 
@@ -51,17 +52,46 @@ std::vector<PurchaseDecision> EarlyGameAssetManager::makePurchaseDecision(const 
         LOGI("购买机器人，当前资金：", currentFunds, "，购买点：", shopPos);
         if (shopPos != Point2d(-1,-1)) {
             currentFunds -= robotPrice;
-            purchaseDecisions.push_back(PurchaseDecision{AssetType::ROBOT, shopPos, 1});
+            int assignId = getAssignId(shopPos);
+            purchaseDecisions.push_back(PurchaseDecision{AssetType::ROBOT, shopPos, 1, assignId});
         }
     }
     if (needToBuyShip(ships, goods, gameMap, currentFunds, currentTime)) {
         Point2d shopPos = buyShip(ships, goods, gameMap, currentFunds);
         LOGI("购买轮船，当前资金：", currentFunds, "，购买点：", shopPos);
-        if (shopPos != Point2d(-1,-1))
-            purchaseDecisions.push_back(PurchaseDecision{AssetType::SHIP, shopPos, 1});
+        if (shopPos != Point2d(-1,-1)) {
+            int assignId = getAssignId(shopPos);
+            purchaseDecisions.push_back(PurchaseDecision{AssetType::SHIP, shopPos, 1, assignId});
+        }
     }
-    // return {robotDecision, shipDecision};
     return purchaseDecisions;
+}
+
+int EarlyGameAssetManager::getAssignId(Point2d shopPos)
+{
+    // 游戏初期集中分配
+    LandSeaBlock& lsb = landseaBlocks[0];
+
+    // 不再集中分配（已度过第一阶段）
+    if (purchasedRobotNum[0] > robotPurchaseAssign[0][0]) {
+        return -1;
+    }
+
+    // 如果不在第一大的连通块上则不分配具体泊位
+    bool belongToLSB0 = false;
+    for (auto& pos : lsb.deliveryLocations) 
+        if (pos == shopPos) {belongToLSB0 = true; break;}
+    if (!belongToLSB0) return -1;
+
+    int assignId = -1;
+    float maxValue = 0;
+    for (auto& berth : lsb.berths) {
+        if (berth.estimateValue > maxValue) {
+            assignId = berth.id;
+            maxValue = berth.estimateValue;
+        }
+    }
+    return assignId;
 }
 
 void EarlyGameAssetManager::calBerthsEstimateValue(std::vector<Berth>& berths, const Map& map)
@@ -220,11 +250,26 @@ void EarlyGameAssetManager::divideLandAndSeaConnectedBlocks(std::vector<Berth> &
                 }
             }
         }
+        // 找出连通块的陆地面积
+        int landSize = 0;
+        for (int j=0;j<map.rows;j++) {
+            for (int k=0;k<map.cols;k++) {
+                if (map.berthDistanceMap.at(connectedBerths[0].id)[j][k] < INT_MAX) {
+                    landSize++;
+                }
+            }
+        }
+        landseaBlocks[i].landSize = landSize;
         landseaBlocks[i].berths = connectedBerths;
         landseaBlocks[i].robotShops = availableRobotShops;
         landseaBlocks[i].shipShops = availableShipShops;
     }
+
+    std::sort(landseaBlocks.begin(), landseaBlocks.end(), [&](const LandSeaBlock& lhs, const LandSeaBlock& rhs) {
+        return lhs.landSize > rhs.landSize; // 根据陆地面积进行降序排序
+    });
 }
+
 bool EarlyGameAssetManager::needToBuyRobot(const std::vector<Robot> &robots, const std::vector<Goods> &goods, const Map &gameMap, int currentFunds)
 {
     // 超出最大限制

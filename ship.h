@@ -147,7 +147,7 @@ public:
         using namespace std::string_literals;
 #ifdef DEBUG
         // 船在正常行驶状态
-        assert(state == 0);
+        assert(state != 1);
 #endif
         return "rot "s + std::to_string(id) + " " + std::to_string(static_cast<int>(rotDirection));
     }
@@ -158,7 +158,7 @@ public:
         using namespace std::string_literals;
 #ifdef DEBUG
         // 船在正常行驶状态
-        assert(state == 0);
+        assert(state != 1);
 #endif
         return "ship "s + std::to_string(id);
     }
@@ -187,8 +187,13 @@ public:
     // 打印信息
     void info()
     {
-        LOGI("船只", id, ",状态", state, ",路径长度：", path.size(), ",泊位id：", berthId, ",船舶状态：",shipStatus, "目的地：", destination, ";");
-        LOGI("当前位置：", locAndDir, ",下一帧位置：", nextLocAndDir);
+        std::unordered_map<ShipStatusSpace::ShipStatus, std::string> shipStatusStr;
+        shipStatusStr[ShipStatusSpace::ShipStatus::IDLE] = "空闲";
+        shipStatusStr[ShipStatusSpace::ShipStatus::MOVING_TO_BERTH] = "前往泊位";
+        shipStatusStr[ShipStatusSpace::ShipStatus::MOVING_TO_DELIVERY] = "前往交货点";
+        shipStatusStr[ShipStatusSpace::ShipStatus::LOADING] = "装载状态";
+        LOGI("船只", id, ",状态", state, ",路径长度：", path.size(), ",泊位id：", berthId, ",船舶状态：",shipStatusStr[shipStatus], ",目的地：", destination, ";");
+        LOGI("当前位置：", locAndDir, ",下一帧位置：", nextLocAndDir, "路径长度：", path.size());
         LOGI("装货量：", capacity, ",剩余容量：", nowCapacity(), ",剩余容量比例：", nowCapacity() * 1.0 / capacity);
     }
 
@@ -257,7 +262,7 @@ public:
     void updateNextPos()
     {
         // 正常航行状态才会前进
-        if (!path.empty() && state == 0)
+        if (!path.empty() && state != 1)
             // 寻路算法输出的路径是逆序存储的，以提高弹出效率
             nextLocAndDir = this->path.back();
         // 如果路径为空，则船舶下一帧不移动
@@ -278,6 +283,7 @@ public:
     // 移动到 nextLocAndDir
     std::string movetoNextPosture()
     {
+        // LOGI("下一帧位置：", nextLocAndDir);
         if (nextLocAndDir == SpatialUtils::moveForward(locAndDir))
         {
             return ship();
@@ -323,6 +329,21 @@ public:
         return shipStatus == ShipStatusSpace::ShipStatus::IDLE;
     }
 
+    // 判断船是否前往交货点
+    bool isMoveToDelivery(){
+        return shipStatus == ShipStatusSpace::ShipStatus::MOVING_TO_DELIVERY;
+    }
+
+    // 判断船是否前往泊位
+    bool isMoveToBerth(){
+        return shipStatus == ShipStatusSpace::ShipStatus::MOVING_TO_BERTH;
+    }
+
+    // 判断船是否在装载
+    bool isLoading(){
+        return shipStatus == ShipStatusSpace::ShipStatus::LOADING;
+    }
+
     // 装货状态处理
     void updateLoadStatus(){
         LOGI("船",id,",装货状态");
@@ -350,9 +371,10 @@ public:
     void updateMoveToDeliveryStatus(VectorPosition destination){
         LOGI("船",id,",前往交货点状态");
         shipStatus = ShipStatusSpace::ShipStatus::MOVING_TO_DELIVERY;
-        this->berthId = -1;
+        // todo 不能由这里来修改泊位id
+        // this->berthId = -1;
         // todo方向如何确定
-        destination = destination;
+        this->destination = destination;
         // 路径清空
         path.clear();
     }

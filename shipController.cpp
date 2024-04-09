@@ -11,12 +11,18 @@ void ShipController::runController(Map &map,std::vector<Ship> &ships, const Sing
         // LOGI(ship);
         ship.info();
         LOGI("是否需要寻路：",needPathfinding(ship));
-        if (ship.state != 0) continue;
-        else if (ship.shipStatus != ShipStatusSpace::ShipStatus::MOVING_TO_BERTH &&
+        // if (ship.state != 0) continue;
+        if (ship.shipStatus != ShipStatusSpace::ShipStatus::MOVING_TO_BERTH &&
         ship.shipStatus != ShipStatusSpace::ShipStatus::MOVING_TO_DELIVERY) continue;
         if (needPathfinding(ship)){
             runPathfinding(map, ship);
-            LOGI("船", ship.id, "寻路完毕，路径长度：", ship.path.size());
+            // 判断第一跳是否是原地
+            if (!ship.path.empty() && ship.path.back() == ship.locAndDir){
+                // 弹出第一个位置
+                LOGI("弹出位置：", ship.path.back(), ", 当前位置：", ship.locAndDir);
+                ship.path.pop_back();
+            }
+            ship.info();
             for(auto &item : ship.path){
                 LOGI(item);
             }

@@ -12,7 +12,7 @@ void GreedyShipScheduler::setParameter(const Params &params)
 void GreedyShipScheduler::scheduleShips(Map &map, std::vector<Ship> &ships, std::vector<Berth> &berths, std::vector<Goods> &goods, std::vector<Robot> &robots) {
     //需要迁移，更新泊位和货物的状态
     updateBerthStatus(ships, berths, goods);
-    // LOGI("初始化泊位状态完毕");
+    LOGI("初始化泊位状态完毕");
 
     // 2. 决定调度策略
     std::vector<std::pair<ShipID, ShipActionSpace::ShipAction>> actions;
@@ -29,6 +29,8 @@ void GreedyShipScheduler::scheduleShips(Map &map, std::vector<Ship> &ships, std:
         // action = ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::CONTINUE,-1); 
             break;
         case 2: // 装载状态 && 在泊位
+            // 前往交货点
+            if (ship.isMoveToDelivery() && !ship.path.empty()) continue;
             handleShipAtBerth(map, ship, berths, goods);
             // action = handleShipWaiting(ship, berths, goods);
             break;
@@ -43,6 +45,7 @@ void GreedyShipScheduler::scheduleShips(Map &map, std::vector<Ship> &ships, std:
 void GreedyShipScheduler::handleShipOnRoute(Map& map, Ship &ship,std::vector<Berth> &berths,std::vector<Goods> &goods){
     BerthID berthId = ship.berthId;
     // LOGI("handleShipOnRoute");
+    LOGI("船在途中");
     ship.info();
 
     // 船是空闲状态
@@ -70,6 +73,7 @@ void GreedyShipScheduler::handleShipOnRoute(Map& map, Ship &ship,std::vector<Ber
         LOGI("到达交货点");
         BerthID berthId = findBestBerthForShip(map, ship, berths, goods);
         ship.updateMoveToBerthStatus(berthId, VectorPosition(berths[berthId].pos, berths[berthId].orientation));
+        LOGI("分配泊位：", berthId);
         // return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::MOVE_TO_BERTH,berthId);
     }
     else{
@@ -81,10 +85,13 @@ void GreedyShipScheduler::handleShipOnRoute(Map& map, Ship &ship,std::vector<Ber
 
 // 处理船在泊位上的情况
 void GreedyShipScheduler::handleShipAtBerth(Map &map, Ship &ship,std::vector<Berth> &berths,std::vector<Goods> &goods){
+    LOGI("船在泊位上");
+    ship.info();
     // 分配交货点id
     int deliveryId = allocateDelivery(berths[ship.berthId]);
     // 前往交货点
     if(shouldDepartBerth(ship, berths)){
+        LOGI("前往交货点");
         ship.updateMoveToDeliveryStatus(VectorPosition(map.deliveryLocations[deliveryId], Direction::EAST));
         // return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::MOVE_TO_DELIVERY,deliveryId);
     }
@@ -106,12 +113,13 @@ void GreedyShipScheduler::handleShipAtBerth(Map &map, Ship &ship,std::vector<Ber
         }
     }
     // 容量还多，等待分配泊位
-    else{
-        BerthID berthId = findBestBerthForShip(map, ship, berths, goods);
-        if(berthId != ship.berthId && berthId != -1) {
-            ship.updateMoveToBerthStatus(berthId, VectorPosition(berths[berthId].pos, berths[berthId].orientation));
-        }
-    }
+    // todo 暂时别让船动的太频繁
+    // else{
+    //     BerthID berthId = findBestBerthForShip(map, ship, berths, goods);
+    //     if(berthId != ship.berthId && berthId != -1) {
+    //         ship.updateMoveToBerthStatus(berthId, VectorPosition(berths[berthId].pos, berths[berthId].orientation));
+    //     }
+    // }
 
 }
 

@@ -346,6 +346,11 @@ void GameManager::processFrameData()
         this->ships[shipId].state = shipState;
         // 检查是否要 pop path
         this->ships[shipId].updatePath();
+        // 船前往虚拟点并不处于装载状态，恢复泊位id为-1
+        if (this->ships[shipId].shipStatus == ShipStatusSpace::MOVING_TO_DELIVERY 
+        && shipState != 2){
+            this->ships[shipId].berthId = -1;
+        }
     }
     // 确认已接收完本帧的所有数据
     string ok;
@@ -475,9 +480,11 @@ void GameManager::shipControl(){
         if (ship.shipStatus == ShipStatusSpace::ShipStatus::LOADING && ship.state == 0){
             LOGI("执行靠泊指令");
             commandManager.addShipCommand(ship.berth());
+            LOGI("执行指令：", ship.berth());
         }
         // 移动指令
-        else if(! ship.path.empty()){
+        else if(!ship.path.empty()){
+            LOGI("进去移动指令");
             string command = ship.movetoNextPosture();
             LOGI("船", ship.id, "执行指令：",command);
             ship.info();

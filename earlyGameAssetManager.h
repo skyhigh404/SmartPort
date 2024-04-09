@@ -60,6 +60,7 @@ private:
     int maxShipNum;     // 最多购买船只数目
     std::vector<std::vector<int>> robotPurchaseAssign;
     std::vector<std::vector<int>> shipPurchaseAssign;
+    int timeToBuyShip;  // 开始买船的时刻（除第一艘船外）
     int startNum;       // 最初的数目（机器人、轮船）
 
 private:
@@ -67,7 +68,7 @@ private:
     void divideSeaConnectedBlocks(const std::vector<Berth> &berths, const std::vector<Point2d> &deliveryLocations, const Map &map);
     void divideLandAndSeaConnectedBlocks(const std::vector<Berth> &berths, const Map &map);
     bool needToBuyRobot(const std::vector<Robot> &robots, const std::vector<Goods> &goods, const Map &gameMap, int currentFunds);
-    bool needToBuyShip(const std::vector<Ship> &ships, const std::vector<Goods> &goods, const Map &gameMap, int currentFunds);
+    bool needToBuyShip(const std::vector<Ship> &ships, const std::vector<Goods> &goods, const Map &gameMap, int currentFunds, int currentTime);
     Point2d buyRobot(const std::vector<Robot> &robots, const std::vector<Goods> &goods, const Map &gameMap, int currentFunds);
     Point2d buyShip(const std::vector<Ship> &ships, const std::vector<Goods> &goods, const Map &gameMap, int currentFunds);
     Point2d getProperRobotShop(LandSeaBlock& l, const Map &gameMap);

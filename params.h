@@ -18,6 +18,7 @@ struct Params
     std::vector<std::vector<int>> robotPurchaseAssign = {{4, 4, 4, 5, 6, 7, 8, 9, 10}, {1, 2, 3, 4, 5, 6}, {1, 2, 3, 4, 5, 6}};
     // std::vector<std::vector<int>> shipPurchaseAssign = {{4, 4, 4, 5, 6, 7, 8, 9, 10}, {1, 2, 3, 4, 5, 6}, {1, 2, 3, 4, 5, 6}};
     std::vector<std::vector<int>> shipPurchaseAssign = {{1, 2, 3}, {0, 0, 0}, {0, 0, 0}};
+    int timeToBuyShip = 50; // 开始购买第二艘船的时间
     int startNum = 1;       // 最初的数目（机器人、轮船）
 
     //  泊位超参

@@ -6,6 +6,7 @@ void EarlyGameAssetManager::setParameter(const Params &params)
     maxRobotNum = params.maxRobotNum;
     maxShipNum = params.maxShipNum;
     robotPurchaseAssign = params.robotPurchaseAssign;
+    timeToBuyShip = params.timeToBuyShip;
     shipPurchaseAssign = params.shipPurchaseAssign;
     startNum = params.startNum;
 }
@@ -51,7 +52,7 @@ std::vector<PurchaseDecision> EarlyGameAssetManager::makePurchaseDecision(const 
         currentFunds -= robotPrice;
         robotDecision = PurchaseDecision{AssetType::ROBOT, shopPos, 1};
     }
-    if (needToBuyShip(ships, goods, gameMap, currentFunds)) {
+    if (needToBuyShip(ships, goods, gameMap, currentFunds, currentTime)) {
         Point2d shopPos = buyShip(ships, goods, gameMap, currentFunds);
         LOGI("购买轮船，当前资金：", currentFunds, "，购买点：", shopPos);
         if (shopPos==Point2d(-1,-1)) shipDecision = PurchaseDecision{};
@@ -206,11 +207,13 @@ bool EarlyGameAssetManager::needToBuyRobot(const std::vector<Robot> &robots, con
     if (currentFunds < robotPrice) return false;
     return true;
 }
-bool EarlyGameAssetManager::needToBuyShip(const std::vector<Ship> &ships, const std::vector<Goods> &goods, const Map &gameMap, int currentFunds)
+bool EarlyGameAssetManager::needToBuyShip(const std::vector<Ship> &ships, const std::vector<Goods> &goods, const Map &gameMap, int currentFunds, int currentTime)
 {
+    if (purchasedShipNum[0]==0) return true;
     // 超出最大限制
     if (ships.size() >= maxShipNum) return false;
     if (currentFunds < shipPrice) return false;
+    if (currentTime < timeToBuyShip) return false;
     return true;
 }
 

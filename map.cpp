@@ -248,14 +248,65 @@ void Map::computeMaritimeBerthDistanceViaBFS(BerthID id, const std::vector<Point
 Direction Map::computeBerthOrientation(const Point2d &pos)
 {
     // TODO: 这里只假设给的点是泊位左上角，比较粗糙
+    bool flag = false;
+    // 检查是否朝右
     for(int i = 0; i < 2; ++i) {
         for(int j = 0; j < 3; ++j) {
             Point2d tmp = pos + Point2d(i, j);
+            // LOGI("check ", tmp, ", ", static_cast<int>(getCell(tmp)));
             // 不是朝右的，那就是朝下的
-            if (!inBounds(tmp) && getCell(tmp) != MapItemSpace::MapItem::BERTH)
-                return Direction::SOUTH;
+            if (!inBounds(tmp) || getCell(tmp) != MapItemSpace::MapItem::BERTH){
+                flag = true;
+                // return Direction::SOUTH;
+            }
         } 
     }
+    if(!flag)
+        return Direction::EAST;
+
+    // 检查是否朝上
+    flag = false;
+    for(int i = -2; i <= 0; ++i) {
+        for(int j = 0; j < 2; ++j) {
+            Point2d tmp = pos + Point2d(i, j);
+            // 不是朝右的，那就是朝下的
+            if (!inBounds(tmp) || getCell(tmp) != MapItemSpace::MapItem::BERTH){
+                flag = true;
+            }
+        } 
+    }
+    if(!flag)
+        return Direction::NORTH;
+
+    // 检查是否朝左
+    flag = false;
+    for(int i = -1; i <= 0; ++i) {
+        for(int j = -2; j <= 0; ++j) {
+            Point2d tmp = pos + Point2d(i, j);
+            // 不是朝右的，那就是朝下的
+            if (!inBounds(tmp) || getCell(tmp) != MapItemSpace::MapItem::BERTH){
+                flag = true;
+            }
+        } 
+    }
+    if(!flag)
+        return Direction::WEST;
+    
+    // 检查是否朝下
+    flag = false;
+    for(int i = 0; i < 3; ++i) {
+        for(int j = -1; j <= 0; ++j) {
+            Point2d tmp = pos + Point2d(i, j);
+            // 不是朝右的，那就是朝下的
+            if (!inBounds(tmp) || getCell(tmp) != MapItemSpace::MapItem::BERTH){
+                flag = true;
+            }
+        } 
+    }
+    if(!flag)
+        return Direction::SOUTH;
+    
+    LOGE("检查pos: ", pos, " 朝向失败");
     return Direction::EAST;
 }
 

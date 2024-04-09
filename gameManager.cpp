@@ -103,7 +103,7 @@ void GameManager::initializeGame()
     berthDistrubtGoodValueCount = std::vector<int>(this->berths.size(), 0);
     LOGI("print berth init info");
     for (const auto &berth : this->berths)
-        LOGI("ID: ", berth.id, " POS: ", berth.pos, " velocity: ", berth.velocity);
+        LOGI("ID: ", berth.id, " POS: ", berth.pos, " velocity: ", berth.velocity, " orientation: ", static_cast<int>(berth.orientation));
 
     // 初始化船舶
     cin >> Ship::capacity;

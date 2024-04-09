@@ -187,7 +187,8 @@ public:
     // 打印信息
     void info()
     {
-        LOGI("船只", id, ",状态", state, ",装货量：", capacity, ",剩余容量：", nowCapacity(), ",剩余容量比例：", nowCapacity() * 1.0 / capacity, ",泊位id：", berthId, ";");
+        LOGI("船只", id, ",状态", state, ",路径长度：", path.size(), ",泊位id：", berthId, ",船舶状态：",shipStatus, "目的地：", destination, ";");
+        LOGI("装货量：", capacity, ",剩余容量：", nowCapacity(), ",剩余容量比例：", nowCapacity() * 1.0 / capacity);
     }
 
     float capacityScale()
@@ -323,6 +324,7 @@ public:
 
     // 装货状态处理
     void updateLoadStatus(){
+        LOGI("船",id,",装货状态");
         shipStatus = ShipStatusSpace::ShipStatus::LOADING;
         destination = VectorPosition({-1,-1}, Direction::EAST);
         // 路径清空
@@ -331,6 +333,7 @@ public:
 
     // 前往泊位状态处理
     void updateMoveToBerthStatus(BerthID berthId, VectorPosition destination){
+        LOGI("船",id,",前往泊位状态");
         #ifdef DEBUG
         assert(berthId != -1);
         #endif
@@ -344,6 +347,7 @@ public:
 
     // 前往交货点状态处理
     void updateMoveToDeliveryStatus(VectorPosition destination){
+        LOGI("船",id,",前往交货点状态");
         shipStatus = ShipStatusSpace::ShipStatus::MOVING_TO_DELIVERY;
         this->berthId = -1;
         // todo方向如何确定

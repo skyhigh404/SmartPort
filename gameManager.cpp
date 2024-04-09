@@ -473,11 +473,13 @@ void GameManager::shipControl(){
         if (ship.state == 1) continue;
         // 靠泊
         if (ship.shipStatus == ShipStatusSpace::ShipStatus::LOADING && ship.state == 0){
+            LOGI("执行靠泊指令");
             commandManager.addShipCommand(ship.berth());
         }
         // 移动指令
         else if(! ship.path.empty()){
             string command = ship.movetoNextPosture();
+            LOGI("船", ship.id, "执行指令：",command);
             commandManager.addShipCommand(command);
         }
     }

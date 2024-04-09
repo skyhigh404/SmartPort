@@ -19,7 +19,8 @@ void GreedyShipScheduler::scheduleShips(Map &map, std::vector<Ship> &ships, std:
     ShipActionSpace::ShipAction action;
     // LOGI("scheduler ship num：",ships.size());
     for(auto &ship : ships){
-        ship.info();
+        // LOGI("进入贪心船调度");
+        // ship.info();
         switch (ship.state) {
         case 0: // 在路途中 | 在交货点
             handleShipOnRoute(map, ship, berths, goods);
@@ -46,27 +47,35 @@ void GreedyShipScheduler::handleShipOnRoute(Map& map, Ship &ship,std::vector<Ber
 
     // 船是空闲状态
     if (ship.isIdle()){
+        LOGI("船舶空闲状态：", ship.id);
+        ship.info();
         BerthID berthId = findBestBerthForShip(map, ship, berths, goods);
-        ship.updateMoveToBerthStatus(berthId, VectorPosition(berths[berthId].pos, Direction::EAST));
+        ship.updateMoveToBerthStatus(berthId, VectorPosition(berths[berthId].pos, berths[berthId].orientation));
+        LOGI("分配泊位id:", berthId);
+        ship.info();
         // return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::MOVE_TO_BERTH,berthId); 
     }
 
     //  如果路径不为空
     if (!ship.path.empty()){
+        return;
     }
     // 路径为空且到达泊位
     else if (ship.path.empty() && ship.reachBerth()){
+        LOGI("到达泊位");
         ship.updateLoadStatus();
     }
     // 路径为空且到达交货点
     else if (ship.path.empty() && ship.reachDelivery()){
+        LOGI("到达交货点");
         BerthID berthId = findBestBerthForShip(map, ship, berths, goods);
-        ship.updateMoveToBerthStatus(berthId, VectorPosition(berths[berthId].pos, Direction::EAST));
+        ship.updateMoveToBerthStatus(berthId, VectorPosition(berths[berthId].pos, berths[berthId].orientation));
         // return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::MOVE_TO_BERTH,berthId);
     }
     else{
         // 路径不为空就到达目的地
         LOGE("船路径不为空，但抵达目的地");
+        ship.info();
     }
 }
 
@@ -100,7 +109,7 @@ void GreedyShipScheduler::handleShipAtBerth(Map &map, Ship &ship,std::vector<Ber
     else{
         BerthID berthId = findBestBerthForShip(map, ship, berths, goods);
         if(berthId != ship.berthId && berthId != -1) {
-            ship.updateMoveToBerthStatus(berthId, VectorPosition(berths[berthId].pos, Direction::EAST));
+            ship.updateMoveToBerthStatus(berthId, VectorPosition(berths[berthId].pos, berths[berthId].orientation));
         }
     }
 

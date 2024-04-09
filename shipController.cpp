@@ -6,14 +6,20 @@ void ShipController::runController(Map &map,std::vector<Ship> &ships, const Sing
     // LOGI("ship num:",ships.size());
     auto start = std::chrono::steady_clock::now();
     // 为所有需要寻路算法的船调用寻路算法，给定新目标位置
+    LOGI("进入ship controller");
     for (Ship &ship : ships){
         // LOGI(ship);
-
+        ship.info();
+        LOGI("是否需要寻路：",needPathfinding(ship));
         if (ship.state != 0) continue;
         else if (ship.shipStatus != ShipStatusSpace::ShipStatus::MOVING_TO_BERTH &&
         ship.shipStatus != ShipStatusSpace::ShipStatus::MOVING_TO_DELIVERY) continue;
         if (needPathfinding(ship)){
             runPathfinding(map, ship);
+            LOGI("船", ship.id, "寻路完毕，路径长度：", ship.path.size());
+            for(auto &item : ship.path){
+                LOGI(item);
+            }
         }
     }
     auto end = std::chrono::steady_clock::now();
@@ -77,12 +83,13 @@ void ShipController::runPathfinding(const Map &map, Ship &ship)
     // 寻路不成功，设置船状态
     if (!ship.findPath(map)){
         ship.path = Path<VectorPosition>();
-        ship.destination = VectorPosition();
-        LOGI("尋路失敗",ship.id);
+        // todo 后期是否需要更改目的地
+        // ship.destination = VectorPosition();
+        LOGI("船寻路失敗",ship.id);
     }
     // 寻路成功，设置船状态
     else{
-        LOGI("寻路成功",ship.id);
+        LOGI("船寻路成功",ship.id);
         ;
     }
 }

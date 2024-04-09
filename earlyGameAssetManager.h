@@ -41,7 +41,7 @@ public:
     }
     void setParameter(const Params &params) override;
 
-    void init(const Map& map, const std::vector<Berth> &berths) override; //初始化商店,可以在gamemanager中初始化
+    void init(const Map& map, std::vector<Berth> &berths) override; //初始化商店,可以在gamemanager中初始化
 public:
     std::vector<Point2d> robotShops;
     std::vector<Point2d> shipShops;
@@ -56,17 +56,20 @@ public:
 
 private:
     // 超参数
-    int maxRobotNum;    // 最多购买机器人数目
-    int maxShipNum;     // 最多购买船只数目
+    int maxRobotNum;                // 最多购买机器人数目
+    int maxShipNum;                 // 最多购买船只数目
     std::vector<std::vector<int>> robotPurchaseAssign;
     std::vector<std::vector<int>> shipPurchaseAssign;
-    int timeToBuyShip;  // 开始买船的时刻（除第一艘船外）
-    int startNum;       // 最初的数目（机器人、轮船）
+    int timeToBuyShip;              // 开始买船的时刻（除第一艘船外）
+    int startNum;                   // 最初的数目（机器人、轮船）
+    float landDistanceWeight;       // 对泊位价值评估时的陆地访问距离权重
+    float deliveryDistanceWeight;   // 对泊位价值评估时的交货点访问距离权重
 
 private:
     void divideLandConnectedBlocks(const std::vector<Berth> &berths, const Map &map);
     void divideSeaConnectedBlocks(const std::vector<Berth> &berths, const std::vector<Point2d> &deliveryLocations, const Map &map);
-    void divideLandAndSeaConnectedBlocks(const std::vector<Berth> &berths, const Map &map);
+    void divideLandAndSeaConnectedBlocks(std::vector<Berth> &berths, const Map &map);
+    void calBerthsEstimateValue(std::vector<Berth>& berths, const Map& map);
     bool needToBuyRobot(const std::vector<Robot> &robots, const std::vector<Goods> &goods, const Map &gameMap, int currentFunds);
     bool needToBuyShip(const std::vector<Ship> &ships, const std::vector<Goods> &goods, const Map &gameMap, int currentFunds, int currentTime);
     Point2d buyRobot(const std::vector<Robot> &robots, const std::vector<Goods> &goods, const Map &gameMap, int currentFunds);

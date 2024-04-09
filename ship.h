@@ -149,7 +149,7 @@ public:
         // 船在正常行驶状态
         assert(state == 0);
 #endif
-        return "rot "s + std::to_string(static_cast<int>(rotDirection));
+        return "rot "s + std::to_string(id) + " " + std::to_string(static_cast<int>(rotDirection));
     }
 
     // 前进命令
@@ -188,6 +188,7 @@ public:
     void info()
     {
         LOGI("船只", id, ",状态", state, ",路径长度：", path.size(), ",泊位id：", berthId, ",船舶状态：",shipStatus, "目的地：", destination, ";");
+        LOGI("当前位置：", locAndDir, ",下一帧位置：", nextLocAndDir);
         LOGI("装货量：", capacity, ",剩余容量：", nowCapacity(), ",剩余容量比例：", nowCapacity() * 1.0 / capacity);
     }
 

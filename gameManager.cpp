@@ -480,6 +480,7 @@ void GameManager::shipControl(){
         else if(! ship.path.empty()){
             string command = ship.movetoNextPosture();
             LOGI("船", ship.id, "执行指令：",command);
+            ship.info();
             commandManager.addShipCommand(command);
         }
     }

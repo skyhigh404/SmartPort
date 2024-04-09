@@ -6,11 +6,14 @@ void EarlyGameAssetManager::setParameter(const Params &params)
     maxRobotNum = params.maxRobotNum;
     maxShipNum = params.maxShipNum;
     robotPurchaseAssign = params.robotPurchaseAssign;
+    timeToBuyShip = params.timeToBuyShip;
     shipPurchaseAssign = params.shipPurchaseAssign;
     startNum = params.startNum;
+    landDistanceWeight = params.landDistanceWeight;
+    deliveryDistanceWeight = params.deliveryDistanceWeight;
 }
 
-void EarlyGameAssetManager::init(const Map& map, const std::vector<Berth> &berths)
+void EarlyGameAssetManager::init(const Map& map, std::vector<Berth> &berths)
 {
     // 创建机器人、轮船商店
     for (int i=0;i<map.rows;i++) {
@@ -29,9 +32,8 @@ void EarlyGameAssetManager::init(const Map& map, const std::vector<Berth> &berth
     divideLandAndSeaConnectedBlocks(berths, map);
     purchasedRobotNum = std::vector<int>(landseaBlocks.size(), 0);
     purchasedShipNum = std::vector<int>(landseaBlocks.size(), 0);
-    // robotPurchaseAssign = std::vector<int>(landseaBlocks.size(), 0);
-    // shipPurchaseAssign = std::vector<int>(landseaBlocks.size(), 0);
-    // divideSeaConnectedBlocks(berths, gameMap.deliveryLocations, gameMap);
+
+    calBerthsEstimateValue(berths, map);
 }
 
 std::vector<PurchaseDecision> EarlyGameAssetManager::makePurchaseDecision(const Map &gameMap,
@@ -51,13 +53,35 @@ std::vector<PurchaseDecision> EarlyGameAssetManager::makePurchaseDecision(const 
         currentFunds -= robotPrice;
         robotDecision = PurchaseDecision{AssetType::ROBOT, shopPos, 1};
     }
-    if (needToBuyShip(ships, goods, gameMap, currentFunds)) {
+    if (needToBuyShip(ships, goods, gameMap, currentFunds, currentTime)) {
         Point2d shopPos = buyShip(ships, goods, gameMap, currentFunds);
         LOGI("购买轮船，当前资金：", currentFunds, "，购买点：", shopPos);
         if (shopPos==Point2d(-1,-1)) shipDecision = PurchaseDecision{};
         else shipDecision = PurchaseDecision{AssetType::SHIP, shopPos, 1};
     }
     return {robotDecision, shipDecision};
+}
+
+void EarlyGameAssetManager::calBerthsEstimateValue(std::vector<Berth>& berths, const Map& map)
+{
+    for (auto& berth : berths) {
+        int totalLandDistance = 0, totalLandNum = 0;
+        for (int i=0;i<map.rows;i++) 
+            for (int j=0;j<map.cols;j++) 
+                if (map.berthDistanceMap.at(berth.id)[i][j] < INT_MAX) {
+                    totalLandDistance += map.berthDistanceMap.at(berth.id)[i][j];
+                    totalLandNum++;
+                }
+        berth.estimateValue += landDistanceWeight * 1.0 / (totalLandDistance * 1.0 / totalLandNum);
+
+        int totalSeaDistance = 0, totalSeaNum = 0;
+        for (auto& delivery : map.deliveryLocations)
+            if (map.maritimeBerthDistanceMap.at(berth.id)[delivery.x][delivery.y] < INT_MAX) {
+                totalSeaDistance += map.maritimeBerthDistanceMap.at(berth.id)[delivery.x][delivery.y];
+                totalSeaNum++;
+            }
+        berth.estimateValue += deliveryDistanceWeight * 1.0 / (totalSeaDistance * 1.0 / totalSeaNum);
+    }
 }
 
 void EarlyGameAssetManager::divideLandConnectedBlocks(const std::vector<Berth> &berths, const Map &map)
@@ -134,7 +158,7 @@ void EarlyGameAssetManager::divideSeaConnectedBlocks(const std::vector<Berth> &b
     // }
 }
 
-void EarlyGameAssetManager::divideLandAndSeaConnectedBlocks(const std::vector<Berth> &berths, const Map &map)
+void EarlyGameAssetManager::divideLandAndSeaConnectedBlocks(std::vector<Berth> &berths, const Map &map)
 {
     const std::vector<Point2d> &deliveryLocations = map.deliveryLocations;
     std::vector<bool> clustered(deliveryLocations.size(), false);
@@ -165,7 +189,7 @@ void EarlyGameAssetManager::divideLandAndSeaConnectedBlocks(const std::vector<Be
         // 找出相连通的泊位
         std::vector<Berth> connectedBerths;
         for (int j=0;j<berths.size();j++) {
-            const Berth& berth = berths[j];
+            Berth& berth = berths[j];
             if (map.maritimeBerthDistanceMap.at(berth.id)[lsb.deliveryLocations[0].x][lsb.deliveryLocations[0].y] != INT_MAX) {
                 connectedBerths.push_back(berth);
             }
@@ -206,11 +230,13 @@ bool EarlyGameAssetManager::needToBuyRobot(const std::vector<Robot> &robots, con
     if (currentFunds < robotPrice) return false;
     return true;
 }
-bool EarlyGameAssetManager::needToBuyShip(const std::vector<Ship> &ships, const std::vector<Goods> &goods, const Map &gameMap, int currentFunds)
+bool EarlyGameAssetManager::needToBuyShip(const std::vector<Ship> &ships, const std::vector<Goods> &goods, const Map &gameMap, int currentFunds, int currentTime)
 {
+    if (purchasedShipNum[0]==0) return true;
     // 超出最大限制
     if (ships.size() >= maxShipNum) return false;
     if (currentFunds < shipPrice) return false;
+    if (currentTime < timeToBuyShip) return false;
     return true;
 }
 

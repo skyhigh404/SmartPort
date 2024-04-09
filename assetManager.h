@@ -52,7 +52,7 @@ public:
                                                                int currentTime) = 0;
     virtual AssetManagerName getAssetManagerName() = 0;
     virtual void setParameter(const Params &params) = 0;
-    virtual void init(const Map& map, const std::vector<Berth> &berths) = 0;
+    virtual void init(const Map& map, std::vector<Berth> &berths) = 0;
     virtual ~AssetManager() {}
 
 public:

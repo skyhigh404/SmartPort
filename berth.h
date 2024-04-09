@@ -38,6 +38,7 @@ public:
     std::vector<std::pair<int, int>> distsToDelivery; // 存储货物到港口的距离，第一个是交货点id（默认在交货点集合中的index），第二个是距离，应该为升序存储
 
     std::vector<std::vector<int>> storageSlots; // 16个格子，-1表示没有机器人，否则表示机器人id
+    float estimateValue = 0;                          // 根据泊位的平均访问距离和交货点访问性计算泊位的价值，在earlyGameAssetManager.init()更新
 public:
     // 统计变量
     static int totalLoadGoodnum; // 总装货的数量

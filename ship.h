@@ -90,6 +90,7 @@ public:
     int state;                // 0: 正常行驶状态, 1: 恢复状态, 2: 装载状态
     int berthId;              // 目标泊位 ID
     ShipStatusSpace::ShipStatus shipStatus;  // 船的状态
+    int loadGoodValue;  // 船当前已有货物的价值
     // const int price = 8000;       // 购买价格
 public:
     static int capacity;        // 船的容量
@@ -112,7 +113,8 @@ public:
           remainingTransportTime(0),
           nextLocAndDir(-1, -1, Direction::EAST),
           shipStatus(ShipStatusSpace::ShipStatus::IDLE),
-          shouldDept(false) {}
+          shouldDept(false),
+          loadGoodValue(0) {}
 
     // 比较优先级
     bool comparePriority(Ship &compareShip){
@@ -342,7 +344,9 @@ public:
     
     // 判断是否到达交货点
     bool reachDelivery(){
-        if (reachDestination() && shipStatus == ShipStatusSpace::ShipStatus::MOVING_TO_DELIVERY) return true;
+        if (reachDestination() && shipStatus == ShipStatusSpace::ShipStatus::MOVING_TO_DELIVERY){
+            return true;
+        }
         else return false;
     }
 

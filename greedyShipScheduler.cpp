@@ -100,6 +100,10 @@ void GreedyShipScheduler::handleShipAtBerth(Map &map, Ship &ship,std::vector<Ber
         BerthID berthId = ship.berthId;
         int shipment = std::min(static_cast<int>(berths[berthId].reached_goods.size()),berths[berthId].velocity);
         int res = ship.loadGoods(shipment); // 装货
+        // 累计货物的价值
+        for (int index = 0; index < res; index++){
+            ship.loadGoodValue += berths[berthId].reached_goods[index].value;
+        }
         berths[berthId].reached_goods.erase(berths[berthId].reached_goods.begin(),berths[berthId].reached_goods.begin() + res);
         return;
     }

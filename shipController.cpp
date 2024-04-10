@@ -300,7 +300,7 @@ bool ShipController::hasOverlap(Map &map, VectorPosition &a, VectorPosition &b) 
         if (overlap) {
             // 如果重叠部分全部位于主航道，则不算重合
             for( int x = x1; x < x2; x++){
-                for (int y = y1; y < y2, y++){
+                for (int y = y1; y < y2; y++){
                     if (!map.isInSealane({x, y})) return false;
                 }
             }

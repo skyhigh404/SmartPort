@@ -218,7 +218,7 @@ public:
         shipStatusStr[ShipStatusSpace::ShipStatus::LOADING] = "装载状态";
         LOGI("船只", id, ",状态", state, ",路径长度：", path.size(), ",泊位id：", berthId, ",船舶状态：",shipStatusStr[shipStatus], ",目的地：", destination, ";");
         LOGI("当前位置：", locAndDir, ",下一帧位置：", nextLocAndDir, "路径长度：", path.size());
-        LOGI("装货量：", capacity,", 装载价值: ", 0,",剩余容量：", nowCapacity(), ",剩余容量比例：", nowCapacity() * 1.0 / capacity);
+        LOGI("装货量：", capacity,", 装载价值: ", loadGoodValue,",剩余容量：", nowCapacity(), ",剩余容量比例：", nowCapacity() * 1.0 / capacity);
     }
 
     float capacityScale()

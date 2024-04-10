@@ -153,7 +153,7 @@ public:
     void removeTemporaryObstacle(const Point2d &pos);
     // 移除所有临时障碍物
     void clearTemporaryObstacles();
-    // 添加一个临时障碍物，即机器人
+    // 以船舶的体积添加多个临时障碍物
     void addTemporaryObstacle(const VectorPosition &vecPos);
     // 移除一个临时障碍物
     void removeTemporaryObstacle(const VectorPosition &vecPos);

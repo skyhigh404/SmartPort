@@ -375,7 +375,7 @@ void Map::addTemporaryObstacle(const Point2d& pos) {
             return;
         }
         else if(isInMainRoad(pos)){
-            LOGE("往主干道上放置临时障碍, pos: ", pos);
+            // LOGE("往主干道上放置临时障碍, pos: ", pos);
             return;
         }
         grid[pos.x][pos.y] = MapItemSpace::MapItem::ROBOT; // 标记为障碍物
@@ -401,8 +401,26 @@ void Map::addTemporaryObstacle(const VectorPosition& vecPos) {
     // 获取船的占用体积
     std::pair<Point2d, Point2d> shipSpace = SpatialUtils::getShipOccupancyRect(vecPos);
     for (int x = shipSpace.first.x; x <= shipSpace.second.x; x++){
-        for (int y= shipSpace.first.y; y <= shipSpace.second.y; y++)
-            addTemporaryObstacle({x, y});
+        for (int y= shipSpace.first.y; y <= shipSpace.second.y; y++) {
+            Point2d pos(x, y);
+            if (inBounds(pos))
+            {
+                MapItemSpace::MapItem item = getCell(pos);
+                if (item == MapItemSpace::MapItem::OBSTACLE || item == MapItemSpace::MapItem::SPACE)
+                {
+                    LOGE("往船舶不可通行位置上放置临时障碍, pos: ", pos);
+                    return;
+                }
+                else if (isInSealane(pos))
+                {
+                    // LOGE("往海洋主干道上放置临时障碍, pos: ", pos);
+                    return;
+                }
+                grid[pos.x][pos.y] = MapItemSpace::MapItem::SHIP; // 标记为障碍物
+                temporaryObstacles.push_back(pos);                 // 添加到临时障碍物列表
+                temporaryObstaclesRefCount[pos]++;
+            }
+        }
     }
 }
 
@@ -418,10 +436,7 @@ void Map::removeTemporaryObstacle(const VectorPosition& vecPos) {
 
 void Map::clearTemporaryObstacles() {
     for (const Point2d& pos : temporaryObstacles) {
-        // 在清除前检查该位置是否确实是OBSTACLE，以防误清
-        if (grid[pos.x][pos.y] == MapItemSpace::MapItem::ROBOT) {
-            grid[pos.x][pos.y] = readOnlyGrid[pos.x][pos.y];  // 恢复为原始元素
-        }
+        grid[pos.x][pos.y] = readOnlyGrid[pos.x][pos.y];  // 恢复为原始元素
     }
     temporaryObstacles.clear(); // 清空临时障碍物列表
     temporaryObstaclesRefCount.clear();

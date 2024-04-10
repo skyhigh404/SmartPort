@@ -116,11 +116,11 @@ public:
           shouldDept(false),
           loadGoodValue(0) {}
 
-    // 比较优先级
+    // 比较优先级，true 表示本身的优先级大，false 表示 compareShip 优先级大
     bool comparePriority(Ship &compareShip){
-        // 去泊位的优先
-        if (shipStatus != compareShip.shipStatus){
-            return shipStatus < compareShip.shipStatus;
+        // 处于恢复状态的优先
+        if (state != compareShip.state) {
+            return state > compareShip.state;
         }
         // 路径短的优先
         else if (path.size() != compareShip.path.size()){

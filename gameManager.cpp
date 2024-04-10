@@ -377,6 +377,9 @@ void GameManager::processFrameData()
     }
     if(currentFrame % 1000 == 0)
     {
+        LOGI("输出泊位信息");
+        for(auto &berth : berths)
+            LOGI("Berth ID: ", berth.id, ", totalValue: ",berth.totalValue);
         LOGI("输出船舶信息");
         for(auto &ship : ships)
             ship.info();

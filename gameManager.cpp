@@ -469,7 +469,7 @@ void GameManager::shipControl(){
     this->shipScheduler->scheduleShips(this->gameMap, this->ships, this->berths, this->goods, this->robots);
     // 对需要移动的船执行shipControl
     // todo 修改为海洋单行路
-    shipController->runController(gameMap,this->ships, this->singleLaneManager);
+    shipController->runController(gameMap,this->ships, this->seaSingleLaneManager);
     auto end = std::chrono::steady_clock::now();
     LOGI("shipControl: ",std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()," ms");
     // 执行指令
@@ -481,6 +481,15 @@ void GameManager::shipControl(){
             LOGI("执行靠泊指令");
             commandManager.addShipCommand(ship.berth());
             LOGI("执行指令：", ship.berth());
+        }
+        // 判断是否需要离港
+        else if (ship.shouldDept){
+            LOGI("进去离港指令");
+            string command = ship.dept();
+            ship.resetDeptStatus();
+            LOGI("船", ship.id, "执行指令：",command);
+            ship.info();
+            commandManager.addShipCommand(command);
         }
         // 移动指令
         else if(!ship.path.empty()){

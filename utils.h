@@ -260,6 +260,7 @@ public:
         }};
         return {vp.pos + corePositionChange[static_cast<int>(vp.direction)], directionChange[static_cast<int>(vp.direction)]};
     }
+
 };
 
 struct Vec2f

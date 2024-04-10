@@ -3,6 +3,7 @@
 #include <iostream>
 #include <algorithm>
 #include <chrono>
+#include <thread>
 #include "log.h"
 #include "greedyRobotScheduler.h"
 #include "greedyShipScheduler.h"
@@ -18,14 +19,21 @@ int Berth::deliverGoodNum = 0;
 int CURRENT_FRAME = 0;  //当前帧数
 MapFlag MAP_TYPE = MapFlag::ERROR;  // LABYRINTH: 图二、迷宫;NORMAL:图一、正常图;UNKNOWN；图三未知图;ERROR :默认值
 int last_assign = 0;
-inline int canUnload(Point2d pos, const Map& map) {
+
+std::vector<int> berthDistrubtGoodNumCount;
+std::vector<int> berthDistrubtGoodValueCount;
+
+int canUnload(Point2d pos, const Map& map) {
     if (map.readOnlyGrid[pos.x][pos.y]==MapItemSpace::MapItem::BERTH) 
         return 1;
     else return 0;
 }
 
-std::vector<int> berthDistrubtGoodNumCount;
-std::vector<int> berthDistrubtGoodValueCount;
+void findPathWrapper(const Map &gameMap, const VectorPosition startVP, const VectorPosition targetVP) {
+    if(!SeaRoute::findPath(gameMap, startVP, targetVP)) {
+        LOGW("Can't find path from ", startVP, ", to ",targetVP);
+    }
+}
 
 void GameManager::initializeGame()
 {
@@ -161,20 +169,20 @@ void GameManager::initializeComponents()
 
     // 2. 预先计算海图航线
     // 计算泊位之间的航线
-    // for(int i = 0; i < berths.size(); ++i)
-    // {
-    //     for(int j = 0; j < berths.size(); ++j)
-    //     {
-    //         if(i == j)
-    //             continue;
-    //         if(gameMap.maritimeBerthDistanceMap[i].at(berths[j].pos.x).at(berths[j].pos.y) >= INT_MAX)
-    //             continue;
-    //         VectorPosition startVP(berths[i].pos, berths[i].orientation);
-    //         VectorPosition targetVP(berths[j].pos, berths[j].orientation);
-    //         if(!SeaRoute::findPath(this->gameMap, startVP, targetVP))
-    //             LOGW("Can't find path from ", startVP, ", to ",targetVP);
-    //     }
-    // }
+    std::vector<std::thread> threads;
+    for(int i = 0; i < berths.size(); ++i)
+    {
+        for(int j = 0; j < berths.size(); ++j)
+        {
+            if(i == j)
+                continue;
+            if(gameMap.maritimeBerthDistanceMap[i].at(berths[j].pos.x).at(berths[j].pos.y) >= INT_MAX)
+                continue;
+            VectorPosition startVP(berths[i].pos, berths[i].orientation);
+            VectorPosition targetVP(berths[j].pos, berths[j].orientation);
+            threads.emplace_back(findPathWrapper, std::ref(gameMap), startVP, targetVP);
+        }
+    }
     // 计算泊位到交货点的航线
     for(int i = 0; i < berths.size(); ++i)
     {
@@ -185,9 +193,8 @@ void GameManager::initializeComponents()
                 continue;
             VectorPosition startVP(berths[i].pos, berths[i].orientation);
             VectorPosition targetVP(deliveryLocation, Direction::EAST);
-            if (!SeaRoute::findPath(this->gameMap, startVP, targetVP) ||
-                !SeaRoute::findPath(this->gameMap, targetVP, startVP))
-                LOGW("Can't find path from ", startVP, ", to ", targetVP);
+            threads.emplace_back(findPathWrapper, std::ref(gameMap), startVP, targetVP);
+            threads.emplace_back(findPathWrapper, std::ref(gameMap), targetVP, startVP);
         }
     }
     // 计算船舶购买点到泊位的航线
@@ -200,9 +207,12 @@ void GameManager::initializeComponents()
                 continue;
             VectorPosition startVP(shipShop, Direction::EAST);
             VectorPosition targetVP(berths[i].pos, berths[i].orientation);
-            if (!SeaRoute::findPath(this->gameMap, startVP, targetVP))
-                LOGW("Can't find path from ", startVP, ", to ",targetVP);
+            threads.emplace_back(findPathWrapper, std::ref(gameMap), startVP, targetVP);
         }
+    }
+    // 等待所有线程完成
+    for(auto& t : threads) {
+        t.join();
     }
     
     // 3. 判断机器人是否 DEATH 状态
@@ -291,7 +301,7 @@ void GameManager::processFrameData()
     // 读取变化货物
     // TODO: 使用Map::computePointToBerthsDistances计算货物到泊位距离
     cin >> newItemCount;
-    LOGI("变化货物数量：", newItemCount);
+    // LOGI("变化货物数量：", newItemCount);
     while (newItemCount--)
     {
         cin >> goodsX >> goodsY >> value;
@@ -310,7 +320,7 @@ void GameManager::processFrameData()
     // 读取机器人状态
     int robotNum=0, robotId;
     std::cin >> robotNum;
-    LOGI("机器人数目：",robotNum);
+    // LOGI("机器人数目：",robotNum);
     for (int i = 0; i < robotNum; ++i)
     {
         cin >> robotId >> carrying >> robotX >> robotY;
@@ -333,7 +343,7 @@ void GameManager::processFrameData()
     // 读取船舶状态
     int shipNum, shipId, goodsCount, shipX, shipY, direction, shipState;
     std::cin >> shipNum;
-    LOGI("轮船数目：", shipNum);
+    // LOGI("轮船数目：", shipNum);
     for (int i = 0; i < shipNum; ++i)
     {
         cin >> shipId >> goodsCount >> shipX >> shipY >> direction >> shipState;
@@ -361,7 +371,13 @@ void GameManager::processFrameData()
         berth.unreached_goods = std::vector<Goods>();
         // berth.reached_goods = std::vector<Goods>();
     }
-    LOGI("processFrameData done");
+    if(currentFrame % 1000 == 0)
+    {
+        LOGI("输出船舶信息");
+        for(auto &ship : ships)
+            ship.info();
+    }
+    // LOGI("processFrameData done");
 }
 
 

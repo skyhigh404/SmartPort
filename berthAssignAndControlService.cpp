@@ -79,7 +79,7 @@ void BerthAssignAndControlService::clusterBerths(const Map &map, std::vector<Ber
     {
         for (int j = 0; j < clusters[i].size(); j++)
         {
-            berths[clusters[i][j].id].info();
+            // berths[clusters[i][j].id].info();
             berthCluster[clusters[i][j].id] = i;
         }
     }

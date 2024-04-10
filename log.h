@@ -6,6 +6,7 @@
 #include <cstring>
 #include <sstream>
 #include <iomanip>
+#include <mutex>
 #include "assert.h"
 
 // 定义日志级别
@@ -55,6 +56,7 @@ class Log
 private:
     std::ofstream m_OutputStream;
     LogLevel m_LogLevel = LogLevel::INFO;
+    std::mutex writeMutex;
 
     Log() {}
     Log(const Log &) = delete;
@@ -81,7 +83,9 @@ public:
     }
     static void logWrite(const std::string &message, LogLevel level = LogLevel::INFO)
     {
-        getInstance().logWriteImpl(message, level);
+        auto &instance = getInstance();
+        std::lock_guard<std::mutex> lock(instance.writeMutex);
+        instance.logWriteImpl(message, level);
     }
 
     // 一个辅助函数，用于递归终止

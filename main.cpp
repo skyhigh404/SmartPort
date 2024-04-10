@@ -21,6 +21,7 @@ int main()
     auto stop = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
     LOGI("Init finish, cost time: ",duration.count()," ms");
+    LOGI("===================================================================");
 
     // 测试 A* 算法
     // VectorPosition startPos(49, 120, Direction::EAST);

@@ -50,8 +50,8 @@ public:
     std::unordered_map<int, std::vector<std::vector<int>>> berthDistanceMap;         // 陆地上所有点到泊位距离图
     std::unordered_map<int, std::vector<std::vector<int>>> maritimeBerthDistanceMap; // 海洋上所有点到泊位距离图
 
-    std::vector<std::vector<int>> berthToBerthDistance; //第一维是起始泊位id，第二维是目标泊位id
-    std::vector<std::vector<int>> berthToDeliveryDistance;  //第一位是起始泊位id，第二维是目标交货点id
+    std::vector<std::vector<int>> berthToBerthDistance;    // 第一维是起始泊位id，第二维是目标泊位id
+    std::vector<std::vector<int>> berthToDeliveryDistance; // 第一位是起始泊位id，第二维是目标交货点id
 public:
     // std::vector<std::reference_wrapper<Point2d>> robotPosition;  // 实时记录机器人位置（不建议使用）
     std::vector<Point2d> temporaryObstacles;                     // 临时障碍物的位置

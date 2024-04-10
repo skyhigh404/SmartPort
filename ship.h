@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <mutex>
 #include "utils.h"
 #include "log.h"
 #include "map.h"
@@ -48,6 +49,7 @@ public:
     // 寻路并存储
     static bool findPath(const Map &map, const VectorPosition &start, const VectorPosition &destination)
     {
+        // static std::mutex seaRoutesMutex;
         if (getInstance().seaRoutes.find(std::make_pair(start, destination)) !=
             getInstance().seaRoutes.end())
             return true;
@@ -58,9 +60,8 @@ public:
         {
             Path<VectorPosition> route = std::get<Path<VectorPosition>>(path);
             route.push_back(start);
+            // std::lock_guard<std::mutex> lock(seaRoutesMutex);
             getInstance().seaRoutes[std::make_pair(start, destination)] = route;
-            // std::reverse(route.begin(), route.end());
-            // getInstance().seaRoutes[std::make_pair(destination, start)] = route;
             return true;
         }
         else
@@ -69,7 +70,7 @@ public:
         }
     }
 
-    // 获取航线路径，航线的起点和终点朝向都是 EAST
+    // 获取航线路径
     static std::vector<VectorPosition> getPath(const Map &map, const VectorPosition &start, const VectorPosition &destination)
     {
         std::vector<VectorPosition> path;
@@ -77,6 +78,16 @@ public:
             getInstance().seaRoutes.end())
             path = getInstance().seaRoutes[std::make_pair(start, destination)];
         return path;
+    }
+    
+    // 获取航线长度
+    static int getPathLength(const VectorPosition &start, const VectorPosition &destination)
+    {
+        int length = 0;
+        if (getInstance().seaRoutes.find(std::make_pair(start, destination)) !=
+            getInstance().seaRoutes.end())
+            length = getInstance().seaRoutes[std::make_pair(start, destination)].size();
+        return length;
     }
 };
 

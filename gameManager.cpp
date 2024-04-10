@@ -164,7 +164,7 @@ void GameManager::initializeComponents()
 
         this->gameMap.computeDistancesToBerthViaBFS(berth.id, positions);
         this->gameMap.computeMaritimeBerthDistanceViaBFS(berth.id, positions);
-        berth.distsToDelivery = this->gameMap.initializeBerthToDeliveryDistances(berth.id);
+        // berth.distsToDelivery = this->gameMap.initializeBerthToDeliveryDistances(berth.id);
     }
 
     // 2. 预先计算海图航线
@@ -214,8 +214,49 @@ void GameManager::initializeComponents()
     for(auto& t : threads) {
         t.join();
     }
-    
-    // 3. 判断机器人是否 DEATH 状态
+
+    // 3. 根据航线距离更新 berthToBerthDistance, berthToDeliveryDistance, berth.distsToDelivery
+    gameMap.berthToBerthDistance = vector<vector<int>> (berths.size(), vector<int>(berths.size(), INT_MAX));
+    gameMap.berthToDeliveryDistance = vector<vector<int>> (berths.size(), vector<int>(gameMap.deliveryLocations.size(), INT_MAX));
+    LOGI("print berthToBerthDistance");
+    for(int i = 0; i < berths.size(); ++i)
+    {
+        for(int j = 0; j < berths.size(); ++j)
+        {
+            if (i == j){
+                gameMap.berthToBerthDistance.at(berths[i].id).at(berths[j].id) = 1;
+                continue;
+            }
+            VectorPosition startVP(berths[i].pos, berths[i].orientation);
+            VectorPosition targetVP(berths[j].pos, berths[j].orientation);
+            gameMap.berthToBerthDistance.at(berths[i].id).at(berths[j].id) = SeaRoute::getPathLength(startVP, targetVP);
+        }
+        LOGI(Log::printVector(gameMap.berthToBerthDistance[i]));
+    }
+    LOGI("print berthToDeliveryDistance");
+    for(int i = 0; i < berths.size(); ++i)
+    {
+        for(int j = 0; j < gameMap.deliveryLocations.size(); ++j)
+        {
+            Point2d deliveryLocation = gameMap.deliveryLocations[j];
+            VectorPosition startVP(berths[i].pos, berths[i].orientation);
+            VectorPosition targetVP(deliveryLocation, Direction::EAST);
+            int length  = SeaRoute::getPathLength(startVP, targetVP);
+            gameMap.berthToDeliveryDistance.at(berths[i].id).at(j) = length;
+            berths[i].distsToDelivery.emplace_back(j, length);
+        }
+        LOGI(Log::printVector(gameMap.berthToDeliveryDistance[i]));
+    }
+
+    // 4. 对 berth.distsToDelivery 进行排序
+    for (Berth &berth : berths)
+    {
+        std::sort(berth.distsToDelivery.begin(), berth.distsToDelivery.end(),
+                  [](std::pair<int, int> &a, std::pair<int, int> &b)
+                  { return a.second < b.second; });
+    }
+
+    // 5. 判断机器人是否 DEATH 状态
     for (auto &robot : this->robots)
     {
         bool is_isolated = true;
@@ -234,36 +275,36 @@ void GameManager::initializeComponents()
             LOGI("死機器人:", robot.id);
         }
     }
-    // 4. 对所有泊位注册gameManager作为观察者
+    // 6. 对所有泊位注册gameManager作为观察者
     for (auto &berth : berths)
         berth.registerObserver(this);
-    // 5. 初始化单行路
+    // 7. 初始化单行路
     this->singleLaneManager.init(gameMap);
     this->seaSingleLaneManager.init(gameMap);
-    // 6. 判断地图类型，后续封装在其他函数中实现
+    // 8. 判断地图类型，后续封装在其他函数中实现
     MAP_TYPE = MapFlag::NORMAL;
-    // 7. 读取参数
+    // 9. 读取参数
     Params params(MAP_TYPE);
-    // 8. 初始化 RobotController
+    // 10. 初始化 RobotController
     this->robotController = std::make_shared<RobotController>(this->robots);
     this->shipController = std::make_shared<ShipController>();
-    // 9. 对泊位进行聚类
+    // 11. 对泊位进行聚类
     this->berthAssignAndControlService.initialize(this->gameMap,this->berths);
     std::vector<int> &berthCluster = this->berthAssignAndControlService.berthCluster;
     std::vector<std::vector<Berth>> &clusters = this->berthAssignAndControlService.clusters;
-    // 10. 注册机器人调度函数
+    // 12. 注册机器人调度函数
     robotScheduler = std::make_shared<GreedyRobotScheduler>(clusters, berthCluster);
-    // 11. 注册船舶调度函数
+    // 13. 注册船舶调度函数
     shipScheduler = std::make_shared<GreedyShipScheduler>();
-    // 12. 注册资产管理类
+    // 14. 注册资产管理类
     assetManager = std::make_shared<EarlyGameAssetManager>();
-    // 13. 对机器人调度函数更新Params
+    // 15. 对机器人调度函数更新Params
     this->robotScheduler->setParameter(params);
-    // 14. 对船舶调度函数更新Params
+    // 16. 对船舶调度函数更新Params
     this->shipScheduler->setParameter(params);
-    // 15. 对资产管理类更新Params
+    // 17. 对资产管理类更新Params
     this->assetManager->setParameter(params);
-    // 16. 初始化资产管理类
+    // 18. 初始化资产管理类
     this->assetManager->init(this->gameMap, berths);
 }
 
@@ -280,6 +321,7 @@ void GameManager::processFrameData()
     }
     
     // 清除临时障碍
+    LOGI("=======================================新的一帧====================================");
     gameMap.clearTemporaryObstacles();
 
     cin >> this->currentFrame >> this->currentMoney;
@@ -289,7 +331,6 @@ void GameManager::processFrameData()
     if(skipFrame)
         LOGW("跳帧: ", skipFrame);
     CURRENT_FRAME = this->currentFrame;
-    LOGI("=======================================新的一帧====================================");
     // 货物生命周期维护
     for (auto& good : goods){
         // todo 边界条件

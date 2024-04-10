@@ -48,7 +48,7 @@ void ShipController::runController(Map &map,std::vector<Ship> &ships, SeaSingleL
         std::set<CollisionEvent, CollisionEventCompare> collisions = detectNextFrameConflict(map, ships, seaSingleLaneManager);
         if(collisions.empty())
             break;
-        LOGI("发现冲突");
+        LOGI("发现船冲突");
         for(const auto &collision : collisions) {
             LOGI(collision.shipId1, ", ", collision.shipId2, ", ", collision.type);
         }

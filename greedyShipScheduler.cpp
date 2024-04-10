@@ -174,6 +174,7 @@ void GreedyShipScheduler::updateBerthStatus(std::vector<Ship> &ships,std::vector
     for(auto &berth : berths){
         berth.totalValue = 0;
         berth.residue_num = 0;
+        berth.residue_value = 0;
         berth.shipInBerthNum = 0;
         berth.residue_num = berth.reached_goods.size();
     }
@@ -186,19 +187,23 @@ void GreedyShipScheduler::updateBerthStatus(std::vector<Ship> &ships,std::vector
     }
     // 遍历泊位，累加当前溢出货物价值
     for(auto &berth : berths){
-        for(int index = berth.reached_goods.size() - berth.residue_num; index < berth.reached_goods.size(); index++){
+        for(int index = 0; index < berth.reached_goods.size() - berth.residue_num; index++){
             berth.totalValue += berth.reached_goods[index].value;
         }
-    }
-    //  遍历货物，更新泊位的溢出货物量和价值
-    // todo 根据货物到达泊位的距离进行加权影响
-    for(auto &good : goods){
-        // todo 后续需要考虑泊位禁用情况
-        if(good.status == 1 || good.status == 2){
-             berths[good.distsToBerths[0].first].totalValue += calculateGoodValueByDist(good);
-             berths[good.distsToBerths[0].first].residue_num += 1;
+        for(int index = berth.reached_goods.size() - berth.residue_num; index < berth.reached_goods.size(); index++){
+            berth.totalValue += berth.reached_goods[index].value;
+            berth.residue_value += berth.reached_goods[index].value;
         }
     }
+    // //  遍历货物，更新泊位的溢出货物量和价值
+    // // todo 根据货物到达泊位的距离进行加权影响
+    // for(auto &good : goods){
+    //     // todo 后续需要考虑泊位禁用情况
+    //     if(good.status == 1 || good.status == 2){
+    //          berths[good.distsToBerths[0].first].totalValue += calculateGoodValueByDist(good);
+    //          berths[good.distsToBerths[0].first].residue_num += 1;
+    //     }
+    // }
 }
 
 // 根据货物距离泊位距离计算货物价值(选取最短距离)

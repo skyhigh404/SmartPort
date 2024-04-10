@@ -71,7 +71,7 @@ std::vector<PurchaseDecision> EarlyGameAssetManager::makePurchaseDecision(const 
 
 int EarlyGameAssetManager::getAssignId(Point2d shopPos, const std::vector<Berth> &berths)
 {
-    return -1;
+    // return -1;
     // 游戏初期集中分配
     LandSeaBlock& lsb = landseaBlocks[0];
 

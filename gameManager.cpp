@@ -471,7 +471,7 @@ void GameManager::robotControl()
                 commandManager.addRobotCommand(robot.pull());
                 int x = robot.pos.x-berth.pos.x, y=robot.pos.y-berth.pos.y;
                 if(currentFrame < 15000 - berth.timeToDelivery()){
-                    Berth::maxLoadGoodNum += 1;
+                    Berth::deliverGoodNum += 1;
                     totalGetGoodsValue += goods[robot.carryingItemId].value;
                     berth.reached_goods.push_back(goods[robot.carryingItemId]);
                     goods[robot.carryingItemId].status = 3;
@@ -603,12 +603,18 @@ void GameManager::update()
     auto end = std::chrono::steady_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
     LOGI("robotControl时长:",duration.count(),"ms");
+    if(duration.count() > 15){
+        LOGI("机器人调度掉帧：",duration.count());
+    }
 
     start = std::chrono::steady_clock::now();
     shipControl();
     end = std::chrono::steady_clock::now();
     duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
     LOGI("shipControl时长:",duration.count(),"ms");
+    if(duration.count() > 15){
+        LOGI("船调度掉帧：",duration.count());
+    }
 
     // if(shipDebugOutput){LOGI("船只开始调度");};
     // auto ship_start = std::chrono::high_resolution_clock::now();

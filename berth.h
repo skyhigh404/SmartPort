@@ -42,9 +42,9 @@ public:
     float estimateValue = 0;                          // 根据泊位的平均访问距离和交货点访问性计算泊位的价值，在earlyGameAssetManager.init()更新
 public:
     // 统计变量
-    static int totalLoadGoodnum; // 总装货的数量
-    static int maxLoadGoodNum;   // 理论最大装货数量
-    static int deliverGoodNum;   // 送达货物数量
+    static int totalLoadGoodnum; // 总装货的数量(送到虚拟点的货物量)
+    static int maxLoadGoodNum;   // 理论最大装货数量（已经装到船上的数量）
+    static int deliverGoodNum;   // 送达货物数量（已经放到泊位上的数量）
 
     Berth(int id, Point2d pos, int velocity)
         : id(id),
@@ -113,7 +113,7 @@ public:
 
         std::string unreach_info = "未到达货物数量:" + std::to_string(unreached_goods.size()) + ";总价值：" + std::to_string(totalValue);
         LOGI(berth_info, reach_info, ";", unreach_info);
-        LOGI("总装货量：", totalLoadGoodnum, ",送达货物量：", deliverGoodNum, ",理论最大装货量：", maxLoadGoodNum, ", 成功装载比例：", totalLoadGoodnum * 1.0 / maxLoadGoodNum, ",成功送达比例：", deliverGoodNum * 1.0 / maxLoadGoodNum);
+        LOGI("送达货物量：", totalLoadGoodnum, ",总货物量", deliverGoodNum, ",理论最大送达量：", maxLoadGoodNum, ", 成功装载比例：", maxLoadGoodNum * 1.0 / deliverGoodNum, ",成功送达比例：", totalLoadGoodnum * 1.0 / maxLoadGoodNum);
         LOGI("-----------------------------------------------------------------------------------------------------------------------------------------------");
     }
 

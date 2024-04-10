@@ -135,6 +135,7 @@ public:
             return state > compareShip.state;
         }
         // 路径短的优先
+        // todo 让路径长的优先可以减少死锁次数
         else if (path.size() != compareShip.path.size()){
             return path.size() < compareShip.path.size();
         }

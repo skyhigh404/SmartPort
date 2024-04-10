@@ -545,9 +545,9 @@ void GameManager::shipControl(){
         if (ship.state == 1) continue;
         // 靠泊
         if (ship.shipStatus == ShipStatusSpace::ShipStatus::LOADING && ship.state == 0){
-            LOGI("执行靠泊指令");
+            // LOGI("执行靠泊指令");
             commandManager.addShipCommand(ship.berth());
-            LOGI("执行指令：", ship.berth());
+            // LOGI("执行指令：", ship.berth());
         }
         // 判断是否需要离港
         else if (ship.shouldDept){
@@ -560,10 +560,10 @@ void GameManager::shipControl(){
         }
         // 移动指令
         else if(!ship.path.empty()){
-            LOGI("进去移动指令");
+            // LOGI("进去移动指令");
             string command = ship.movetoNextPosture();
-            LOGI("船", ship.id, "执行指令：",command);
-            ship.info();
+            // LOGI("船", ship.id, "执行指令：",command);
+            // ship.info();
             commandManager.addShipCommand(command);
         }
     }

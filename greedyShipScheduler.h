@@ -91,4 +91,7 @@ private:
     // 分配最近的交货点
     int allocateDelivery(Berth &berth);
 
+    // 判断船是否可以前往一个泊位
+    // 时间足够去虚拟点 && 可以在预定船来临前进入泊位
+    bool canShipMoveToBerth(Map &map, Ship &ship, Berth &berth);
 };

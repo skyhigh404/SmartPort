@@ -119,15 +119,15 @@ void ShipController::tryResolveConflict(Map &map, std::vector<Ship> &ships, cons
             LOGI("让船1等待: ", ship1);
             makeShipWait(ship1);
         }
-        // 让优先级低的等待
+        // 让优先级低的等待，优先级高的重新寻路
         else if (ship1.comparePriority(ship2)){
             // 船2优先级低
-            LOGI("让船1重新寻路，船2等待: ", ship2);
+            LOGI("让船1重新寻路，船2等待 ship1: ", ship1, ", ship2: ", ship2);
             makeShipWait(ship2);
             makeShipRefindPath(ship1);
         }
         else {
-            LOGI("让船2重新寻路，船1等待: ", ship1);
+            LOGI("让船2重新寻路，船1等待 ship1: ", ship1, ", ship2: ", ship2);
             makeShipWait(ship1);
             makeShipRefindPath(ship2);
         }

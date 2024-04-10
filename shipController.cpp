@@ -92,12 +92,12 @@ void ShipController::runPathfinding(const Map &map, Ship &ship)
     }
     // 寻路成功，设置船状态
     else{
-        LOGI("船寻路成功",ship.id);
         // 判断第一跳是否是原地
         if (!ship.path.empty() && ship.path.back() == ship.locAndDir){
             // 弹出第一个位置
             ship.path.pop_back();
         }
+        LOGI("船寻路成功: ",ship);
     }
 }
 
@@ -111,19 +111,23 @@ void ShipController::tryResolveConflict(Map &map, std::vector<Ship> &ships, cons
         // 船 1 的下一帧位置不和船 2 当前位置重合
         if (!hasOverlap(map, ship1.nextLocAndDir, ship2.locAndDir)){
             // 让船2等待
+            LOGI("让船2等待: ", ship2);
             makeShipWait(ship2);
         }
         else if (!hasOverlap(map, ship2.nextLocAndDir, ship1.locAndDir)){
             // 让船1等待
+            LOGI("让船1等待: ", ship1);
             makeShipWait(ship1);
         }
         // 让优先级低的等待
         else if (ship1.comparePriority(ship2)){
             // 船2优先级低
+            LOGI("让船1重新寻路，船2等待: ", ship2);
             makeShipWait(ship2);
             makeShipRefindPath(ship1);
         }
         else {
+            LOGI("让船2重新寻路，船1等待: ", ship1);
             makeShipWait(ship1);
             makeShipRefindPath(ship2);
         }
@@ -190,7 +194,7 @@ void ShipController::rePlanShipMove(Map &map, std::vector<Ship> &ships){
     // 步骤3: 执行所有收集的RefindPath动作
     for (auto& pair : refindPathActions) {
         Ship &ship = ships.at(pair.first);
-        LOGI("船舶重新寻路: ", ship);
+        LOGI("船舶重新寻路: ", ship.id);
         map.removeTemporaryObstacle(ship.nextLocAndDir);
         runPathfinding(map, ship);
         ship.updateNextPos();

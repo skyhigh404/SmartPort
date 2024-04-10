@@ -643,10 +643,12 @@ void GameManager::update()
     assetControl();
 
 
-    if(currentFrame>=14000 && currentFrame <= 14005){
-        LOGI("skipFrame: ", skipFrame, ", totalGetGoodsValue: ", totalGetGoodsValue);
+    if(currentFrame>=14900 && currentFrame <= 14905){
+        LOGI("skipFrame: ", skipFrame, ", 已搬运到泊位的货物价值: ", totalGetGoodsValue);
         LOGI("berthDistrubtGoodNumCount: ",Log::printVector(berthDistrubtGoodNumCount));
         LOGI("berthDistrubtGoodValueCount: ",Log::printVector(berthDistrubtGoodValueCount));
+        LOGI("理论最大货物价值: ", std::accumulate(berthDistrubtGoodValueCount.begin(), berthDistrubtGoodValueCount.end(),0));
+        LOGI("产生货物数量: ", std::accumulate(berthDistrubtGoodNumCount.begin(), berthDistrubtGoodNumCount.end(),0));
     }
     if(currentFrame >=14990 && currentFrame <= 15000){
         LOGI("游戏结束，泊位剩余情况：");

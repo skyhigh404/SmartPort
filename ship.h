@@ -96,7 +96,8 @@ public:
     static int capacity;        // 船的容量
     int remainingTransportTime; // 船到目标泊位的剩余运行时间，在处理每一帧信息时维护
     VectorPosition destination;
-    bool shouldDept;
+    bool shouldDept;    //  判断当前是否需要使用dept命令
+    int deliveryId; //分配的交货点id
 
 public:
     VectorPosition nextLocAndDir;     // 船舶下一帧位姿
@@ -216,7 +217,7 @@ public:
         shipStatusStr[ShipStatusSpace::ShipStatus::MOVING_TO_BERTH] = "前往泊位";
         shipStatusStr[ShipStatusSpace::ShipStatus::MOVING_TO_DELIVERY] = "前往交货点";
         shipStatusStr[ShipStatusSpace::ShipStatus::LOADING] = "装载状态";
-        LOGI("船只", id, ",状态", state, ",路径长度：", path.size(), ",泊位id：", berthId, ",船舶状态：",shipStatusStr[shipStatus], ",目的地：", destination, ";");
+        LOGI("船只", id, ",状态", state, ",路径长度：", path.size(), ",泊位id：", berthId, ",交货点id：", deliveryId, ",船舶状态：",shipStatusStr[shipStatus], ",目的地：", destination, ";");
         LOGI("当前位置：", locAndDir, ",下一帧位置：", nextLocAndDir, "路径长度：", path.size());
         LOGI("装货量：", capacity,", 装载价值: ", loadGoodValue,",剩余容量：", nowCapacity(), ",剩余容量比例：", nowCapacity() * 1.0 / capacity);
     }
@@ -382,11 +383,9 @@ public:
     // 前往泊位状态处理
     void updateMoveToBerthStatus(BerthID berthId, VectorPosition destination){
         LOGI("船",id,",前往泊位状态");
-        #ifdef DEBUG
-        // assert(berthId != -1);
-        LOGE("分配泊位失败！");
-        #endif
         shipStatus = ShipStatusSpace::ShipStatus::MOVING_TO_BERTH;
+        // 交货点id复原
+        this->deliveryId = -1;
         this->berthId = berthId;
         //todo 方向如何确定
         this->destination = destination;
@@ -395,11 +394,10 @@ public:
     }
 
     // 前往交货点状态处理
-    void updateMoveToDeliveryStatus(VectorPosition destination){
+    void updateMoveToDeliveryStatus(int deliveryId, VectorPosition destination){
         LOGI("船",id,",前往交货点状态");
         shipStatus = ShipStatusSpace::ShipStatus::MOVING_TO_DELIVERY;
-        // todo 不能由这里来修改泊位id
-        // this->berthId = -1;
+        this->deliveryId = deliveryId;
         // todo方向如何确定
         this->destination = destination;
         // 路径清空

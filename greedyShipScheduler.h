@@ -55,6 +55,21 @@ private:
     // 为船找到最佳泊位，返回泊位id
     BerthID findBestBerthForShip(Map& map, Ship &ship, std::vector<Berth> &berths, const std::vector<Goods> &goods);
 
+    // 为船找到最佳泊位，返回泊位id
+    BerthID findBestBerthForShip(Map& map, Ship &ship, std::vector<Berth> &berths, const std::vector<Goods> &goods);
+
+    // 当船在虚拟点时，选择最佳调度策略
+    void scheduleShipAtDelivery(Map& map, Ship &ship, std::vector<Berth> &berths, const std::vector<Goods> &goods);
+
+    // 当船在泊位时（没货），选择最佳调度策略（去泊位|去虚拟点）
+    void scheduleFreeShipAtBerth(Map& map, Ship &ship, std::vector<Berth> &berths, const std::vector<Goods> &goods);
+
+    // 当船在购买点时
+    void scheduleShipAtShipShops(Map& map, Ship &ship, std::vector<Berth> &berths, const std::vector<Goods> &goods);
+
+    // 计算船在该泊位上能得到多少收益（只考虑泊位上已有的货物）
+    std::pair<int, int> calculateShipProfitInBerth(Map &map, Ship &ship, Berth &berth);
+
     // 判断船可以前往其他泊位
     bool canMoveBerth(Map &map, Ship &ship,Berth &Berth);
 

@@ -109,6 +109,11 @@ void GreedyShipScheduler::handleShipAtBerth(Map &map, Ship &ship,std::vector<Ber
             ship.loadGoodValue += berths[berthId].reached_goods[index].value;
         }
         berths[berthId].reached_goods.erase(berths[berthId].reached_goods.begin(),berths[berthId].reached_goods.begin() + res);
+        LOGI("装货中-----------------------------");
+        LOGI("装货数量：", res);
+        ship.info();
+        berths[ship.berthId].info();
+        Berth::maxLoadGoodNum += res;
         return;
     }
     // 衡量船去每一个泊位和直接去交货点的收益
@@ -194,11 +199,13 @@ void GreedyShipScheduler::updateBerthStatus(std::vector<Ship> &ships,std::vector
         }
     }
     // 遍历泊位，累加当前溢出货物价值
+    
     for(auto &berth : berths){
-        for(int index = 0; index < berth.reached_goods.size() - berth.residue_num && berth.reached_goods.size(); index++){
+        int reachGoodsSize = static_cast<int>(berth.reached_goods.size());
+        for(int index = 0; index < reachGoodsSize - berth.residue_num && index < reachGoodsSize; index++){
             berth.totalValue += berth.reached_goods[index].value;
         }
-        for(int index = berth.reached_goods.size() - berth.residue_num; index < berth.reached_goods.size() && index >= 0; index++){
+        for(int index = reachGoodsSize - berth.residue_num; index < reachGoodsSize && index >= 0; index++){
             berth.totalValue += berth.reached_goods[index].value;
             berth.residue_value += berth.reached_goods[index].value;
         }

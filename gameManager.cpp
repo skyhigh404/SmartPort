@@ -390,6 +390,7 @@ void GameManager::processFrameData()
         cin >> shipId >> goodsCount >> shipX >> shipY >> direction >> shipState;
         if (i >= this->ships.size())
             this->ships.emplace_back(Ship(shipId));
+        int lastFrameGoodsCount = this->ships[shipId].goodsCount;
         this->ships[shipId].goodsCount = goodsCount;
         this->ships[shipId].locAndDir.pos.x = shipX;
         this->ships[shipId].locAndDir.pos.y = shipY;
@@ -404,6 +405,7 @@ void GameManager::processFrameData()
         }
         // 判断船是否到达交货点清空了货物
         if (this->ships[shipId].goodsCount == 0){
+            Berth::totalLoadGoodnum += lastFrameGoodsCount;
             this->ships[shipId].loadGoodValue = 0;
         }
     }

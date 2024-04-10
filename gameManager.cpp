@@ -531,6 +531,7 @@ void GameManager::shipControl(){
     auto start = std::chrono::steady_clock::now();
     // 执行船调度
     this->shipScheduler->scheduleShips(this->gameMap, this->ships, this->berths, this->goods, this->robots);
+    LOGI("执行完船调度");
     // 对需要移动的船执行shipControl
     // todo 修改为海洋单行路
     shipController->runController(gameMap,this->ships, this->seaSingleLaneManager);

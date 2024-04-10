@@ -195,10 +195,10 @@ void GreedyShipScheduler::updateBerthStatus(std::vector<Ship> &ships,std::vector
     }
     // 遍历泊位，累加当前溢出货物价值
     for(auto &berth : berths){
-        for(int index = 0; index < berth.reached_goods.size() - berth.residue_num; index++){
+        for(int index = 0; index < berth.reached_goods.size() - berth.residue_num && berth.reached_goods.size(); index++){
             berth.totalValue += berth.reached_goods[index].value;
         }
-        for(int index = berth.reached_goods.size() - berth.residue_num; index < berth.reached_goods.size(); index++){
+        for(int index = berth.reached_goods.size() - berth.residue_num; index < berth.reached_goods.size() && index >= 0; index++){
             berth.totalValue += berth.reached_goods[index].value;
             berth.residue_value += berth.reached_goods[index].value;
         }

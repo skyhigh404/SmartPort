@@ -55,9 +55,6 @@ private:
     // 为船找到最佳泊位，返回泊位id
     BerthID findBestBerthForShip(Map& map, Ship &ship, std::vector<Berth> &berths, const std::vector<Goods> &goods);
 
-    // 为船找到最佳泊位，返回泊位id
-    BerthID findBestBerthForShip(Map& map, Ship &ship, std::vector<Berth> &berths, const std::vector<Goods> &goods);
-
     // 当船在虚拟点时，选择最佳调度策略
     void scheduleShipAtDelivery(Map& map, Ship &ship, std::vector<Berth> &berths, const std::vector<Goods> &goods);
 

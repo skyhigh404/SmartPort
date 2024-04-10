@@ -28,6 +28,7 @@ struct Params
     int MAX_SHIP_NUM = 1;     // 一个泊位最多几艘船
     int TIME_TO_WAIT = 100; //等待有货的时间段
     int CAPACITY_GAP = 10;   // 泊位溢出货物量和船的容量差
+    int SHIP_WAIT_TIME_LIMIT = 20;    //船在泊位上等待货物的时间
 
     // ship 参数
 

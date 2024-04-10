@@ -7,6 +7,7 @@ void GreedyShipScheduler::setParameter(const Params &params)
     MAX_SHIP_NUM = params.MAX_SHIP_NUM;
     TIME_TO_WAIT = params.TIME_TO_WAIT;
     CAPACITY_GAP = params.CAPACITY_GAP;
+    SHIP_WAIT_TIME_LIMIT = params.SHIP_WAIT_TIME_LIMIT;
 }
 
 void GreedyShipScheduler::scheduleShips(Map &map, std::vector<Ship> &ships, std::vector<Berth> &berths, std::vector<Goods> &goods, std::vector<Robot> &robots) {
@@ -94,7 +95,8 @@ void GreedyShipScheduler::handleShipAtBerth(Map &map, Ship &ship,std::vector<Ber
     int deliveryId = allocateDelivery(berths[ship.berthId]);
     // 前往交货点
     if(shouldDepartBerth(ship, berths)){
-        LOGI("前往交货点");
+        LOGI("应该前往交货点");
+        ship.info();
         ship.updateMoveToDeliveryStatus(deliveryId, VectorPosition(map.deliveryLocations[deliveryId], Direction::EAST));
         berths[ship.berthId].shipInBerthNum = std::max(0, berths[ship.berthId].shipInBerthNum - 1);
         // return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::MOVE_TO_DELIVERY,deliveryId);
@@ -116,8 +118,13 @@ void GreedyShipScheduler::handleShipAtBerth(Map &map, Ship &ship,std::vector<Ber
         Berth::maxLoadGoodNum += res;
         return;
     }
-    // 衡量船去每一个泊位和直接去交货点的收益
-    scheduleFreeShipAtBerth(map, ship, berths, goods);
+    // 附近没有货物
+    // 用意：不让船动的太频繁
+    else if(!isThereGoodsToLoadRecently(berths[ship.berthId], goods)){
+        // 衡量船去每一个泊位和直接去交货点的收益
+        scheduleFreeShipAtBerth(map, ship, berths, goods);
+    }
+    
     
     // // 容量不多，考虑是否直接去虚拟点
     // else if(ship.capacityScale() < ABLE_DEPART_SCALE){
@@ -246,13 +253,33 @@ bool GreedyShipScheduler::shouldDepartBerth( Ship &ship,std::vector<Berth> &bert
     // todo 15000改成全局变量；缓冲时间变成超参
     // 泊位交货点时间
     // int timeToDeliveryLocation = berths[ship.berthId].
-    else if(ship.berthId != -1 && 15000 - CURRENT_FRAME <= berths[ship.berthId].timeToDelivery() + 2) return true;
+    else if(ship.berthId != -1 && CURRENT_FRAME + berths[ship.berthId].timeToDelivery() + 2 > 15000) return true;
     else return false;
 }
 
 // 判断泊位上是否有货物可装载
 bool GreedyShipScheduler::isThereGoodsToLoad(Berth &berth){
     if(berth.reached_goods.size() != 0) return true;
+    else return false;
+}
+
+// 判断泊位上短时间内是否有货物可以状态
+bool GreedyShipScheduler::isThereGoodsToLoadRecently(Berth &berth, std::vector<Goods> &goods){
+    //  遍历货物，判断SHIP_WAIT_TIME_LIMIT时间内有没有货物到达
+    int value = 0;
+    for(auto &good : goods){
+        if(good.status == 1 || good.status == 2
+        && good.distsToBerths[0].first == berth.id
+        && good.distsToBerths[0].second <= SHIP_WAIT_TIME_LIMIT
+        && good.distsToBerths[0].second <= good.TTL){
+            value += good.value;
+        }
+    }
+    // todo 后期可以设置超参数
+    if(value > 200) {
+        LOGI("最近", SHIP_WAIT_TIME_LIMIT, "帧内货物价值：", value);
+        return true;
+    }
     else return false;
 }
 

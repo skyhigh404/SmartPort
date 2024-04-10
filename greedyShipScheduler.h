@@ -30,6 +30,7 @@ private:
     int MAX_SHIP_NUM;     // 一个泊位最多几艘船
     int TIME_TO_WAIT; //等待有货的时间段
     int CAPACITY_GAP;   // 泊位溢出货物量和船的容量差
+    int SHIP_WAIT_TIME_LIMIT; // 船在泊位上等待的时间限制
     // 等等
 
 private:
@@ -48,6 +49,9 @@ private:
 
     // 判断泊位上是否有货物可装载
     bool isThereGoodsToLoad(Berth &berth); 
+
+    // 判断泊位上短时间内是否有货物可以状态
+    bool isThereGoodsToLoadRecently(Berth &berth, std::vector<Goods> &goods); 
 
     // 判断泊位最近有没有货物到来
     bool isGoodsArrivingSoon(Berth &berth, std::vector<Goods> goods); 

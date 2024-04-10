@@ -344,13 +344,17 @@ void RobotController::decideWhoToWaitAndRefindWhenTargetOverlap(Map &map, Robot 
         makeRobotMoveToTempPos(decideWhoWaits(robot1, robot2));
         return;
     }
+    else{
+        // 两个机器人都m没有让行空间，让一个停止移动
+        LOGI("两个机器人都m没有让行空间，让一个停止移动: ", robot1);
+        makeRobotWait(robot1);
+
+    }
     
 
 
-    // 如果两个机器人都不能移动
-    makeRobotWait(robot1);
-    makeRobotWait(robot2);
-    LOGE("解决死锁失败");
+    // makeRobotWait(robot2);
+    // LOGE("解决死锁失败");
 
     // 有可能有某个机器人占了它的终点，只能等待
     // bool robot1DstReachable = robot1.destination != robot2.pos && map.passable(robot1.destination);

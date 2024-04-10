@@ -424,7 +424,7 @@ public:
     friend std::ostream &operator<<(std::ostream &os, const Ship &ship)
     {
         os << "Ship id: " << ship.id << " locAndDir: " << ship.locAndDir << " nextlocAndDir: " << ship.nextLocAndDir << " dst: " << ship.destination << " path: " << ship.path.size() << ", ";
-        for (int i = (int)ship.path.size() - 1; i >= std::max(0, (int)ship.path.size() - 3); --i)
+        for (int i = (int)ship.path.size() - 1; i >= std::max(0, (int)ship.path.size() - 5); --i)
         {
             os << ship.path[i];
         }

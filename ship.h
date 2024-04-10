@@ -49,7 +49,7 @@ public:
     // 寻路并存储
     static bool findPath(const Map &map, const VectorPosition &start, const VectorPosition &destination)
     {
-        // static std::mutex seaRoutesMutex;
+        static std::mutex seaRoutesMutex;
         if (getInstance().seaRoutes.find(std::make_pair(start, destination)) !=
             getInstance().seaRoutes.end())
             return true;
@@ -60,7 +60,7 @@ public:
         {
             Path<VectorPosition> route = std::get<Path<VectorPosition>>(path);
             route.push_back(start);
-            // std::lock_guard<std::mutex> lock(seaRoutesMutex);
+            std::lock_guard<std::mutex> lock(seaRoutesMutex);
             getInstance().seaRoutes[std::make_pair(start, destination)] = route;
             return true;
         }

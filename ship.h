@@ -134,10 +134,9 @@ public:
         if (state != compareShip.state) {
             return state > compareShip.state;
         }
-        // 路径短的优先
-        // todo 让路径长的优先可以减少死锁次数
+        // 路径长的优先
         else if (path.size() != compareShip.path.size()){
-            return path.size() < compareShip.path.size();
+            return path.size() > compareShip.path.size();
         }
         // id小的优先
         else{
@@ -424,7 +423,7 @@ public:
 
     friend std::ostream &operator<<(std::ostream &os, const Ship &ship)
     {
-        os << "Ship id: " << ship.id << " locAndDir: " << ship.locAndDir << " nextlocAndDir: " << ship.nextLocAndDir << " dst: " << ship.destination << " path: " << ship.path.size() << ", ";
+        os << "Ship id: " << ship.id << " state: " << ship.state << " locAndDir: " << ship.locAndDir << " nextlocAndDir: " << ship.nextLocAndDir << " dst: " << ship.destination << " path: " << ship.path.size() << ", ";
         for (int i = (int)ship.path.size() - 1; i >= std::max(0, (int)ship.path.size() - 5); --i)
         {
             os << ship.path[i];

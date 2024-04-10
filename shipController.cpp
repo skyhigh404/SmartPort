@@ -12,16 +12,11 @@ void ShipController::runController(Map &map,std::vector<Ship> &ships, SeaSingleL
         ship.info();
         LOGI("是否需要寻路：",needPathfinding(ship));
         // if (ship.state != 0) continue;
-        if (ship.shipStatus != ShipStatusSpace::ShipStatus::MOVING_TO_BERTH &&
-        ship.shipStatus != ShipStatusSpace::ShipStatus::MOVING_TO_DELIVERY) continue;
+        // if (ship.shipStatus != ShipStatusSpace::ShipStatus::MOVING_TO_BERTH &&
+        // ship.shipStatus != ShipStatusSpace::ShipStatus::MOVING_TO_DELIVERY) 
+        //     continue;
         if (needPathfinding(ship)){
             runPathfinding(map, ship);
-            // 判断第一跳是否是原地
-            if (!ship.path.empty() && ship.path.back() == ship.locAndDir){
-                // 弹出第一个位置
-                // LOGI("弹出位置：", ship.path.back(), ", 当前位置：", ship.locAndDir);
-                ship.path.pop_back();
-            }
             // ship.info();
             // for(auto &item : ship.path){
             //     LOGI(item);
@@ -48,17 +43,18 @@ void ShipController::runController(Map &map,std::vector<Ship> &ships, SeaSingleL
         std::set<CollisionEvent, CollisionEventCompare> collisions = detectNextFrameConflict(map, ships, seaSingleLaneManager);
         if(collisions.empty())
             break;
-        LOGI("发现船冲突");
+
+        LOGI("船舶发现冲突");
         for(const auto &collision : collisions) {
             LOGI(collision.shipId1, ", ", collision.shipId2, ", ", collision.type);
         }
-        // 遍历冲突机器人集合
+        // 遍历冲突船舶集合
         for(const auto &collision : collisions) {
             // 重新规划冲突船的行动以解决冲突
             tryResolveConflict(map,ships, collision);
         }
 
-        // 权衡机器人的规划，设置设定合理的指令
+        // 权衡船舶的规划，设置设定合理的指令
         rePlanShipMove(map, ships);
 
         map.clearTemporaryObstacles();
@@ -76,10 +72,10 @@ void ShipController::runController(Map &map,std::vector<Ship> &ships, SeaSingleL
 
 bool ShipController::needPathfinding(Ship &ship)
 {
-    if (ship.shipStatus== ShipStatusSpace::ShipStatus::MOVING_TO_BERTH && ship.berthId !=-1 && ship.isDestinationValid() && ship.path.empty()) {
+    if (ship.shipStatus == ShipStatusSpace::ShipStatus::MOVING_TO_BERTH && ship.berthId != -1 && ship.isDestinationValid() && ship.path.empty()) {
         return true;
     }
-    if (ship.shipStatus== ShipStatusSpace::ShipStatus::MOVING_TO_DELIVERY && ship.isDestinationValid() && ship.path.empty()) {
+    if (ship.shipStatus == ShipStatusSpace::ShipStatus::MOVING_TO_DELIVERY && ship.isDestinationValid() && ship.path.empty()) {
         return true;
     }
     return false;
@@ -97,7 +93,11 @@ void ShipController::runPathfinding(const Map &map, Ship &ship)
     // 寻路成功，设置船状态
     else{
         LOGI("船寻路成功",ship.id);
-        ;
+        // 判断第一跳是否是原地
+        if (!ship.path.empty() && ship.path.back() == ship.locAndDir){
+            // 弹出第一个位置
+            ship.path.pop_back();
+        }
     }
 }
 
@@ -108,7 +108,7 @@ void ShipController::tryResolveConflict(Map &map, std::vector<Ship> &ships, cons
     Ship &ship2 = (event.shipId2 != -1) ? ships[event.shipId2] : ship1; // 用于单一船事件处理
     // 下一帧位置冲突
     if(event.type == CollisionEvent::CollisionType::NextOverlapCollision){
-        // 有船的下一帧位置不和当前另一个船位置重合
+        // 船 1 的下一帧位置不和船 2 当前位置重合
         if (!hasOverlap(map, ship1.nextLocAndDir, ship2.locAndDir)){
             // 让船2等待
             makeShipWait(ship2);
@@ -147,7 +147,7 @@ void ShipController::tryResolveConflict(Map &map, std::vector<Ship> &ships, cons
 
 // 根据船的 ShipResolutionActions 权衡合理的规划逻辑
 void ShipController::rePlanShipMove(Map &map, std::vector<Ship> &ships){
-    std::vector<std::pair<int, ResolutionAction>> refindPathActions; // 存储需要重新寻路的动作及其机器人ID
+    std::vector<std::pair<int, ResolutionAction>> refindPathActions; // 存储需要重新寻路的动作及其船舶ID
     // 排序
     for (auto& [key, value] : shipResolutionActions) {
         std::vector<ResolutionAction>& actions = value;
@@ -157,7 +157,7 @@ void ShipController::rePlanShipMove(Map &map, std::vector<Ship> &ships){
     }
 
     // 按优先级最高的规划行动
-    // 步骤 1和 2: 遍历所有机器人动作，执行非RefindPath动作，收集RefindPath动作
+    // 步骤 1和 2: 遍历所有船舶动作，执行非RefindPath动作，收集RefindPath动作
     for (const auto& [key, value] : shipResolutionActions) {
         Ship &ship = ships.at(key);
         if (value.at(0).method == ResolutionAction::RefindPath) {
@@ -190,6 +190,7 @@ void ShipController::rePlanShipMove(Map &map, std::vector<Ship> &ships){
     // 步骤3: 执行所有收集的RefindPath动作
     for (auto& pair : refindPathActions) {
         Ship &ship = ships.at(pair.first);
+        LOGI("船舶重新寻路: ", ship);
         map.removeTemporaryObstacle(ship.nextLocAndDir);
         runPathfinding(map, ship);
         ship.updateNextPos();
@@ -285,30 +286,30 @@ void ShipController::makeShipDept(const Ship &ship){
     }
 }
 
-// 判断两艘船是否重合，在主航道上的体积不计入
+// 判断两艘船是否重合，在主航道上的体积不计入，true 是有重叠
 bool ShipController::hasOverlap(Map &map, VectorPosition &a, VectorPosition &b) {
         std::pair<Point2d, Point2d> ship1 = SpatialUtils::getShipOccupancyRect(a);
         std::pair<Point2d, Point2d> ship2 = SpatialUtils::getShipOccupancyRect(b);
         // 检查两个船的矩形是否有重叠部分，计算重叠部分的左上角和右下角坐标
         int x1 = std::max(ship1.first.x, ship2.first.x);
-        int y1 = std::min(ship1.first.y, ship2.first.y);
+        int y1 = std::max(ship1.first.y, ship2.first.y);
         int x2 = std::min(ship1.second.x, ship2.second.x);
-        int y2 = std::max(ship1.second.y, ship2.second.y);
+        int y2 = std::min(ship1.second.y, ship2.second.y);
 
         // 检查是否有重叠部分
-        bool overlap = (x1 <= x2) && (y1 >= y2);
+        bool overlap = (x1 <= x2) && (y1 <= y2);
         if (overlap) {
             // 如果重叠部分全部位于主航道，则不算重合
-            for( int x = x1; x < x2; x++){
-                for (int y = y1; y < y2; y++){
-                    if (!map.isInSealane({x, y})) return false;
+            for( int x = x1; x <= x2; x++){
+                for (int y = y1; y <= y2; y++){
+                    if (!map.isInSealane({x, y}))
+                        return true;
                 }
             }
             // 全部位于主航道
-            return true;
-        } else {
             return false;
-        }
+        } 
+        return false;
 }
 
 // 判断两艘船下一帧位置是否冲突
@@ -318,9 +319,11 @@ bool ShipController::isNextOverlapCollision(Map &map, Ship &a, Ship &b){
 
 // 判断两艘船是否是由于执行顺序而引起的冲突
 bool ShipController::isPathCrossingCollision(Map &map, Ship &a, Ship &b){
-    if (isNextOverlapCollision(map, a, b)) return false;
+    if (isNextOverlapCollision(map, a, b)) 
+        return false;
     // 优先级高的船下一帧位置和优先级低的船当前位置产生了重合
-    // todo 当前默认id小的船优先级高，后续需要验证
-    if (a.id < b.id) return hasOverlap(map, a.nextLocAndDir, b.locAndDir);
-    else return hasOverlap(map, a.locAndDir, b.nextLocAndDir);
+    if (a.id < b.id) 
+        return hasOverlap(map, a.nextLocAndDir, b.locAndDir);
+    else 
+        return hasOverlap(map, a.locAndDir, b.nextLocAndDir);
 }

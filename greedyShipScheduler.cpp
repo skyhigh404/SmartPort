@@ -78,7 +78,7 @@ void GreedyShipScheduler::handleShipOnRoute(Map& map, Ship &ship,std::vector<Ber
     }
     else{
         // 路径不为空就到达目的地
-        LOGE("船路径不为空，但抵达目的地");
+        LOGE("船路径为空，没有抵达目的地");
         ship.info();
     }
 }

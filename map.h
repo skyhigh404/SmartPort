@@ -49,6 +49,9 @@ public:
     std::vector<std::vector<MapItemSpace::MapItem>> readOnlyGrid;                    // 地图的拷贝，只读
     std::unordered_map<int, std::vector<std::vector<int>>> berthDistanceMap;         // 陆地上所有点到泊位距离图
     std::unordered_map<int, std::vector<std::vector<int>>> maritimeBerthDistanceMap; // 海洋上所有点到泊位距离图
+
+    std::vector<std::vector<int>> berthToBerthDistance; //第一维是起始泊位id，第二维是目标泊位id
+    std::vector<std::vector<int>> berthToDeliveryDistance;  //第一位是起始泊位id，第二维是目标交货点id
 public:
     // std::vector<std::reference_wrapper<Point2d>> robotPosition;  // 实时记录机器人位置（不建议使用）
     std::vector<Point2d> temporaryObstacles;                     // 临时障碍物的位置
@@ -153,7 +156,7 @@ public:
     void removeTemporaryObstacle(const Point2d &pos);
     // 移除所有临时障碍物
     void clearTemporaryObstacles();
-    // 添加一个临时障碍物，即机器人
+    // 以船舶的体积添加多个临时障碍物
     void addTemporaryObstacle(const VectorPosition &vecPos);
     // 移除一个临时障碍物
     void removeTemporaryObstacle(const VectorPosition &vecPos);

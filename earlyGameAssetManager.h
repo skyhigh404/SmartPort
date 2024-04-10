@@ -76,5 +76,5 @@ private:
     Point2d buyShip(const std::vector<Ship> &ships, const std::vector<Goods> &goods, const Map &gameMap, int currentFunds);
     Point2d getProperRobotShop(LandSeaBlock& l, const Map &gameMap);
     Point2d getProperShipShop(LandSeaBlock& l, const Map &gameMap);
-    int getAssignId(Point2d shopPos);
+    int getAssignId(Point2d shopPos, const std::vector<Berth> &berths);
 };

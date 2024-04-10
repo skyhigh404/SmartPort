@@ -35,6 +35,9 @@ public:
     // 初始化
     virtual void initialize() = 0;
     virtual ~RobotScheduler() {}
+
+    // 用于游戏初期的集中调度
+    BerthID assignedBerthID = -1;
 };
 
 class ShipScheduler

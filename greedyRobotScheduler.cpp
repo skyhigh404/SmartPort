@@ -322,6 +322,12 @@ void GreedyRobotScheduler::findGoodsForRobot(const Map &map,
         // int berthsIndex = bestBerthIndex[goodsIndex];
         int timeToGoods = cost_robot2good[goodIndex];
         int timeToBerths = cost_good2berth[goodIndex];
+
+        // 集中往一个泊位搬货
+        if (assignedBerthID != -1) {
+            timeToBerths = map.berthDistanceMap.at(assignedBerthID)[good.pos.x][good.pos.y];
+        }
+
         if (timeToBerths == INT_MAX || timeToGoods == INT_MAX)
             continue;
         int berthsIndex = good.distsToBerths[0].first;
@@ -345,6 +351,11 @@ void GreedyRobotScheduler::findBerthForRobot(Robot &robot,
                                              const std::vector<Berth> &berths,
                                              const Map &map)
 {
+    if (assignedBerthID != -1 && map.berthDistanceMap.at(assignedBerthID)[robot.pos.x][robot.pos.y] < INT_MAX) {
+        robot.assignGoodOrBerth(assignedBerthID, berths[assignedBerthID].pos);
+        return;
+    }
+
     // 查询机器人所持有货物被分配的泊位 ID，直接构造 pair 并返回
     const Berth &berth = berths[goods[robot.carryingItemId].distsToBerths[0].first];
     // 不考虑泊位 isEnabled 为 False 的情况，这应该由其他函数更新所有货物被分配的泊位 ID，而不是由该调度函数负责

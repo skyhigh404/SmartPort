@@ -574,8 +574,11 @@ void GameManager::assetControl()
     for (const auto &purchaseDecision : purchaseDecisions)
     {
         if (purchaseDecision.assetType == AssetType::ROBOT)
-            for (int i = 0; i < purchaseDecision.quantity; ++i)
+            for (int i = 0; i < purchaseDecision.quantity; ++i) {
                 commandManager.addRobotCommand(Robot::lbot(purchaseDecision.pos));
+                // 集中搬货
+                robotScheduler->assignedBerthID = BerthID(purchaseDecision.assignId);
+            }
         else if (purchaseDecision.assetType == AssetType::SHIP)
             for (int i = 0; i < purchaseDecision.quantity; ++i)
                 commandManager.addShipCommand(Ship::lboat(purchaseDecision.pos));
@@ -584,6 +587,7 @@ void GameManager::assetControl()
 
 void GameManager::update()
 {   
+    LOGI("集中搬货：", robotScheduler->assignedBerthID);
 
     auto start = std::chrono::steady_clock::now();
     

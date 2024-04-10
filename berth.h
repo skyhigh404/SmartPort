@@ -114,6 +114,7 @@ public:
 
         std::string unreach_info = "未到达货物数量:" + std::to_string(unreached_goods.size()) + ";总价值：" + std::to_string(totalValue);
         LOGI(berth_info, reach_info, ";", unreach_info);
+        LOGI("泊位上船的数量：", shipInBerthNum,",路途时间：", onRouteTime);
         LOGI("送达货物量：", totalLoadGoodnum, ",总货物量", deliverGoodNum, ",理论最大送达量：", maxLoadGoodNum, ", 成功装载比例：", maxLoadGoodNum * 1.0 / deliverGoodNum, ",成功送达比例：", totalLoadGoodnum * 1.0 / maxLoadGoodNum);
         LOGI("-----------------------------------------------------------------------------------------------------------------------------------------------");
     }

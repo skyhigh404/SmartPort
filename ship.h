@@ -122,6 +122,7 @@ public:
         : id(id),
           state(0),
           berthId(-1),
+          deliveryId(-1),
           remainingTransportTime(0),
           nextLocAndDir(-1, -1, Direction::EAST),
           shipStatus(ShipStatusSpace::ShipStatus::IDLE),

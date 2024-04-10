@@ -384,6 +384,7 @@ void Map::addTemporaryObstacle(const Point2d& pos) {
     }
 }
 
+
 void Map::removeTemporaryObstacle(const Point2d& pos) {
     if (inBounds(pos)) {
         auto it = temporaryObstaclesRefCount.find(pos);
@@ -393,6 +394,25 @@ void Map::removeTemporaryObstacle(const Point2d& pos) {
                 grid[pos.x][pos.y] = readOnlyGrid[pos.x][pos.y];  // 恢复为原始元素
             }
         }
+    }
+}
+
+void Map::addTemporaryObstacle(const VectorPosition& vecPos) {
+    // 获取船的占用体积
+    std::pair<Point2d, Point2d> shipSpace = SpatialUtils::getShipOccupancyRect(vecPos);
+    for (int x = shipSpace.first.x; x <= shipSpace.second.x; x++){
+        for (int y= shipSpace.first.y; y <= shipSpace.second.y; y++)
+            addTemporaryObstacle({x, y});
+    }
+}
+
+
+void Map::removeTemporaryObstacle(const VectorPosition& vecPos) {
+    // 获取船的占用体积
+    std::pair<Point2d, Point2d> shipSpace = SpatialUtils::getShipOccupancyRect(vecPos);
+    for (int x = shipSpace.first.x; x <= shipSpace.second.x; x++){
+        for (int y= shipSpace.first.y; y <= shipSpace.second.y; y++)
+            removeTemporaryObstacle({x, y});
     }
 }
 

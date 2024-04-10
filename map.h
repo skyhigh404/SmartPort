@@ -153,6 +153,10 @@ public:
     void removeTemporaryObstacle(const Point2d &pos);
     // 移除所有临时障碍物
     void clearTemporaryObstacles();
+    // 添加一个临时障碍物，即机器人
+    void addTemporaryObstacle(const VectorPosition &vecPos);
+    // 移除一个临时障碍物
+    void removeTemporaryObstacle(const VectorPosition &vecPos);
     // 获取距离为 n 格内除 robotPos 外的其他机器人坐标
     std::vector<Point2d> getNearbyTemporaryObstacles(const Point2d &robotPos, int n) const;
     // 初始化泊位到交货点的距离变量

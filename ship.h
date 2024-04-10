@@ -10,9 +10,9 @@
 namespace ShipStatusSpace{
     enum ShipStatus
     {
-        IDLE,            // 船处于空闲状态，等待新的任务分配
-        MOVING_TO_DELIVERY, // 船正在移动至指定货物位置。
+        IDLE = 0,            // 船处于空闲状态，等待新的任务分配
         MOVING_TO_BERTH, // 船正在移动至指定泊位。
+        MOVING_TO_DELIVERY, // 船正在移动至指定货物位置。
         LOADING,       // 船正在装货物。
     };
 }
@@ -95,6 +95,7 @@ public:
     static int capacity;        // 船的容量
     int remainingTransportTime; // 船到目标泊位的剩余运行时间，在处理每一帧信息时维护
     VectorPosition destination;
+    bool shouldDept;
 
 public:
     VectorPosition nextLocAndDir;     // 船舶下一帧位姿
@@ -110,7 +111,28 @@ public:
           berthId(-1),
           remainingTransportTime(0),
           nextLocAndDir(-1, -1, Direction::EAST),
-          shipStatus(ShipStatusSpace::ShipStatus::IDLE) {}
+          shipStatus(ShipStatusSpace::ShipStatus::IDLE),
+          shouldDept(false) {}
+
+    // 比较优先级
+    bool comparePriority(Ship &compareShip){
+        // 去泊位的优先
+        if (shipStatus != compareShip.shipStatus){
+            return shipStatus < compareShip.shipStatus;
+        }
+        // 路径短的优先
+        else if (path.size() != compareShip.path.size()){
+            return path.size() < compareShip.path.size();
+        }
+        // id小的优先
+        else{
+            return id < compareShip.id;
+        } 
+    }
+
+    void resetDeptStatus(){
+        shouldDept = false;
+    }
 
     //  购买船只
     static std::string lboat(const Point2d &pos)
@@ -357,7 +379,8 @@ public:
     void updateMoveToBerthStatus(BerthID berthId, VectorPosition destination){
         LOGI("船",id,",前往泊位状态");
         #ifdef DEBUG
-        assert(berthId != -1);
+        // assert(berthId != -1);
+        LOGE("分配泊位失败！");
         #endif
         shipStatus = ShipStatusSpace::ShipStatus::MOVING_TO_BERTH;
         this->berthId = berthId;

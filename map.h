@@ -164,6 +164,8 @@ public:
     std::vector<Point2d> getNearbyTemporaryObstacles(const Point2d &robotPos, int n) const;
     // 初始化泊位到交货点的距离变量
     std::vector<std::pair<int, int>> initializeBerthToDeliveryDistances(BerthID berthId);
+    // TODO: 评估海图上不同方向进入的路径和成本
+    Direction evaluateBestApproachDirection(const VectorPosition &shipPosition, const Point2d &pos);
 
 public:
     // This outputs a grid. Pass in a distances map if you want to print

@@ -485,7 +485,11 @@ public:
 
     friend std::ostream &operator<<(std::ostream &os, const Ship &ship)
     {
-        os << "Ship id: " << ship.id << " state: " << ship.state << " locAndDir: " << ship.locAndDir << " nextlocAndDir: " << ship.nextLocAndDir << " dst: " << ship.destination << " path: " << ship.path.size() << ", ";
+        auto a = SpatialUtils::getShipOccupancyRect(ship.locAndDir);
+        auto b = SpatialUtils::getShipOccupancyRect(ship.nextLocAndDir);
+        os << "Ship id: " << ship.id << " state: " << ship.state << " locAndDir: " << ship.locAndDir << " nextlocAndDir: " << ship.nextLocAndDir \
+        << " 当前船占用范围: " << a.first << a.second << ", 下一帧占地: " << b.first << b.second\
+        << ", dst: " << ship.destination << " path: " << ship.path.size() << ", ";
         for (int i = (int)ship.path.size() - 1; i >= std::max(0, (int)ship.path.size() - 5); --i)
         {
             os << ship.path[i];

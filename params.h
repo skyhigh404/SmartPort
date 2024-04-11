@@ -7,13 +7,17 @@ struct Params
     // robot 参数
     // 例如，float greedyRobotScheduleTTLProfitWeight
     // 泊位聚类超参
-    int CLUSTERNUMS = 2; // 泊位的聚类类别数目
+    int CLUSTERNUMS = 4; // 泊位的聚类类别数目
 
     // 机器人调度超参
     float TTL_ProfitWeight = 1.5;
     int TTL_Bound = 500;
-    bool PartitionScheduling = false; // 是否分区调度
+    bool PartitionScheduling = true; // 是否分区调度
+    bool DynamicPartitionScheduling = true;
     std::vector<int> ASSIGNBOUND;
+    float robotReleaseBound = 0.6; //低于平均泊位价值的比值时，释放机器人去其他泊位
+    int DynamicSchedulingInterval = 200; // 动态调度间隔
+
     
     // 购买策略超参
     int maxRobotNum = 12;    // 最多购买机器人数目
@@ -25,7 +29,7 @@ struct Params
     int startNum = 1;       // 最初的数目（机器人、轮船）
     float landDistanceWeight = 10.0;       // 对泊位价值评估时的陆地访问距离权重
     float deliveryDistanceWeight = 10.0;   // 对泊位价值评估时的交货点访问距离权重
-    bool CentralizedTransportation = false;
+    bool CentralizedTransportation = true;
     bool robotFirst = true;
 
     //  泊位超参

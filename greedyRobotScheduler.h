@@ -28,6 +28,7 @@ private:
     float TTL_ProfitWeight;
     int TTL_Bound;
     bool PartitionScheduling; // 是否分区调度
+    int maxRobotNum;
     // 等等
     std::vector<std::pair<BerthID, int>> maxRobotsPerBerth; // 记录每个泊位分配机器人的上限
 private:

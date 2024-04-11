@@ -15,9 +15,9 @@ void GreedyRobotScheduler::scheduleRobots(const Map &map,
 {
     // LOGI("货物数量：", goods.size());
     // countRobotsPerBerth(robots);
-    // if (assignment[0]==-1) {
-    //     assignRobotsByCluster(robots, map);
-    // }
+    if (assignment.empty() && robots.size()==maxRobotNum) {
+        assignRobotsByCluster(robots, map);
+    }
 
     for (Robot &robot : robots)
     {
@@ -47,6 +47,7 @@ void GreedyRobotScheduler::setParameter(const Params &params)
     TTL_Bound = params.TTL_Bound;
     TTL_ProfitWeight = params.TTL_ProfitWeight;
     PartitionScheduling = params.PartitionScheduling;
+    maxRobotNum = params.maxRobotNum;
 }
 
 void GreedyRobotScheduler::assignRobotsByCluster(vector<Robot> &robots, const Map &map, vector<int> assignBound)
@@ -332,7 +333,7 @@ void GreedyRobotScheduler::findGoodsForRobot(const Map &map,
             continue;
         int berthsIndex = good.distsToBerths[0].first;
         // LOGI("货物id：",good.id,"货物状态：",good.status,"货物收益：",profits[good.id]);
-        if (PartitionScheduling && !enterFinal && berthCluster->at(berthsIndex)!=assignment[robot.id]) continue;
+        if (PartitionScheduling && !assignment.empty() && !enterFinal && berthCluster->at(berthsIndex)!=assignment[robot.id]) continue;
 
         if (good.status == 0 && profits[goodIndex] > 0 && good.TTL + 10 >= timeToGoods)
         {

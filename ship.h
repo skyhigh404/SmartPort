@@ -59,7 +59,6 @@ public:
         if (std::holds_alternative<Path<VectorPosition>>(path))
         {
             Path<VectorPosition> route = std::get<Path<VectorPosition>>(path);
-            route.push_back(start);
             std::lock_guard<std::mutex> lock(seaRoutesMutex);
             getInstance().seaRoutes[std::make_pair(start, destination)] = route;
             return true;
@@ -254,19 +253,39 @@ public:
         if(!route.empty())
         {
             this->path = route;
-
-            // std::vector<Point2d> path2D;
-            // for(auto &point : this->path)
-            //     path2D.push_back(point.pos);
-            // LOGI(map.drawMap(nullptr, nullptr, &path2D, &locAndDir.pos, &destination.pos));
-
             return true;
         }
-        // 如果没有寻找到预先存储的路径
+        // 如果没有寻找到预先存储的路径，则需要调用寻路算法
         std::variant<Path<VectorPosition>, PathfindingFailureReason> path = pathFinder.findPath(locAndDir, destination, map);
         if (std::holds_alternative<Path<VectorPosition>>(path))
         {
             std::swap(this->path, std::get<Path<VectorPosition>>(path));
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    // 寻找一条可以绕开障碍物然后回到原先的航路上的路径
+    bool findDetourAndUpdatePath(const Map &map)
+    {
+        VectorPosition intersection = destination;
+        int i = std::max(0, static_cast<int>(this->path.size()) - 4);  // 设置绕行后的合并点应为当前路径的后 3 格以后（随便设的）
+        for(; i >= 0; --i) {
+            if (map.passable(path[i])) {
+                intersection = path[i];
+                break;
+            }
+        }
+        i = std::max(0, i);
+        std::variant<Path<VectorPosition>, PathfindingFailureReason> path = pathFinder.findPath(locAndDir, intersection, map);
+        if (std::holds_alternative<Path<VectorPosition>>(path))
+        {
+            Path<VectorPosition> detourPath = std::get<Path<VectorPosition>>(path);
+            this->path.erase(this->path.begin()+i, this->path.end());
+            this->path.insert(this->path.end(), detourPath.begin(), detourPath.end());
             return true;
         }
         else

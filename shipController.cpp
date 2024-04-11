@@ -93,11 +93,6 @@ void ShipController::runPathfinding(const Map &map, Ship &ship)
     }
     // 寻路成功，设置船状态
     else{
-        // 判断第一跳是否是原地
-        if (!ship.path.empty() && ship.path.back() == ship.locAndDir){
-            // 弹出第一个位置
-            ship.path.pop_back();
-        }
         LOGI("船寻路成功: ",ship);
     }
 }

@@ -127,14 +127,16 @@ private:
         else return false;
     }
 
-    // 判断船的位置是否发生冲突
-    bool hasOverlap(Map &map, VectorPosition &a, VectorPosition &b);
+    // // 判断船的位置是否发生冲突
+    // bool hasOverlap(Map &map, VectorPosition &a, VectorPosition &b);
 
     // 判断两艘船下一帧位置是否冲突
     bool isNextOverlapCollision(Map &map, Ship &a, Ship &b);
 
     // 判断两艘船是否是由于执行顺序而引起的重推
     bool isPathCrossingCollision(Map &map, Ship &a, Ship &b);
+
+    // 判断船是否前往一个泊位
 
     
 private:

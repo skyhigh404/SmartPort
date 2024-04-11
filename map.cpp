@@ -6,6 +6,7 @@
 #include <queue>
 #include <climits>
 #include "log.h"
+#include <unordered_set>
 
 std::array<Point2d, 4> Map::DIRS = {
     /* East, West, North, South */
@@ -541,4 +542,27 @@ std::vector<std::pair<int, int>> Map::initializeBerthToDeliveryDistances(BerthID
 Direction Map::evaluateBestApproachDirection(const VectorPosition &shipPosition, const Point2d &pos)
 {
     return Direction::EAST;
+}
+
+
+// 判断两艘船是否重合，在主航道上的体积不计入，true 是有重叠
+bool Map::hasOverlap(VectorPosition &a, VectorPosition &b) {
+    std::pair<Point2d, Point2d> ship1 = SpatialUtils::getShipOccupancyRect(a);
+    std::pair<Point2d, Point2d> ship2 = SpatialUtils::getShipOccupancyRect(b);
+    std::unordered_set<Point2d> shipSpace;
+    // 遍历第一个船空间
+    for (int x = ship1.first.x; x <= ship1.second.x; x++){
+        for (int y = ship1.first.y; y <= ship1.second.y; y++){
+            shipSpace.insert(Point2d(x, y));
+        }
+    }
+    // 遍历第二个船空间，判断和第一个船空间是否重合
+    for (int x = ship2.first.x; x <= ship2.second.x; x++){
+        for (int y = ship2.first.y; y <= ship2.second.y; y++){
+            // 重合并且不是主航道，返回true
+            if(shipSpace.find(Point2d(x, y)) != shipSpace.end() && !isInSealane(Point2d(x, y)))
+                return true;
+        }
+    }
+    return false;
 }

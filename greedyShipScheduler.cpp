@@ -79,11 +79,11 @@ void GreedyShipScheduler::handleShipOnRoute(Map& map, Ship &ship,std::vector<Ber
         // LOGI("分配泊位：", berthId);
         // return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::MOVE_TO_BERTH,berthId);
     }
-    else{
-        // 路径为空，但没有抵达目的地
-        LOGE("船路径为空，没有抵达目的地");
-        ship.info();
-    }
+    // else{
+    //     // 路径为空，但没有抵达目的地
+    //     LOGE("船路径为空，没有抵达目的地");
+    //     ship.info();
+    // }
 }
 
 // 处理船在泊位上的情况

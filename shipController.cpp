@@ -106,18 +106,18 @@ void ShipController::tryResolveConflict(Map &map, std::vector<Ship> &ships, cons
     if(event.type == CollisionEvent::CollisionType::NextOverlapCollision){
         LOGI("下一帧位置重合冲突");
         // 船 1 的下一帧位置不和船 2 当前位置重合
-        if (!hasOverlap(map, ship1.nextLocAndDir, ship2.locAndDir)){
+        if (!map.hasOverlap(ship1.nextLocAndDir, ship2.locAndDir) && ship1.state != 1){
             // 让船2等待
             LOGI("让船",ship2.id,"等待: ", ship2);
             makeShipWait(ship2);
         }
-        else if (!hasOverlap(map, ship2.nextLocAndDir, ship1.locAndDir)){
+        else if (!map.hasOverlap(ship2.nextLocAndDir, ship1.locAndDir) && ship2.state != 1){
             // 让船1等待
             LOGI("让船",ship1.id, "等待: ", ship1);
             makeShipWait(ship1);
         }
         // 让优先级低的等待，优先级高的重新寻路
-        else if (ship1.comparePriority(ship2)){
+        else if (ship1.comparePriority(map, ship2)){
             // 船2优先级低
             LOGI("让船",ship1.id, "重新寻路，船", ship2.id, "等待");
             makeShipWait(ship2);
@@ -135,12 +135,12 @@ void ShipController::tryResolveConflict(Map &map, std::vector<Ship> &ships, cons
     else if(event.type == CollisionEvent::CollisionType::PathCrossingCollision){
         LOGI("结算顺序冲突");
         // 有船的下一帧位置不和当前另一个机器人位置重合
-        if (!hasOverlap(map, ship1.nextLocAndDir, ship2.locAndDir)){
+        if (!map.hasOverlap(ship1.nextLocAndDir, ship2.locAndDir)){
             // 让船2等待
             LOGI("让船",ship2.id,"等待: ", ship2);
             makeShipWait(ship2);
         }
-        else if (!hasOverlap(map, ship2.nextLocAndDir, ship1.locAndDir)){
+        else if (!map.hasOverlap(ship2.nextLocAndDir, ship1.locAndDir)){
             // 让船1等待
             LOGI("让船",ship1.id,"等待: ", ship1);
             makeShipWait(ship1);
@@ -198,19 +198,12 @@ void ShipController::rePlanShipMove(Map &map, std::vector<Ship> &ships){
     // 步骤3: 执行所有收集的RefindPath动作
     for (auto& pair : refindPathActions) {
         Ship &ship = ships.at(pair.first);
-        LOGI("船舶重新寻路: ", ship.id);
-        // LOGI("旧路径：");
-        // for (auto &item : ship.path){
-        //     LOGI(item);
-        // }
+        LOGI("船舶重新寻路: ", ship);
         map.removeTemporaryObstacle(ship.nextLocAndDir);
         // runPathfinding(map, ship);
         ship.findDetourAndUpdatePath(map);
         ship.updateNextPos();
-        // LOGI("新路径：");
-        // for (auto &item : ship.path){
-        //     LOGI(item);
-        // }
+        LOGI("重新寻路后：", ship);
         map.addTemporaryObstacle(ship.nextLocAndDir);
 
     }
@@ -233,12 +226,12 @@ void ShipController::updateTemporaryObstacles(Map &map, std::vector<Ship> &ships
     }
 }
 
-const Ship & ShipController::decideWhoWaits(Ship &ship1, Ship &ship2){
-    if (ship1.comparePriority(ship2))
-        return ship1;
-    else 
-        return ship2;
-}
+// const Ship & ShipController::decideWhoWaits(Ship &ship1, Ship &ship2){
+//     if (ship1.comparePriority(map, ship2))
+//         return ship1;
+//     else 
+//         return ship2;
+// }
 
 // 检测船之间是否冲突，输出冲突的船 ID (对)，不考虑地图障碍物的情况
 std::set<ShipController::CollisionEvent, ShipController::CollisionEventCompare> 
@@ -329,31 +322,11 @@ void ShipController::makeShipDept(const Ship &ship){
 //         return false;
 // }
 
-// 判断两艘船是否重合，在主航道上的体积不计入，true 是有重叠
-bool ShipController::hasOverlap(Map &map, VectorPosition &a, VectorPosition &b) {
-        std::pair<Point2d, Point2d> ship1 = SpatialUtils::getShipOccupancyRect(a);
-        std::pair<Point2d, Point2d> ship2 = SpatialUtils::getShipOccupancyRect(b);
-        std::unordered_set<Point2d> shipSpace;
-        // 遍历第一个船空间
-        for (int x = ship1.first.x; x <= ship1.second.x; x++){
-            for (int y = ship1.first.y; y <= ship1.second.y; y++){
-                shipSpace.insert(Point2d(x, y));
-            }
-        }
-        // 遍历第二个船空间，判断和第一个船空间是否重合
-        for (int x = ship2.first.x; x <= ship2.second.x; x++){
-            for (int y = ship2.first.y; y <= ship2.second.y; y++){
-                // 重合并且不是主航道，返回true
-                if(shipSpace.find(Point2d(x, y)) != shipSpace.end() && !map.isInSealane(Point2d(x, y)))
-                    return true;
-            }
-        }
-        return false;
-}
+
 
 // 判断两艘船下一帧位置是否冲突
 bool ShipController::isNextOverlapCollision(Map &map, Ship &a, Ship &b){
-    return hasOverlap(map, a.nextLocAndDir, b.nextLocAndDir);
+    return map.hasOverlap(a.nextLocAndDir, b.nextLocAndDir);
 }
 
 // 判断两艘船是否是由于执行顺序而引起的冲突
@@ -362,7 +335,7 @@ bool ShipController::isPathCrossingCollision(Map &map, Ship &a, Ship &b){
         return false;
     // 优先级高的船下一帧位置和优先级低的船当前位置产生了重合
     if (a.id < b.id) 
-        return hasOverlap(map, a.nextLocAndDir, b.locAndDir);
+        return map.hasOverlap(a.nextLocAndDir, b.locAndDir);
     else 
-        return hasOverlap(map, a.locAndDir, b.nextLocAndDir);
+        return map.hasOverlap(a.locAndDir, b.nextLocAndDir);
 }

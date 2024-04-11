@@ -129,10 +129,17 @@ public:
           loadGoodValue(0) {}
 
     // 比较优先级，true 表示本身的优先级大，false 表示 compareShip 优先级大
-    bool comparePriority(Ship &compareShip){
-        // 处于恢复状态的优先
-        if (state != compareShip.state) {
-            return state > compareShip.state;
+    bool comparePriority(Map &map, Ship &compareShip){
+        // 处于恢复状态的优先级低
+        if (std::abs(state - compareShip.state) == 1) {
+            return compareShip.state == 1 ? true : false;
+        }
+        // 挡住别人目的地的优先级高
+        else if(map.hasOverlap(nextLocAndDir, compareShip.destination) && compareShip.destination.pos != Point2d(-1, -1)){
+            return true;
+        }
+        else if(map.hasOverlap(compareShip.nextLocAndDir, destination) && destination.pos != Point2d(-1, -1)){
+            return false;
         }
         // 路径长的优先
         else if (path.size() != compareShip.path.size()){
@@ -272,13 +279,20 @@ public:
     bool findDetourAndUpdatePath(const Map &map)
     {
         VectorPosition intersection = destination;
-        int i = std::max(0, static_cast<int>(this->path.size()) - 4);  // 设置绕行后的合并点应为当前路径的后 3 格以后（随便设的）
+        if (this->path.empty()){
+            LOGE("findDetourAndUpdatePath:寻路失败", *this);
+            return false;
+        }
+        // 从第一个节点开始找
+        int i = std::max(0, static_cast<int>(this->path.size() - 1));  
         for(; i >= 0; --i) {
-            if (map.passable(path[i])) {
+            // 可以通行，并且不为原地
+            if (map.passable(path[i]) && path[i] != locAndDir) {
                 intersection = path[i];
                 break;
             }
         }
+        LOGI("路径上没有冲突的点：", intersection);
         i = std::max(0, i);
         std::variant<Path<VectorPosition>, PathfindingFailureReason> path = pathFinder.findPath(locAndDir, intersection, map);
         if (std::holds_alternative<Path<VectorPosition>>(path))
@@ -290,6 +304,34 @@ public:
         }
         else
         {
+            // 寻路失败，可能是当前方向被挡住
+            if (intersection == destination){
+                LOGI("没有冲突的点在终点");
+                // 目的地坐标不变，换个方向进去
+                std::vector<Direction> directions = std::vector<Direction>{Direction::EAST, Direction::WEST, Direction::NORTH, Direction::SOUTH};
+                for (auto &direction : directions){
+                    if (direction == destination.direction) continue;
+
+                    // 修改目的地方向
+                    intersection = VectorPosition(destination.pos, direction);
+                    // 不可通行
+                    if (!map.passable(intersection)) continue;
+
+                    // 重新寻路
+                    LOGI("当前可用方向：",intersection);
+                    path = pathFinder.findPath(locAndDir, intersection, map);
+                    if (std::holds_alternative<Path<VectorPosition>>(path))
+                    {
+                        Path<VectorPosition> detourPath = std::get<Path<VectorPosition>>(path);
+                        this->path.erase(this->path.begin()+i, this->path.end());
+                        this->path.insert(this->path.end(), detourPath.begin(), detourPath.end());
+                        // 修改终点
+                        this->destination = intersection;
+                        return true;
+                    }
+                }
+
+            }
             return false;
         }
     }

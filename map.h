@@ -199,6 +199,8 @@ public:
     }
     // 使用曼哈顿距离计算两个 VectorPosition 之间的代价，包含了转向代价
     int cost(const VectorPosition &e1, const VectorPosition &e2) const;
+    // 判断两个船空间是否重叠（冲突）
+    bool hasOverlap(VectorPosition &a, VectorPosition &b);
 };
 
 std::string printVector(const std::vector<Point2d> &path);

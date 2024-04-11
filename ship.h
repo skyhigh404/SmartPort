@@ -486,6 +486,11 @@ public:
         this->deliveryId = deliveryId;
         // todo方向如何确定
         this->destination = destination;
+        // 进去终局前报错
+        if ((loadGoodValue == 0 ||  goodsCount == 0) && CURRENT_FRAME < FINAL_FRAME){
+            LOGE("装货量为0:");
+            info();
+        }
         // 路径清空
         path.clear();
     }

@@ -16,8 +16,13 @@ int Goods::count = 0;
 int Berth::totalLoadGoodnum = 0;
 int Berth::maxLoadGoodNum = 0;
 int Berth::deliverGoodNum = 0;
+// 全局参数
 int CURRENT_FRAME = 0;  //当前帧数
 int last_assign = 0;
+int CURRENT_MONEY;
+int FINAL_FRAME;
+MapFlag MAP_TYPE;
+
 
 std::vector<int> berthDistrubtGoodNumCount;
 std::vector<int> berthDistrubtGoodValueCount;
@@ -421,7 +426,7 @@ void GameManager::processFrameData()
             this->ships[shipId].berthId = -1;
         }
         // 判断船是否到达交货点清空了货物
-        if (goodsCount == 0){
+        if (goodsCount == 0 && lastFrameGoodsCount!= 0){
             Berth::totalLoadGoodnum += lastFrameGoodsCount;
             LOGI("本次运货产生价值：", lastFrameLoadGoodValue, ",运货数量：", lastFrameGoodsCount);
             this->ships[shipId].loadGoodValue = 0;

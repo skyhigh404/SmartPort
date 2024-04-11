@@ -14,6 +14,7 @@ void GreedyShipScheduler::setParameter(const Params &params)
 void GreedyShipScheduler::scheduleShips(Map &map, std::vector<Ship> &ships, std::vector<Berth> &berths, std::vector<Goods> &goods, std::vector<Robot> &robots) {
     //需要迁移，更新泊位和货物的状态
     updateBerthStatus(ships, berths, goods, robots);
+    // LOGI("测试当前全局参数：", CURRENT_FRAME, ", ", FINAL_FRAME, ", ", CURRENT_MONEY, ", ", static_cast<int>(MAP_TYPE));
     // LOGI("初始化泊位状态完毕");
 
     // 2. 决定调度策略
@@ -269,8 +270,8 @@ void GreedyShipScheduler::scheduleShipAtDelivery(Map& map, Ship &ship, std::vect
         }
     }
 
-    // 泊位选取有误
-    if (bestBerthAndProfit.first == -1){
+    // 泊位选取有误 && 进去终局前报错
+    if (bestBerthAndProfit.first == -1 && CURRENT_FRAME < FINAL_FRAME){
         LOGE("scheduleShipAtDelivery：泊位分配有误，每个泊位上都有船");
         ship.info();
         return;
@@ -340,22 +341,23 @@ void GreedyShipScheduler::scheduleFreeShipAtBerth(Map& map, Ship &ship, std::vec
     LOGI("最佳虚拟点收益：", deliveryProfit, "耗时：", map.berthToDeliveryDistance[ship.berthId][deliveryId]);
 
     // 去泊位收益最高 || 当前金额不够买一个机器人
-    // todo 不去虚拟点的条件应该进行多次调参
-    if(bestBerthAndProfit.second > deliveryProfit || ship.loadGoodValue + CURRENT_MONEY < 2000){
-        if (bestBerthAndProfit.first == ship.berthId){
+    // todo 不去虚拟点的条件应该进行多次调参 || 可以限制只有当运输价值大于多少时才去虚拟点
+    // if(bestBerthAndProfit.second > deliveryProfit || (ship.loadGoodValue < 1500 || ship.loadGoodValue + CURRENT_MONEY < 2000 || ship.loadGoodValue != 0)){
+    if(bestBerthAndProfit.second > deliveryProfit || (ship.loadGoodValue + CURRENT_MONEY < 2000)){
+        if (bestBerthAndProfit.first == ship.berthId && CURRENT_FRAME < FINAL_FRAME){
             LOGE("船选中相同泊位进行移动！");
+            ship.info();
         }
         ship.updateMoveToBerthStatus(bestBerthAndProfit.first, VectorPosition(berths[bestBerthAndProfit.first].pos, berths[bestBerthAndProfit.first].orientation));
         updateBerthWhenShipMove(ship, berths, bestBerthAndProfit.first);
-        LOGI("去泊位收益更高");
-        ship.info();
+        LOGI("去泊位收益更高:", ship);
     }
     // 去虚拟点收益最高
     else{
         ship.updateMoveToDeliveryStatus(deliveryId, VectorPosition(map.deliveryLocations[deliveryId], Direction::EAST));
         berths[ship.berthId].shipInBerthNum = std::max(0, berths[ship.berthId].shipInBerthNum - 1);
-        LOGI("去虚拟点收益更高");
-        ship.info();
+        LOGI("去虚拟点收益更高：", ship);
+        // berths[ship.berthId].info();
     }
 }
 

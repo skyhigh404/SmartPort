@@ -50,6 +50,8 @@ public:
     int skipFrame = 0;
     int finalFrame = -1; // 进入终局调度的帧数
 
+    int SHIP_STILL_FRAMES_LIMIE;    // 船阻塞帧数限制
+
 public:
     GameManager() : gameMap(MAPROWS, MAPCOLS) {}
     void initializeGame();        // 读取初始化信息并初始化

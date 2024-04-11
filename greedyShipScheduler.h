@@ -31,11 +31,12 @@ private:
     int TIME_TO_WAIT; //等待有货的时间段
     int CAPACITY_GAP;   // 泊位溢出货物量和船的容量差
     int SHIP_WAIT_TIME_LIMIT; // 船在泊位上等待的时间限制
+    int GOOD_DISTANCE_LIMIT = 100;  // 只考虑距离泊位[0, GOOD_DISTNACE_LIMIT]内的货物价值
     // 等等
 
 private:
     // 初始化泊位的状态
-    void updateBerthStatus(std::vector<Ship> &ships,std::vector<Berth> &berths,std::vector<Goods> & goods);
+    void updateBerthStatus(std::vector<Ship> &ships,std::vector<Berth> &berths,std::vector<Goods> & goods, std::vector<Robot> &robots);
 
     // 根据货物距离泊位距离计算货物价值
     float calculateGoodValueByDist(Goods &good);
@@ -90,7 +91,7 @@ private:
     bool compareBerthsValue(Berth &a,Berth &b);
 
     // 当船从当前泊位移动到其他泊位时，更新泊位相关参数
-    void updateBerthWhereShipMove(Ship &ship,std::vector<Berth> &berths,BerthID targetId);
+    void updateBerthWhenShipMove(Ship &ship,std::vector<Berth> &berths,BerthID targetId);
 
     // 分配最近的交货点
     int allocateDelivery(Berth &berth);

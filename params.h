@@ -8,6 +8,7 @@ struct Params
     // 例如，float greedyRobotScheduleTTLProfitWeight
     // 泊位聚类超参
     int CLUSTERNUMS = 4;                    // 泊位的聚类类别数目
+    int FINAL_FRAME = 14500;    // 终局帧数
 
     // 机器人调度超参
     float TTL_ProfitWeight = 1.5;
@@ -31,14 +32,16 @@ struct Params
     bool CentralizedTransportation = false;  // 游戏开局是否集中调度
     bool robotFirst = true;                 // 先买机器人还是先买船，true为机器人、false为船
 
-    //  泊位超参
+    //  船调度超参
     float ABLE_DEPART_SCALE = 0.15;         //可以去虚拟点的剩余容量比例
     int MAX_SHIP_NUM = 1;                   // 一个泊位最多几艘船
     int TIME_TO_WAIT = 100;                 //等待有货的时间段
     int CAPACITY_GAP = 10;                  // 泊位溢出货物量和船的容量差
     int SHIP_WAIT_TIME_LIMIT = 10;           //船在泊位上等待货物的时间
+    int GOOD_DISTANCE_LIMIT = 100;  // 只考虑距离泊位[0, GOOD_DISTNACE_LIMIT]内的货物价值
 
-    // ship 参数
+    
+    int SHIP_STILL_FRAMES_LIMIE = 5;    // 船阻塞帧数限制
 
     Params(MapFlag mapFalg)
     {

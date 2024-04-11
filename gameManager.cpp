@@ -65,12 +65,10 @@ void GameManager::initializeGame()
             case 'R':
                 this->gameMap.setCell(i, j, MapItemSpace::MapItem::ROBOT_SHOP);
                 this->gameMap.robotShops.emplace_back(i, j);
-                LOGI("ROBOT_SHOP pos: ", Point2d(i, j));
                 break;
             case 'S':
                 this->gameMap.setCell(i, j, MapItemSpace::MapItem::SHIP_SHOP);
                 this->gameMap.shipShops.emplace_back(i, j);
-                LOGI("SHIP_SHOP pos: ", Point2d(i, j));
                 break;
             case 'B':
                 this->gameMap.setCell(i, j, MapItemSpace::MapItem::BERTH);
@@ -87,7 +85,6 @@ void GameManager::initializeGame()
             case 'T':
                 this->gameMap.setCell(i, j, MapItemSpace::MapItem::DELIVERY_POINT);
                 this->gameMap.deliveryLocations.push_back({i,j});
-                LOGI("DELIVERY_POINT pos: ", Point2d(i, j));
                 break;
             default:
                 break;
@@ -284,9 +281,13 @@ void GameManager::initializeComponents()
     this->singleLaneManager.init(gameMap);
     this->seaSingleLaneManager.init(gameMap);
     // 8. 判断地图类型，后续封装在其他函数中实现
-    MapFlag mapType = this->gameMap.getMapType();
+    MAP_TYPE = MapFlag::NORMAL;
     // 9. 读取参数
-    Params params(mapType);
+    Params params(MAP_TYPE);
+    FINAL_FRAME = params.FINAL_FRAME;   // 设置终局参数
+    SHIP_STILL_FRAMES_LIMIE = params.SHIP_STILL_FRAMES_LIMIE;
+    LOGI("终局帧数：", FINAL_FRAME);
+    LOGI("船阻塞帧数限制：", SHIP_STILL_FRAMES_LIMIE);
     // 10. 初始化 RobotController
     this->robotController = std::make_shared<RobotController>(this->robots);
     this->shipController = std::make_shared<ShipController>();
@@ -329,6 +330,7 @@ void GameManager::processFrameData()
 
     cin >> this->currentFrame >> this->currentMoney;
     LOGI("当前帧数：", this->currentFrame, ",当前金额：", this->currentMoney);
+    CURRENT_MONEY = this->currentMoney;
     int skipFrame = this->currentFrame - CURRENT_FRAME - 1;
     this->skipFrame += skipFrame;
     if(skipFrame)
@@ -393,7 +395,9 @@ void GameManager::processFrameData()
         cin >> shipId >> goodsCount >> shipX >> shipY >> direction >> shipState;
         if (i >= this->ships.size())
             this->ships.emplace_back(Ship(shipId));
-        int lastFrameGoodsCount = this->ships[shipId].goodsCount;
+        int lastFrameGoodsCount = this->ships[shipId].goodsCount;   //  上一帧载货量
+        int lastFrameLoadGoodValue = this->ships[shipId].loadGoodValue; //上一帧运货价值
+        VectorPosition lastFrameLocAndDir = this->ships[shipId].locAndDir;  // 船的上一帧位置
         this->ships[shipId].goodsCount = goodsCount;
         this->ships[shipId].locAndDir.pos.x = shipX;
         this->ships[shipId].locAndDir.pos.y = shipY;
@@ -409,7 +413,22 @@ void GameManager::processFrameData()
         // 判断船是否到达交货点清空了货物
         if (goodsCount == 0){
             Berth::totalLoadGoodnum += lastFrameGoodsCount;
+            LOGI("本次运货产生价值：", lastFrameLoadGoodValue, ",运货数量：", lastFrameGoodsCount);
             this->ships[shipId].loadGoodValue = 0;
+        }
+        // 判断船是否阻塞在冲突中
+        // 当船不在恢复状态和装货状态时，静止不动则累加 阻塞帧数
+        if (this->ships[shipId].state != 1
+        && this->ships[shipId].shipStatus != ShipStatusSpace::ShipStatus::LOADING
+        && this->ships[shipId].locAndDir == lastFrameLocAndDir){
+            this->ships[shipId].stillnessFrames += 1;
+            // 超过 5 帧，直接离港
+            if (this->ships[shipId].stillnessFrames > SHIP_STILL_FRAMES_LIMIE){
+                this->ships[shipId].shouldDept = true;
+            }
+        }else {
+            // 恢复
+            this->ships[shipId].stillnessFrames = 0;
         }
     }
     // 确认已接收完本帧的所有数据
@@ -554,11 +573,9 @@ void GameManager::shipControl(){
         }
         // 判断是否需要离港
         else if (ship.shouldDept){
-            LOGI("进去离港指令");
+            LOGI("离港指令：", ship);
             string command = ship.dept();
             ship.resetDeptStatus();
-            LOGI("船", ship.id, "执行指令：",command);
-            ship.info();
             commandManager.addShipCommand(command);
         }
         // 移动指令

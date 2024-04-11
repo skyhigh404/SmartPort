@@ -108,6 +108,7 @@ public:
     VectorPosition destination;
     bool shouldDept;    //  判断当前是否需要使用dept命令
     int deliveryId; //分配的交货点id
+    int stillnessFrames = 0;    // 卡住的帧数
 
 public:
     VectorPosition nextLocAndDir;     // 船舶下一帧位姿
@@ -151,8 +152,13 @@ public:
         } 
     }
 
+    // 离港后重置参数
     void resetDeptStatus(){
         shouldDept = false;
+        // 路径清空
+        path.clear();
+        // 阻塞帧数恢复
+        stillnessFrames = 0;
     }
 
     //  购买船只

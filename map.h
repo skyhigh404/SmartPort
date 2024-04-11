@@ -39,6 +39,8 @@ enum class MapFlag
     MAP3
 };
 
+extern MapFlag MAP_TYPE;
+
 class Map
 {
     // 地图坐标系原点在左上角，往下为 X 轴正方向，往右为 Y 轴正方向
@@ -67,6 +69,9 @@ public:
           grid(std::vector(rows, std::vector<MapItemSpace::MapItem>(cols, MapItemSpace::MapItem::ERROR)))
     {
     }
+
+    // 获取地图类型
+    MapFlag getMapType();
 
     // 设置地图上某个位置的值
     void setCell(int x, int y, MapItemSpace::MapItem value)
@@ -164,8 +169,6 @@ public:
     std::vector<Point2d> getNearbyTemporaryObstacles(const Point2d &robotPos, int n) const;
     // 初始化泊位到交货点的距离变量
     std::vector<std::pair<int, int>> initializeBerthToDeliveryDistances(BerthID berthId);
-    // 获取地图类型
-    MapFlag getMapType();
     // TODO: 评估海图上不同方向进入的路径和成本
     Direction evaluateBestApproachDirection(const VectorPosition &shipPosition, const Point2d &pos);
 
@@ -203,6 +206,7 @@ public:
     int cost(const VectorPosition &e1, const VectorPosition &e2) const;
     // 判断两个船空间是否重叠（冲突）
     bool hasOverlap(VectorPosition &a, VectorPosition &b);
+    
 };
 
 std::string printVector(const std::vector<Point2d> &path);

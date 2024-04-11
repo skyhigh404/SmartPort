@@ -50,6 +50,8 @@ enum class LogLevel
 };
 
 extern int CURRENT_FRAME;
+extern int FINAL_FRAME;
+extern int CURRENT_MONEY;
 
 class Log
 {

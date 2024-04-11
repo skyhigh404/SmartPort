@@ -8,11 +8,12 @@ void GreedyShipScheduler::setParameter(const Params &params)
     TIME_TO_WAIT = params.TIME_TO_WAIT;
     CAPACITY_GAP = params.CAPACITY_GAP;
     SHIP_WAIT_TIME_LIMIT = params.SHIP_WAIT_TIME_LIMIT;
+    GOOD_DISTANCE_LIMIT = params.GOOD_DISTANCE_LIMIT;
 }
 
 void GreedyShipScheduler::scheduleShips(Map &map, std::vector<Ship> &ships, std::vector<Berth> &berths, std::vector<Goods> &goods, std::vector<Robot> &robots) {
     //需要迁移，更新泊位和货物的状态
-    updateBerthStatus(ships, berths, goods);
+    updateBerthStatus(ships, berths, goods, robots);
     // LOGI("初始化泊位状态完毕");
 
     // 2. 决定调度策略
@@ -52,13 +53,6 @@ void GreedyShipScheduler::handleShipOnRoute(Map& map, Ship &ship,std::vector<Ber
     if (ship.isIdle()){
         LOGI("船舶空闲状态：", ship.id);
         scheduleShipAtShipShops(map, ship, berths, goods);
-        // ship.info();
-        // ship.info();
-        // BerthID berthId = findBestBerthForShip(map, ship, berths, goods);
-        // ship.updateMoveToBerthStatus(berthId, VectorPosition(berths[berthId].pos, berths[berthId].orientation));
-        // LOGI("分配泊位id:", berthId);
-        // ship.info();
-        // return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::MOVE_TO_BERTH,berthId); 
     }
 
     //  如果路径不为空
@@ -74,10 +68,6 @@ void GreedyShipScheduler::handleShipOnRoute(Map& map, Ship &ship,std::vector<Ber
     else if (ship.path.empty() && ship.reachDelivery()){
         LOGI("到达交货点");
         scheduleShipAtDelivery(map, ship, berths, goods);
-        // BerthID berthId = findBestBerthForShip(map, ship, berths, goods);
-        // ship.updateMoveToBerthStatus(berthId, VectorPosition(berths[berthId].pos, berths[berthId].orientation));
-        // LOGI("分配泊位：", berthId);
-        // return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::MOVE_TO_BERTH,berthId);
     }
     // else{
     //     // 路径为空，但没有抵达目的地
@@ -123,83 +113,24 @@ void GreedyShipScheduler::handleShipAtBerth(Map &map, Ship &ship,std::vector<Ber
         // 衡量船去每一个泊位和直接去交货点的收益
         scheduleFreeShipAtBerth(map, ship, berths, goods);
     }
-    
-    
-    // // 容量不多，考虑是否直接去虚拟点
-    // else if(ship.capacityScale() < ABLE_DEPART_SCALE){
-    //     // 附件有货，再等等
-    //     if (isGoodsArrivingSoon(berths[ship.berthId], goods)) return;
-    //     // 附件没货，直接去送货点
-    //     else {
-    //         ship.updateMoveToDeliveryStatus(deliveryId, VectorPosition(map.deliveryLocations[deliveryId], Direction::EAST));
-    //         berths[ship.berthId].shipInBerthNum = std::max(0, berths[ship.berthId].shipInBerthNum - 1);
-    //     }
-    // }
-    // // 容量还多，等待分配泊位
-    // // todo 暂时别让船动的太频繁
-    // else{
-    //     BerthID berthId = findBestBerthForShip(map, ship, berths, goods);
-    //     if(berthId != ship.berthId && berthId != -1) {
-    //         ship.updateMoveToBerthStatus(berthId, VectorPosition(berths[berthId].pos, berths[berthId].orientation));
-    //     }
-    // }
 
 }
 
-// // 处理船在虚拟点的情况
-// ShipActionSpace::ShipAction
-// GreedyShipScheduler::handleShipInEnd(Ship &ship,std::vector<Berth> &berths,std::vector<Goods> &goods){
-//     // 寻找当前最优的泊位
-//     BerthID berthId = findBestBerthForShip(ship, berths, goods);
-//     #ifdef DEBUG
-//     assert(berthId != -1);
-//     #endif
-//     if(berthId != -1){
-//         return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::MOVE_TO_BERTH, berthId);
-//     }
-//     else{
-//         return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::CONTINUE, berthId);
-//         #ifdef DEBUG
-//         LOGE("报错，在虚拟点的船找不到目标泊位");
-//         ship.info();
-//         #endif
-//     }
-// }
-
-// // 处理在泊位外等待的情况
-// ShipActionSpace::ShipAction
-// GreedyShipScheduler::handleShipWaiting( Ship &ship,std::vector<Berth> &berths,std::vector<Goods> &goods){
-//     BerthID berthId = findBestBerthForShip(ship, berths, goods);
-//     // 调度失败
-//     if(berthId == -1 || berthId == ship.berthId) return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::CONTINUE,ship.berthId);
-//     // 调度泊位溢出货物量比当前泊位
-//     int bestCanLoadNum = std::min(berths[berthId].residue_num, ship.nowCapacity());  // 调度泊位中能装的货物数量
-//     int nowCanLoadNum = std::min(berths[ship.berthId].residue_num + ship.nowCapacity(), ship.nowCapacity());  // 当前泊位能装的货物数量
-//     // 调度泊位价值和需求 大于 当前泊位
-//     // todo 超参数
-//     if(berths[berthId].totalValue > berths[ship.berthId].totalValue && bestCanLoadNum > nowCanLoadNum * 1.5){
-//         return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::MOVE_TO_BERTH, berthId);
-//     }
-//     // 保持不动
-//     else{
-//         return ShipActionSpace::ShipAction(ShipActionSpace::ShipActionType::CONTINUE, ship.berthId);
-//     }
-// }
-
-
 // 初始化泊位的状态
-void GreedyShipScheduler::updateBerthStatus(std::vector<Ship> &ships,std::vector<Berth> &berths,std::vector<Goods> & goods){
+void GreedyShipScheduler::updateBerthStatus(std::vector<Ship> &ships,std::vector<Berth> &berths,std::vector<Goods> & goods, std::vector<Robot> &robots){
     // 遍历泊位，初始化泊位的正常货物量和未到达货物量，计算泊位价值
     for(auto &berth : berths){
         berth.totalValue = 0;
         berth.residue_num = 0;
         berth.residue_value = 0;
         berth.shipInBerthNum = 0;
+        berth.futureValue = 0;
         berth.onRouteTime = INT_MAX;
         berth.residue_num = berth.reached_goods.size();
     }
     // 遍历船只，更新前泊位上的船只数量和更新溢出货物量
     for(auto &ship : ships){
+        // todo 考虑是否计算未分配（状态0）的货物价值
         if (ship.berthId != -1 && ship.shipStatus != ShipStatusSpace::ShipStatus::MOVING_TO_DELIVERY){
             berths[ship.berthId].residue_num -= ship.nowCapacity();
             berths[ship.berthId].shipInBerthNum += 1;
@@ -209,7 +140,6 @@ void GreedyShipScheduler::updateBerthStatus(std::vector<Ship> &ships,std::vector
         if(berths[ship.berthId].onRouteTime == INT_MAX) berths[ship.berthId].onRouteTime = 0;
     }
     // 遍历泊位，累加当前溢出货物价值
-    
     for(auto &berth : berths){
         int reachGoodsSize = static_cast<int>(berth.reached_goods.size());
         for(int index = 0; index < reachGoodsSize - berth.residue_num && index < reachGoodsSize; index++){
@@ -220,29 +150,37 @@ void GreedyShipScheduler::updateBerthStatus(std::vector<Ship> &ships,std::vector
             berth.residue_value += berth.reached_goods[index].value;
         }
     }
-    // //  遍历货物，更新泊位的溢出货物量和价值
-    // // todo 根据货物到达泊位的距离进行加权影响
-    // for(auto &good : goods){
-    //     // todo 后续需要考虑泊位禁用情况
-    //     if(good.status == 1 || good.status == 2){
-    //          berths[good.distsToBerths[0].first].totalValue += calculateGoodValueByDist(good);
-    //          berths[good.distsToBerths[0].first].residue_num += 1;
-    //     }
-    // }
+    // 终局前
+    if (CURRENT_FRAME < FINAL_FRAME){
+        //  遍历货物，更新泊位的未到达货物的价值，用来估算泊位未来价值futureValue
+        // todo 根据货物到达泊位的距离进行加权影响
+        for(auto &good: goods){
+            // 已分配的货物（状态1），根据距离选泊位； 
+            if (good.status == 1 && good.distsToBerths[0].second <= GOOD_DISTANCE_LIMIT && good.TTL >= GOOD_DISTANCE_LIMIT){
+                berths[good.distsToBerths[0].first].futureValue += calculateGoodValueByDist(good);
+            }
+        }
+        for (auto &robot: robots){
+            // 累加运送途中的货物价值
+            if (robot.carryingItemId != -1 && robot.targetid != -1){
+                berths[robot.targetid].futureValue += calculateGoodValueByDist(goods[robot.carryingItemId]);
+            }
+        }
+    }
 }
 
-// // 根据货物距离泊位距离计算货物价值(选取最短距离)
-// float GreedyShipScheduler::calculateGoodValueByDist(Goods &good){
-//     // 过期前无法到达则价值为0
-//     if(good.distsToBerths[0].second > good.TTL) return 0;
+// 根据货物距离泊位距离计算货物价值(选取最短距离)
+float GreedyShipScheduler::calculateGoodValueByDist(Goods &good){
+    // 过期前无法到达则价值为0
+    if(good.distsToBerths[0].second > good.TTL) return 0;
 
-//     // todo 设置超参，超过 distLimit 范围货物价值不予考虑
-//     int distLimit = 500;
-//     float beta = -1 / distLimit * good.distsToBerths[0].second + 1;
-//     beta = std::max(beta,static_cast<float>(0.0));
+    // todo 设置超参，超过 distLimit 范围货物价值不予考虑
+    int distLimit = 500;
+    float beta = -1 / distLimit * good.distsToBerths[0].second + 1;
+    beta = std::max(beta,static_cast<float>(0.0));
 
-//     return beta * good.value;
-// }
+    return beta * good.value;
+}
 
 // 判断船只是否需要前往虚拟点
 bool GreedyShipScheduler::shouldDepartBerth( Ship &ship,std::vector<Berth> &berths){
@@ -252,7 +190,7 @@ bool GreedyShipScheduler::shouldDepartBerth( Ship &ship,std::vector<Berth> &bert
     // todo 15000改成全局变量；缓冲时间变成超参
     // 泊位交货点时间
     // int timeToDeliveryLocation = berths[ship.berthId].
-    else if(ship.berthId != -1 && CURRENT_FRAME + berths[ship.berthId].timeToDelivery() + 2 > 15000) return true;
+    else if(ship.berthId != -1 && CURRENT_FRAME + berths[ship.berthId].timeToDelivery() + 5 > 15000) return true;
     else return false;
 }
 
@@ -298,40 +236,6 @@ bool GreedyShipScheduler::isGoodsArrivingSoon(Berth &berth, std::vector<Goods> g
     }
     return false;
 }
-
-// // 为船找到最佳泊位，返回泊位id（局部最优）
-// // 考虑：泊位前往虚拟点的时间代价、泊位未来的收益、泊位货物量和船容量的匹配
-// BerthID GreedyShipScheduler::findBestBerthForShip(Map& map, Ship &ship, std::vector<Berth> &berths, const std::vector<Goods> &goods){
-//     // 泊位进行收益排序(将来一段时间)
-//     // std::vector<Berth> berths_sort(berths);
-//     // int currentFrame = CURRENT_FRAME;
-//     // std::sort(berths_sort.begin(), berths_sort.end(),[ship](Berth a,Berth berths){
-//     //     // 如果剩余时间不够,则优先级最低
-//     // });
-//     LOGI("findBestBerthForShip");
-//     // todo 考虑泊位运输虚拟点时间的代价
-//     int absCapacity = 0;
-//     int highestValue = 0;
-//     BerthID assignBerthId = -1;
-//     for(auto &berth : berths){
-//         if(canMoveBerth(map, ship, berth) && berth.shipInBerthNum < MAX_SHIP_NUM){
-//             if(berth.totalValue > highestValue){
-//                 if(highestValue == 0){
-//                     assignBerthId = berth.id;
-//                     highestValue = berth.totalValue;
-//                     absCapacity = std::abs(berth.residue_num - ship.nowCapacity());
-//                 }
-//                 // todo 容量匹配优先
-//                 else if(std::abs(berth.residue_num - ship.nowCapacity()) < absCapacity){
-//                     assignBerthId = berth.id;
-//                     highestValue = berth.totalValue;
-//                     absCapacity = std::abs(berth.residue_num - ship.nowCapacity());
-//                 }
-//             }
-//         }
-//     }
-//     return assignBerthId;
-// }
 
 // 当船在虚拟点时，选择最佳调度策略
 // todo 后续要判断时间是否足够（排序）
@@ -406,7 +310,8 @@ void GreedyShipScheduler::scheduleFreeShipAtBerth(Map& map, Ship &ship, std::vec
     // 选取最佳泊位
     std::pair<BerthID, float> bestBerthAndProfit = {-1, 0};
     for (auto &profitBerth : profitBerths){
-        if (canShipMoveToBerth(map, ship, berths[profitBerth.first])){
+        // todo 泊位可用判断 (用于终局调度时刻)，判断是否有必要添加
+        if (canShipMoveToBerth(map, ship, berths[profitBerth.first]) && berths[profitBerth.first].isEnable()){
             bestBerthAndProfit = profitBerth;
             break;
         }
@@ -414,8 +319,15 @@ void GreedyShipScheduler::scheduleFreeShipAtBerth(Map& map, Ship &ship, std::vec
 
     // 泊位选取有误
     if (bestBerthAndProfit.first == -1){
+        // 进入终局时刻，直接找收益最高的泊位
+        if (CURRENT_FRAME > FINAL_FRAME){
+            bestBerthAndProfit = profitBerths[0];
+        }
+        // 正常时刻找不到泊位
+        else {
         LOGE("scheduleFreeShipAtBerth：泊位分配有误，每个泊位上都有船");
         ship.info();
+        }
     }
 
     //2. 直接去虚拟点的收益
@@ -427,12 +339,14 @@ void GreedyShipScheduler::scheduleFreeShipAtBerth(Map& map, Ship &ship, std::vec
 
     LOGI("最佳虚拟点收益：", deliveryProfit, "耗时：", map.berthToDeliveryDistance[ship.berthId][deliveryId]);
 
-    // 去泊位收益最高 || 不等于当前泊位
-    if(bestBerthAndProfit.second > deliveryProfit){
+    // 去泊位收益最高 || 当前金额不够买一个机器人
+    // todo 不去虚拟点的条件应该进行多次调参
+    if(bestBerthAndProfit.second > deliveryProfit || ship.loadGoodValue + CURRENT_MONEY < 2000){
         if (bestBerthAndProfit.first == ship.berthId){
             LOGE("船选中相同泊位进行移动！");
         }
         ship.updateMoveToBerthStatus(bestBerthAndProfit.first, VectorPosition(berths[bestBerthAndProfit.first].pos, berths[bestBerthAndProfit.first].orientation));
+        updateBerthWhenShipMove(ship, berths, bestBerthAndProfit.first);
         LOGI("去泊位收益更高");
         ship.info();
     }
@@ -450,13 +364,15 @@ void GreedyShipScheduler::scheduleShipAtShipShops(Map& map, Ship &ship, std::vec
     std::vector<std::pair<BerthID, float>> profitBerths; // 第一维是泊位id，第二维是收益
     for (auto &berth : berths){
         int distance = map.maritimeBerthDistanceMap[berth.id][ship.locAndDir.pos.x][ship.locAndDir.pos.y];
-        profitBerths.push_back({berth.id, berth.totalValue / distance});
+        profitBerths.push_back({berth.id, berth.totalValue + berth.futureValue / distance});
     }
 
     // 进行排序，如果收益为0，则比较estimateValue
     std::sort(profitBerths.begin(), profitBerths.end(), [&berths](std::pair<BerthID, float> &a, std::pair<BerthID, float> &b){
-        if (a.second == 0 && b.second == 0) return a.second > b.second;
-        else return berths[a.first].estimateValue > berths[b.first].estimateValue;
+        // 收益都为0，比较estimateValue
+        if (a.second == 0 && b.second == 0) return berths[a.first].estimateValue > berths[b.first].estimateValue;
+        // 比较收益
+        else return a.second > b.second;
     });
 
     // LOGI("排序完毕");
@@ -471,13 +387,11 @@ void GreedyShipScheduler::scheduleShipAtShipShops(Map& map, Ship &ship, std::vec
 
     // 泊位选取有误
     if (assignedBerthId == -1){
-        LOGE("scheduleShipAtDelivery：泊位分配有误，每个泊位上都有船");
-        ship.info();
+        LOGE("scheduleShipAtShipShops，分配泊位失败：", ship);
         return;
     }
 
     ship.updateMoveToBerthStatus(assignedBerthId, VectorPosition(berths[assignedBerthId].pos, berths[assignedBerthId].orientation));
-    LOGI("分配泊位id:", assignedBerthId);
 }
 
 // 计算船在该泊位上能得到多少收益（只考虑泊位上已有的货物）,返回{价值， 装货时间}
@@ -485,8 +399,9 @@ std::pair<int, int> GreedyShipScheduler::calculateShipProfitInBerth(Map &map, Sh
     int startIndex = 0;
     int endIndex = 0;
     int value = 0;
-    // 判断船是否在该泊位上
-    if (berth.id == ship.berthId) return {berth.totalValue - berth.residue_value, std::min(ship.nowCapacity(), static_cast<int>(berth.reached_goods.size()))};
+
+    // 计算船留在原地的价值
+    if (berth.id == ship.berthId) return {berth.totalValue - berth.residue_value + berth.futureValue, std::min(static_cast<int>(ship.nowCapacity() / berth.velocity), static_cast<int>(berth.reached_goods.size() / berth.velocity))};
     
     startIndex = berth.reached_goods.size() - berth.residue_num;    //船到该泊位上装载货物的起始id
     endIndex = std::min(startIndex + ship.nowCapacity(), static_cast<int>(berth.reached_goods.size()));   //船能装载的货物
@@ -511,7 +426,8 @@ bool GreedyShipScheduler::canMoveBerth(Map &map, Ship &ship,Berth &berth){
     else if(ship.berthId != -1){
         // todo maritimeBerthDistanceMap包括泊位到泊位吗
         Point2d targetBerthPos = berth.pos;
-        int timeToBerth = map.maritimeBerthDistanceMap[ship.id][targetBerthPos.x][targetBerthPos.y];
+        // int timeToBerth = map.maritimeBerthDistanceMap[ship.berthId][targetBerthPos.x][targetBerthPos.y];
+        int timeToBerth = map.berthToBerthDistance[ship.berthId][berth.id];
         timeCost += timeToBerth;
     } 
 
@@ -520,7 +436,8 @@ bool GreedyShipScheduler::canMoveBerth(Map &map, Ship &ship,Berth &berth){
 }
 
 // 当船从当前泊位移动到其他泊位时，更新泊位相关参数
-void GreedyShipScheduler::updateBerthWhereShipMove(Ship &ship,std::vector<Berth> &berths,BerthID targetId){
+void GreedyShipScheduler::updateBerthWhenShipMove(Ship &ship,std::vector<Berth> &berths,BerthID targetId){
+    if(ship.berthId == -1) return;
     // 原泊位状态更新
     BerthID nowBerthId = ship.berthId;
     berths[nowBerthId].shipInBerthNum -= 1;
@@ -536,10 +453,10 @@ void GreedyShipScheduler::updateBerthWhereShipMove(Ship &ship,std::vector<Berth>
     for(int index = startIndex;index < berths[targetId].reached_goods.size() && index < startIndex + ship.nowCapacity(); index++){
         berths[targetId].totalValue -= berths[targetId].reached_goods[index].value;
     }
-    #ifdef DEBUG
-    assert(berths[nowBerthId].shipInBerthNum >= 0);
-    assert(berths[targetId].shipInBerthNum >= 0);
-    #endif
+    // #ifdef DEBUG
+    // assert(berths[nowBerthId].shipInBerthNum >= 0);
+    // assert(berths[targetId].shipInBerthNum >= 0);
+    // #endif
 }
 
 
@@ -565,7 +482,8 @@ bool GreedyShipScheduler::canShipMoveToBerth(Map &map, Ship &ship, Berth &berth)
     }
     // 时间：移动到泊位距离 + 目标泊位到虚拟点距离 + 装货时间
     int deliveryId = allocateDelivery(berth);
-    int timeCost = timeCostToBerth +  map.berthToDeliveryDistance[berth.id][deliveryId] + std::min(ship.nowCapacity(), static_cast<int>(berth.reached_goods.size()));
+    int timeCost = timeCostToBerth +  map.berthToDeliveryDistance[berth.id][deliveryId]
+     + std::min(static_cast<int>(ship.nowCapacity() / berth.velocity), static_cast<int>(berth.reached_goods.size() / berth.velocity));
 
     if (CURRENT_FRAME + timeCost + 2 > 15000){
         LOGI("时间不够去另一个泊位", berth.id, "，消耗时间：", timeCost);

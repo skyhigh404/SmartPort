@@ -35,6 +35,7 @@ public:
     int residue_num = 0;                              // 泊位当前剩余无法装在的货物数量，每帧重新计算
     int residue_value = 0;                             // 泊位溢出价值
     int totalValue = 0;                               // 泊位当前理论收益，每帧重新计算
+    int futureValue = 0;    //泊位的未来价值，每帧重新计算
     int shipInBerthNum = 0;                           // 泊位上船的数量
     int onRouteTime = 0;    //路上船前往指定的时间
     std::vector<std::pair<int, int>> distsToDelivery; // 存储货物到港口的距离，第一个是交货点id（默认在交货点集合中的index），第二个是距离，应该为升序存储

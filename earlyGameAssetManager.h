@@ -64,6 +64,7 @@ private:
     int startNum;                   // 最初的数目（机器人、轮船）
     float landDistanceWeight;       // 对泊位价值评估时的陆地访问距离权重
     float deliveryDistanceWeight;   // 对泊位价值评估时的交货点访问距离权重
+    bool CentralizedTransportation; // 开局是否集中搬货
 
 private:
     void divideLandConnectedBlocks(const std::vector<Berth> &berths, const Map &map);

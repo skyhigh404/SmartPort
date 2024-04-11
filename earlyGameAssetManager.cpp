@@ -11,6 +11,7 @@ void EarlyGameAssetManager::setParameter(const Params &params)
     startNum = params.startNum;
     landDistanceWeight = params.landDistanceWeight;
     deliveryDistanceWeight = params.deliveryDistanceWeight;
+    CentralizedTransportation = params.CentralizedTransportation;
 }
 
 void EarlyGameAssetManager::init(const Map& map, std::vector<Berth> &berths)
@@ -71,7 +72,8 @@ std::vector<PurchaseDecision> EarlyGameAssetManager::makePurchaseDecision(const 
 
 int EarlyGameAssetManager::getAssignId(Point2d shopPos, const std::vector<Berth> &berths)
 {
-    // return -1;
+    if (!CentralizedTransportation)
+        return -1;
     // 游戏初期集中分配
     LandSeaBlock& lsb = landseaBlocks[0];
 

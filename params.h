@@ -22,6 +22,7 @@ struct Params
     int startNum = 1;       // 最初的数目（机器人、轮船）
     float landDistanceWeight = 10.0;       // 对泊位价值评估时的陆地访问距离权重
     float deliveryDistanceWeight = 10.0;   // 对泊位价值评估时的交货点访问距离权重
+    bool CentralizedTransportation = true;
 
     //  泊位超参
     float ABLE_DEPART_SCALE = 0.15;           //可以去虚拟点的剩余容量比例

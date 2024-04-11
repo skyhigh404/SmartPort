@@ -537,3 +537,8 @@ std::vector<std::pair<int, int>> Map::initializeBerthToDeliveryDistances(BerthID
     });
     return distsToDelivery;
 }
+
+Direction Map::evaluateBestApproachDirection(const VectorPosition &shipPosition, const Point2d &pos)
+{
+    return Direction::EAST;
+}

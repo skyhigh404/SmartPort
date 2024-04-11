@@ -279,6 +279,7 @@ public:
                 break;
             }
         }
+        i = std::max(0, i);
         std::variant<Path<VectorPosition>, PathfindingFailureReason> path = pathFinder.findPath(locAndDir, intersection, map);
         if (std::holds_alternative<Path<VectorPosition>>(path))
         {

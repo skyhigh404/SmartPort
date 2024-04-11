@@ -404,7 +404,7 @@ void GameManager::processFrameData()
             this->ships[shipId].berthId = -1;
         }
         // 判断船是否到达交货点清空了货物
-        if (this->ships[shipId].goodsCount == 0){
+        if (goodsCount == 0){
             Berth::totalLoadGoodnum += lastFrameGoodsCount;
             this->ships[shipId].loadGoodValue = 0;
         }

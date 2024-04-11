@@ -1,4 +1,5 @@
 #include "shipController.h"
+#include <unordered_set>
 
 // 控制船的整体调度
 void ShipController::runController(Map &map,std::vector<Ship> &ships, SeaSingleLaneManager &seaSingleLaneManager){
@@ -108,44 +109,52 @@ void ShipController::tryResolveConflict(Map &map, std::vector<Ship> &ships, cons
     Ship &ship2 = (event.shipId2 != -1) ? ships[event.shipId2] : ship1; // 用于单一船事件处理
     // 下一帧位置冲突
     if(event.type == CollisionEvent::CollisionType::NextOverlapCollision){
+        LOGI("下一帧位置重合冲突");
         // 船 1 的下一帧位置不和船 2 当前位置重合
         if (!hasOverlap(map, ship1.nextLocAndDir, ship2.locAndDir)){
             // 让船2等待
-            LOGI("让船2等待: ", ship2);
+            LOGI("让船",ship2.id,"等待: ", ship2);
             makeShipWait(ship2);
         }
         else if (!hasOverlap(map, ship2.nextLocAndDir, ship1.locAndDir)){
             // 让船1等待
-            LOGI("让船1等待: ", ship1);
+            LOGI("让船",ship1.id, "等待: ", ship1);
             makeShipWait(ship1);
         }
         // 让优先级低的等待，优先级高的重新寻路
         else if (ship1.comparePriority(ship2)){
             // 船2优先级低
-            LOGI("让船1重新寻路，船2等待 ship1: ", ship1, ", ship2: ", ship2);
+            LOGI("让船",ship1.id, "重新寻路，船", ship2.id, "等待");
             makeShipWait(ship2);
             makeShipRefindPath(ship1);
         }
         else {
-            LOGI("让船2重新寻路，船1等待 ship1: ", ship1, ", ship2: ", ship2);
+            LOGI("让船", ship2.id, "重新寻路，船",ship1.id,"等待");
             makeShipWait(ship1);
             makeShipRefindPath(ship2);
         }
+        ship1.info();
+        ship2.info();
     }
     // 由于指令执行顺序导致的冲突
     else if(event.type == CollisionEvent::CollisionType::PathCrossingCollision){
+        LOGI("结算顺序冲突");
         // 有船的下一帧位置不和当前另一个机器人位置重合
         if (!hasOverlap(map, ship1.nextLocAndDir, ship2.locAndDir)){
             // 让船2等待
+            LOGI("让船",ship2.id,"等待: ", ship2);
             makeShipWait(ship2);
         }
         else if (!hasOverlap(map, ship2.nextLocAndDir, ship1.locAndDir)){
             // 让船1等待
+            LOGI("让船",ship1.id,"等待: ", ship1);
             makeShipWait(ship1);
         }
         else{
             LOGE("冲突解决：结算过程冲突出现意外情况！");
         }
+        ship1.info();
+        ship2.info();
     }
 }
 
@@ -290,29 +299,51 @@ void ShipController::makeShipDept(const Ship &ship){
     }
 }
 
+// // 判断两艘船是否重合，在主航道上的体积不计入，true 是有重叠
+// bool ShipController::hasOverlap(Map &map, VectorPosition &a, VectorPosition &b) {
+//         std::pair<Point2d, Point2d> ship1 = SpatialUtils::getShipOccupancyRect(a);
+//         std::pair<Point2d, Point2d> ship2 = SpatialUtils::getShipOccupancyRect(b);
+//         // 检查两个船的矩形是否有重叠部分，计算重叠部分的左上角和右下角坐标
+//         int x1 = std::max(ship1.first.x, ship2.first.x);
+//         int y1 = std::max(ship1.first.y, ship2.first.y);
+//         int x2 = std::min(ship1.second.x, ship2.second.x);
+//         int y2 = std::min(ship1.second.y, ship2.second.y);
+
+//         // 检查是否有重叠部分
+//         bool overlap = (x1 <= x2) && (y1 <= y2);
+//         if (overlap) {
+//             // 如果重叠部分全部位于主航道，则不算重合
+//             for( int x = x1; x <= x2; x++){
+//                 for (int y = y1; y <= y2; y++){
+//                     if (!map.isInSealane({x, y}))
+//                         return true;
+//                 }
+//             }
+//             // 全部位于主航道
+//             return false;
+//         } 
+//         return false;
+// }
+
 // 判断两艘船是否重合，在主航道上的体积不计入，true 是有重叠
 bool ShipController::hasOverlap(Map &map, VectorPosition &a, VectorPosition &b) {
         std::pair<Point2d, Point2d> ship1 = SpatialUtils::getShipOccupancyRect(a);
         std::pair<Point2d, Point2d> ship2 = SpatialUtils::getShipOccupancyRect(b);
-        // 检查两个船的矩形是否有重叠部分，计算重叠部分的左上角和右下角坐标
-        int x1 = std::max(ship1.first.x, ship2.first.x);
-        int y1 = std::max(ship1.first.y, ship2.first.y);
-        int x2 = std::min(ship1.second.x, ship2.second.x);
-        int y2 = std::min(ship1.second.y, ship2.second.y);
-
-        // 检查是否有重叠部分
-        bool overlap = (x1 <= x2) && (y1 <= y2);
-        if (overlap) {
-            // 如果重叠部分全部位于主航道，则不算重合
-            for( int x = x1; x <= x2; x++){
-                for (int y = y1; y <= y2; y++){
-                    if (!map.isInSealane({x, y}))
-                        return true;
-                }
+        std::unordered_set<Point2d> shipSpace;
+        // 遍历第一个船空间
+        for (int x = ship1.first.x; x <= ship1.second.x; x++){
+            for (int y = ship1.first.y; y <= ship1.second.y; y++){
+                shipSpace.insert(Point2d(x, y));
             }
-            // 全部位于主航道
-            return false;
-        } 
+        }
+        // 遍历第二个船空间，判断和第一个船空间是否重合
+        for (int x = ship2.first.x; x <= ship2.second.x; x++){
+            for (int y = ship2.first.y; y <= ship2.second.y; y++){
+                // 重合并且不是主航道，返回true
+                if(shipSpace.find(Point2d(x, y)) != shipSpace.end() && !map.isInSealane(Point2d(x, y)))
+                    return true;
+            }
+        }
         return false;
 }
 

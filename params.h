@@ -40,12 +40,21 @@ struct Params
 
     // ship 参数
 
-    Params(MapFlag mapFalg) {
-        if (mapFalg == MapFlag::NORMAL) {
-
+    Params(MapFlag mapFalg)
+    {
+        if (mapFalg == MapFlag::MAP1)
+        {
         }
-        else if (mapFalg == MapFlag::ERROR) {
-
+        else if (mapFalg == MapFlag::MAP2)
+        {
         }
+        else if (mapFalg == MapFlag::MAP3)
+        {
+        }
+        else if (mapFalg == MapFlag::NORMAL)
+        {
+        }
+        else
+            LOGE("初始化参数为失败");
     }
 };

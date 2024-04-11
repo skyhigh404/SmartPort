@@ -95,7 +95,7 @@ void ShipController::runPathfinding(const Map &map, Ship &ship)
         ship.path = Path<VectorPosition>();
         // todo 后期是否需要更改目的地
         // ship.destination = VectorPosition();
-        LOGI("船寻路失敗",ship);
+        LOGE("船寻路失敗",ship);
     }
     // 寻路成功，设置船状态
     else{
@@ -111,31 +111,34 @@ void ShipController::tryResolveConflict(Map &map, std::vector<Ship> &ships, cons
     // 下一帧位置冲突
     if(event.type == CollisionEvent::CollisionType::NextOverlapCollision){
         LOGI("下一帧位置重合冲突");
-        // 船 1 的下一帧位置不和船 2 当前位置重合
+        // 船 1 的下一帧位置不和船 2 当前位置重合，那么让船 2 等待
         if (!map.hasOverlap(ship1.nextLocAndDir, ship2.locAndDir) && ship1.state != 1){
             // 让船2等待
             LOGI("让船",ship2.id,"等待: ", ship2);
+            LOGI("让船",ship1.id, "继续前进: ", ship1);
             makeShipWait(ship2);
         }
+        // 船 2 的下一帧位置不和船 1 当前位置重合，那么让船 1 等待
         else if (!map.hasOverlap(ship2.nextLocAndDir, ship1.locAndDir) && ship2.state != 1){
             // 让船1等待
             LOGI("让船",ship1.id, "等待: ", ship1);
+            LOGI("让船",ship2.id, "继续前进: ", ship2);
             makeShipWait(ship1);
         }
         // 让优先级低的等待，优先级高的重新寻路
         else if (ship1.comparePriority(map, ship2)){
             // 船2优先级低
-            LOGI("让船",ship1.id, "重新寻路，船", ship2.id, "等待");
+            LOGI("让船",ship1.id, "重新寻路", ship1);
+            LOGI("，船", ship2.id, "等待", ship2);
             makeShipWait(ship2);
             makeShipRefindPath(ship1);
         }
         else {
-            LOGI("让船", ship2.id, "重新寻路，船",ship1.id,"等待");
+            LOGI("让船", ship2.id, "重新寻路", ship2);
+            LOGI("船",ship1.id,"等待", ship1);
             makeShipWait(ship1);
             makeShipRefindPath(ship2);
         }
-        ship1.info();
-        ship2.info();
     }
     // 由于指令执行顺序导致的冲突
     else if(event.type == CollisionEvent::CollisionType::PathCrossingCollision){

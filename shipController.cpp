@@ -73,10 +73,16 @@ void ShipController::runController(Map &map,std::vector<Ship> &ships, SeaSingleL
 
 bool ShipController::needPathfinding(Ship &ship)
 {
-    if (ship.shipStatus == ShipStatusSpace::ShipStatus::MOVING_TO_BERTH && ship.berthId != -1 && ship.isDestinationValid() && ship.path.empty()) {
+    // 前往泊位状态 && 泊位id有效 && 目的地有效 && 路径为空 && 当前船不在目的地
+    if (ship.shipStatus == ShipStatusSpace::ShipStatus::MOVING_TO_BERTH
+     && ship.berthId != -1 && ship.isDestinationValid() 
+     && ship.path.empty() && !ship.reachBerth()) {
         return true;
     }
-    if (ship.shipStatus == ShipStatusSpace::ShipStatus::MOVING_TO_DELIVERY && ship.isDestinationValid() && ship.path.empty()) {
+    // 前往交货状态 && 交货点id有效 && 目的地有效 && 路径为空 && 当前船不在目的地
+    if (ship.shipStatus == ShipStatusSpace::ShipStatus::MOVING_TO_DELIVERY 
+     && ship.deliveryId != -1 && ship.isDestinationValid() 
+     && ship.path.empty() && !ship.reachDelivery()) {
         return true;
     }
     return false;
@@ -89,7 +95,7 @@ void ShipController::runPathfinding(const Map &map, Ship &ship)
         ship.path = Path<VectorPosition>();
         // todo 后期是否需要更改目的地
         // ship.destination = VectorPosition();
-        LOGI("船寻路失敗",ship.id);
+        LOGI("船寻路失敗",ship);
     }
     // 寻路成功，设置船状态
     else{

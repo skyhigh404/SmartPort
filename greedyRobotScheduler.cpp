@@ -16,7 +16,7 @@ void GreedyRobotScheduler::scheduleRobots(const Map &map,
     // LOGI("货物数量：", goods.size());
     // countRobotsPerBerth(robots);
     if (assignment.empty() && robots.size()==maxRobotNum) {
-        assignRobotsByCluster(robots, map);
+        assignRobotsByCluster(robots, map, ASSIGNBOUND);
     }
 
     for (Robot &robot : robots)
@@ -48,6 +48,7 @@ void GreedyRobotScheduler::setParameter(const Params &params)
     TTL_ProfitWeight = params.TTL_ProfitWeight;
     PartitionScheduling = params.PartitionScheduling;
     maxRobotNum = params.maxRobotNum;
+    ASSIGNBOUND = params.ASSIGNBOUND;
 }
 
 void GreedyRobotScheduler::assignRobotsByCluster(vector<Robot> &robots, const Map &map, vector<int> assignBound)
@@ -59,8 +60,18 @@ void GreedyRobotScheduler::assignRobotsByCluster(vector<Robot> &robots, const Ma
     if (assignBound.empty())
     {
         assignBound = vector<int>(clusters.size());
-        for (int i = 0; i < clusters.size(); i++)
+        int count = 0;
+        for (int i = 0; i < clusters.size(); i++) {
             assignBound[i] = clusters[i].size();
+            count += clusters[i].size();
+        }
+        while(count<robots.size()) {
+            for (int i=0;i<clusters.size();i++) 
+                if (count<robots.size()) {
+                    assignBound[i]++;
+                    count++;
+                }
+        }
     }
     vector<int> assignNum(clusters.size(), 0);
     // 先每个类分配一个机器人
@@ -103,9 +114,9 @@ void GreedyRobotScheduler::assignRobotsByCluster(vector<Robot> &robots, const Ma
         for (int i = 0; i < clusters.size(); i++)
         {
             int dist = INT_MAX;
+            // 每个类至多分配多少个机器人
             if (assignNum[i] >= assignBound[i])
-                continue; // 每个类有多少个泊位，则至多分配多少个机器人
-            // if (assignNum[i] >= clusters[i].size()) {continue;} // 每个类有多少个泊位，则至多分配多少个机器人
+                continue; 
             for (int k = 0; k < clusters[i].size(); k++)
             {
                 if (dist > map.berthDistanceMap.at(clusters[i][k].id)[robot.pos.x][robot.pos.y])
@@ -333,7 +344,7 @@ void GreedyRobotScheduler::findGoodsForRobot(const Map &map,
             continue;
         int berthsIndex = good.distsToBerths[0].first;
         // LOGI("货物id：",good.id,"货物状态：",good.status,"货物收益：",profits[good.id]);
-        if (PartitionScheduling && !assignment.empty() && !enterFinal && berthCluster->at(berthsIndex)!=assignment[robot.id]) continue;
+        if (PartitionScheduling && !assignment.empty() && robot.id<assignment.size() && !enterFinal && berthCluster->at(berthsIndex)!=assignment[robot.id]) continue;
 
         if (good.status == 0 && profits[goodIndex] > 0 && good.TTL + 10 >= timeToGoods)
         {

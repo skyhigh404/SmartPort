@@ -65,6 +65,7 @@ private:
     float landDistanceWeight;       // 对泊位价值评估时的陆地访问距离权重
     float deliveryDistanceWeight;   // 对泊位价值评估时的交货点访问距离权重
     bool CentralizedTransportation; // 开局是否集中搬货
+    bool robotFirst;                // 先买机器人还是先买船，true为机器人、false为船
 
 private:
     void divideLandConnectedBlocks(const std::vector<Berth> &berths, const Map &map);

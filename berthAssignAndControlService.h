@@ -11,12 +11,12 @@ public:
     std::vector<std::vector<Berth>> clusters;   // 聚簇所得类
     std::vector<int> berthCluster; // 每个泊位所对应的类
 
-    const int CLUSTERNUMS = 2;  // todo 超参，暂时设定为聚类数量
+    int CLUSTERNUMS;  //超参，暂时设定为聚类数量
 public:
     // 初始化
     void initialize(const Map &map, std::vector<Berth> &berths);
     // 设置参数，参数定义在子类里
-    void setParameter(const Params &params){}
+    void setParameter(const Params &params) {CLUSTERNUMS = params.CLUSTERNUMS;}
     // 对泊位进行聚类
     void clusterBerths(const Map &map, std::vector<Berth> &berths);
     // 输出聚类结果

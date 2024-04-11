@@ -172,6 +172,7 @@ void GameManager::initializeComponents()
     // 2. 预先计算海图航线
     // 计算泊位之间的航线
     std::vector<std::thread> threads;
+    // 计算泊位间的航线
     for(int i = 0; i < berths.size(); ++i)
     {
         for(int j = 0; j < berths.size(); ++j)
@@ -195,6 +196,15 @@ void GameManager::initializeComponents()
                 continue;
             VectorPosition startVP(berths[i].pos, berths[i].orientation);
             VectorPosition targetVP(deliveryLocation, Direction::EAST);
+            threads.emplace_back(findPathWrapper, std::ref(gameMap), startVP, targetVP);
+            threads.emplace_back(findPathWrapper, std::ref(gameMap), targetVP, startVP);
+            targetVP.direction = Direction::WEST;
+            threads.emplace_back(findPathWrapper, std::ref(gameMap), startVP, targetVP);
+            threads.emplace_back(findPathWrapper, std::ref(gameMap), targetVP, startVP);
+            targetVP.direction = Direction::NORTH;
+            threads.emplace_back(findPathWrapper, std::ref(gameMap), startVP, targetVP);
+            threads.emplace_back(findPathWrapper, std::ref(gameMap), targetVP, startVP);
+            targetVP.direction = Direction::SOUTH;
             threads.emplace_back(findPathWrapper, std::ref(gameMap), startVP, targetVP);
             threads.emplace_back(findPathWrapper, std::ref(gameMap), targetVP, startVP);
         }

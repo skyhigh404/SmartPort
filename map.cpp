@@ -539,6 +539,44 @@ std::vector<std::pair<int, int>> Map::initializeBerthToDeliveryDistances(BerthID
     return distsToDelivery;
 }
 
+MapFlag Map::getMapType()
+{
+    using namespace MapItemSpace;
+    if (getCell(Point2d(2, 196)) == MapItem::DELIVERY_POINT &&
+        getCell(Point2d(197, 3)) == MapItem::DELIVERY_POINT &&
+        getCell(Point2d(109, 143)) == MapItem::ROBOT_SHOP &&
+        getCell(Point2d(112, 143)) == MapItem::ROBOT_SHOP &&
+        getCell(Point2d(49, 120)) == MapItem::SHIP_SHOP &&
+        getCell(Point2d(111, 98)) == MapItem::SHIP_SHOP)
+    {
+        LOGI("识别到图1");
+        return MapFlag::MAP1;
+    }
+    else if (getCell(Point2d(2, 195)) == MapItem::DELIVERY_POINT &&
+             getCell(Point2d(197, 195)) == MapItem::DELIVERY_POINT &&
+             getCell(Point2d(0, 100)) == MapItem::ROBOT_SHOP &&
+             getCell(Point2d(199, 100)) == MapItem::ROBOT_SHOP &&
+             getCell(Point2d(95, 26)) == MapItem::SHIP_SHOP &&
+             getCell(Point2d(101, 26)) == MapItem::SHIP_SHOP)
+    {
+        LOGI("识别到图2");
+        return MapFlag::MAP2;
+    }
+    else if (getCell(Point2d(100, 101)) == MapItem::DELIVERY_POINT &&
+             getCell(Point2d(47, 153)) == MapItem::ROBOT_SHOP &&
+             getCell(Point2d(48, 45)) == MapItem::ROBOT_SHOP &&
+             getCell(Point2d(152, 44)) == MapItem::ROBOT_SHOP &&
+             getCell(Point2d(153, 153)) == MapItem::ROBOT_SHOP &&
+             getCell(Point2d(104, 26)) == MapItem::SHIP_SHOP &&
+             getCell(Point2d(104, 134)) == MapItem::SHIP_SHOP)
+    {
+        LOGI("识别到图3");
+        return MapFlag::MAP3;
+    }
+    LOGW("未识别到地图类型");
+    return MapFlag::NORMAL;
+}
+
 Direction Map::evaluateBestApproachDirection(const VectorPosition &shipPosition, const Point2d &pos)
 {
     return Direction::EAST;

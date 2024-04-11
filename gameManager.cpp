@@ -17,7 +17,6 @@ int Berth::totalLoadGoodnum = 0;
 int Berth::maxLoadGoodNum = 0;
 int Berth::deliverGoodNum = 0;
 int CURRENT_FRAME = 0;  //当前帧数
-MapFlag MAP_TYPE = MapFlag::ERROR;  // LABYRINTH: 图二、迷宫;NORMAL:图一、正常图;UNKNOWN；图三未知图;ERROR :默认值
 int last_assign = 0;
 
 std::vector<int> berthDistrubtGoodNumCount;
@@ -66,10 +65,12 @@ void GameManager::initializeGame()
             case 'R':
                 this->gameMap.setCell(i, j, MapItemSpace::MapItem::ROBOT_SHOP);
                 this->gameMap.robotShops.emplace_back(i, j);
+                LOGI("ROBOT_SHOP pos: ", Point2d(i, j));
                 break;
             case 'S':
                 this->gameMap.setCell(i, j, MapItemSpace::MapItem::SHIP_SHOP);
                 this->gameMap.shipShops.emplace_back(i, j);
+                LOGI("SHIP_SHOP pos: ", Point2d(i, j));
                 break;
             case 'B':
                 this->gameMap.setCell(i, j, MapItemSpace::MapItem::BERTH);
@@ -86,6 +87,7 @@ void GameManager::initializeGame()
             case 'T':
                 this->gameMap.setCell(i, j, MapItemSpace::MapItem::DELIVERY_POINT);
                 this->gameMap.deliveryLocations.push_back({i,j});
+                LOGI("DELIVERY_POINT pos: ", Point2d(i, j));
                 break;
             default:
                 break;
@@ -282,9 +284,9 @@ void GameManager::initializeComponents()
     this->singleLaneManager.init(gameMap);
     this->seaSingleLaneManager.init(gameMap);
     // 8. 判断地图类型，后续封装在其他函数中实现
-    MAP_TYPE = MapFlag::NORMAL;
+    MapFlag mapType = this->gameMap.getMapType();
     // 9. 读取参数
-    Params params(MAP_TYPE);
+    Params params(mapType);
     // 10. 初始化 RobotController
     this->robotController = std::make_shared<RobotController>(this->robots);
     this->shipController = std::make_shared<ShipController>();

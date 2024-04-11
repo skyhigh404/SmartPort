@@ -34,10 +34,10 @@ namespace MapItemSpace
 enum class MapFlag
 {
     NORMAL, // 正常参数
-    ERROR   // 默认值
+    MAP1,
+    MAP2,
+    MAP3
 };
-
-extern MapFlag MAP_TYPE;
 
 class Map
 {
@@ -164,6 +164,8 @@ public:
     std::vector<Point2d> getNearbyTemporaryObstacles(const Point2d &robotPos, int n) const;
     // 初始化泊位到交货点的距离变量
     std::vector<std::pair<int, int>> initializeBerthToDeliveryDistances(BerthID berthId);
+    // 获取地图类型
+    MapFlag getMapType();
     // TODO: 评估海图上不同方向进入的路径和成本
     Direction evaluateBestApproachDirection(const VectorPosition &shipPosition, const Point2d &pos);
 

@@ -31,7 +31,8 @@ private:
     int TIME_TO_WAIT; //等待有货的时间段
     int CAPACITY_GAP;   // 泊位溢出货物量和船的容量差
     int SHIP_WAIT_TIME_LIMIT; // 船在泊位上等待的时间限制
-    int GOOD_DISTANCE_LIMIT = 100;  // 只考虑距离泊位[0, GOOD_DISTNACE_LIMIT]内的货物价值
+    int GOOD_DISTANCE_LIMIT;  // 只考虑距离泊位[0, GOOD_DISTNACE_LIMIT]内的货物价值
+    int DELIVERY_VALUE_LIMIE;   //当船运输价值 > DELIVERY_VALUE_LIMIE 时才能去虚拟点（终局时刻例外）
     // 等等
 
 private:

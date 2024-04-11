@@ -9,6 +9,7 @@ void GreedyShipScheduler::setParameter(const Params &params)
     CAPACITY_GAP = params.CAPACITY_GAP;
     SHIP_WAIT_TIME_LIMIT = params.SHIP_WAIT_TIME_LIMIT;
     GOOD_DISTANCE_LIMIT = params.GOOD_DISTANCE_LIMIT;
+    DELIVERY_VALUE_LIMIE = params.DELIVERY_VALUE_LIMIE;
 }
 
 void GreedyShipScheduler::scheduleShips(Map &map, std::vector<Ship> &ships, std::vector<Berth> &berths, std::vector<Goods> &goods, std::vector<Robot> &robots) {
@@ -343,7 +344,7 @@ void GreedyShipScheduler::scheduleFreeShipAtBerth(Map& map, Ship &ship, std::vec
     // 去泊位收益最高 || 当前金额不够买一个机器人
     // todo 不去虚拟点的条件应该进行多次调参 || 可以限制只有当运输价值大于多少时才去虚拟点
     // if(bestBerthAndProfit.second > deliveryProfit || (ship.loadGoodValue < 1500 || ship.loadGoodValue + CURRENT_MONEY < 2000 || ship.loadGoodValue != 0)){
-    if(bestBerthAndProfit.second > deliveryProfit || (ship.loadGoodValue + CURRENT_MONEY < 2000)){
+    if(bestBerthAndProfit.second > deliveryProfit || (ship.loadGoodValue < DELIVERY_VALUE_LIMIE || ship.loadGoodValue + CURRENT_MONEY < 2000)){
         if (bestBerthAndProfit.first == ship.berthId && CURRENT_FRAME < FINAL_FRAME){
             LOGE("船选中相同泊位进行移动！");
             ship.info();

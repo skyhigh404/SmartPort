@@ -289,6 +289,7 @@ void GameManager::initializeComponents()
     this->robotController = std::make_shared<RobotController>(this->robots);
     this->shipController = std::make_shared<ShipController>();
     // 11. 对泊位进行聚类
+    this->berthAssignAndControlService.setParameter(params);
     this->berthAssignAndControlService.initialize(this->gameMap,this->berths);
     std::vector<int> &berthCluster = this->berthAssignAndControlService.berthCluster;
     std::vector<std::vector<Berth>> &clusters = this->berthAssignAndControlService.clusters;

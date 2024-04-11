@@ -1,6 +1,7 @@
 #include "berthAssignAndControlService.h"
 
 void BerthAssignAndControlService::initialize(const Map &map, std::vector<Berth> &berths){
+    CLUSTERNUMS = std::min(int(berths.size()), CLUSTERNUMS); //需要先setparams
     clusterBerths(map, berths);
 }
 

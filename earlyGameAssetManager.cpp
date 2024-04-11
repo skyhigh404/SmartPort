@@ -11,6 +11,8 @@ void EarlyGameAssetManager::setParameter(const Params &params)
     startNum = params.startNum;
     landDistanceWeight = params.landDistanceWeight;
     deliveryDistanceWeight = params.deliveryDistanceWeight;
+    CentralizedTransportation = params.CentralizedTransportation;
+    robotFirst = params.robotFirst;
 }
 
 void EarlyGameAssetManager::init(const Map& map, std::vector<Berth> &berths)
@@ -47,6 +49,16 @@ std::vector<PurchaseDecision> EarlyGameAssetManager::makePurchaseDecision(const 
 {
     std::vector<PurchaseDecision> purchaseDecisions;
     // 判断要不要购买机器人/轮船
+    if (needToBuyRobot(robots, goods, gameMap, currentFunds) && robotFirst) {
+        Point2d shopPos = buyRobot(robots, goods, gameMap, currentFunds);
+        LOGI("购买机器人，当前资金：", currentFunds, "，购买点：", shopPos);
+        if (shopPos != Point2d(-1,-1)) {
+            currentFunds -= robotPrice;
+            int assignId = getAssignId(shopPos, berths);
+            LOGI("购买机器人并分配泊位id:", assignId);
+            purchaseDecisions.push_back(PurchaseDecision{AssetType::ROBOT, shopPos, 1, assignId});
+        }
+    }
     if (needToBuyShip(ships, goods, gameMap, currentFunds, currentTime)) {
         Point2d shopPos = buyShip(ships, goods, gameMap, currentFunds);
         LOGI("购买轮船，当前资金：", currentFunds, "，购买点：", shopPos);
@@ -56,7 +68,7 @@ std::vector<PurchaseDecision> EarlyGameAssetManager::makePurchaseDecision(const 
             purchaseDecisions.push_back(PurchaseDecision{AssetType::SHIP, shopPos, 1, assignId});
         }
     }
-    if (needToBuyRobot(robots, goods, gameMap, currentFunds)) {
+    if (needToBuyRobot(robots, goods, gameMap, currentFunds) && !robotFirst) {
         Point2d shopPos = buyRobot(robots, goods, gameMap, currentFunds);
         LOGI("购买机器人，当前资金：", currentFunds, "，购买点：", shopPos);
         if (shopPos != Point2d(-1,-1)) {
@@ -71,7 +83,8 @@ std::vector<PurchaseDecision> EarlyGameAssetManager::makePurchaseDecision(const 
 
 int EarlyGameAssetManager::getAssignId(Point2d shopPos, const std::vector<Berth> &berths)
 {
-    // return -1;
+    if (!CentralizedTransportation)
+        return -1;
     // 游戏初期集中分配
     LandSeaBlock& lsb = landseaBlocks[0];
 

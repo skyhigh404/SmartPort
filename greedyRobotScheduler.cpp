@@ -15,9 +15,13 @@ void GreedyRobotScheduler::scheduleRobots(const Map &map,
 {
     // LOGI("货物数量：", goods.size());
     // countRobotsPerBerth(robots);
-    // if (assignment[0]==-1) {
-    //     assignRobotsByCluster(robots, map);
-    // }
+    if (assignment.empty() && robots.size()==maxRobotNum) {
+        assignRobotsByCluster(robots, map, ASSIGNBOUND);
+    }
+    if (!assignment.empty() && DynamicPartitionScheduling && currentFrame - lastReassignFrame > DynamicSchedulingInterval) {
+        reassignRobotsByCluster(goods, robots, map, berths);
+        lastReassignFrame = currentFrame;
+    }
 
     for (Robot &robot : robots)
     {
@@ -47,6 +51,11 @@ void GreedyRobotScheduler::setParameter(const Params &params)
     TTL_Bound = params.TTL_Bound;
     TTL_ProfitWeight = params.TTL_ProfitWeight;
     PartitionScheduling = params.PartitionScheduling;
+    maxRobotNum = params.maxRobotNum;
+    ASSIGNBOUND = params.ASSIGNBOUND;
+    robotReleaseBound = params.robotReleaseBound;
+    DynamicPartitionScheduling = params.DynamicPartitionScheduling;
+    DynamicSchedulingInterval = params.DynamicSchedulingInterval;
 }
 
 void GreedyRobotScheduler::assignRobotsByCluster(vector<Robot> &robots, const Map &map, vector<int> assignBound)
@@ -58,8 +67,18 @@ void GreedyRobotScheduler::assignRobotsByCluster(vector<Robot> &robots, const Ma
     if (assignBound.empty())
     {
         assignBound = vector<int>(clusters.size());
-        for (int i = 0; i < clusters.size(); i++)
+        int count = 0;
+        for (int i = 0; i < clusters.size(); i++) {
             assignBound[i] = clusters[i].size();
+            count += clusters[i].size();
+        }
+        while(count<robots.size()) {
+            for (int i=0;i<clusters.size();i++) 
+                if (count<robots.size()) {
+                    assignBound[i]++;
+                    count++;
+                }
+        }
     }
     vector<int> assignNum(clusters.size(), 0);
     // 先每个类分配一个机器人
@@ -102,9 +121,9 @@ void GreedyRobotScheduler::assignRobotsByCluster(vector<Robot> &robots, const Ma
         for (int i = 0; i < clusters.size(); i++)
         {
             int dist = INT_MAX;
+            // 每个类至多分配多少个机器人
             if (assignNum[i] >= assignBound[i])
-                continue; // 每个类有多少个泊位，则至多分配多少个机器人
-            // if (assignNum[i] >= clusters[i].size()) {continue;} // 每个类有多少个泊位，则至多分配多少个机器人
+                continue; 
             for (int k = 0; k < clusters[i].size(); k++)
             {
                 if (dist > map.berthDistanceMap.at(clusters[i][k].id)[robot.pos.x][robot.pos.y])
@@ -125,52 +144,52 @@ void GreedyRobotScheduler::assignRobotsByCluster(vector<Robot> &robots, const Ma
     return;
 }
 
-// void GreedyRobotScheduler::reassignRobotsByCluster(vector<Goods> &goods, vector<Robot> &robots, Map &map, std::vector<Berth> &berths)
-// {
-//     // 根据类收益分配机器人
-//     vector<int> assignBound(clusters.size(), 0);
-//     for (int i = 0; i < assignment.size(); i++)
-//         assignBound[assignment[i]]++;
+void GreedyRobotScheduler::reassignRobotsByCluster(vector<Goods> &goods, vector<Robot> &robots, const Map &map, const std::vector<Berth> &berths)
+{
+    // 根据类收益分配机器人
+    vector<int> assignBound(clusters.size(), 0);
+    for (int i = 0; i < assignment.size(); i++)
+        assignBound[assignment[i]]++;
 
-//     // 需要统计（机器人空闲率）和泊位类的价值
-//     vector<int> clusterValue(clusters.size(), 0);
-//     // calCostAndBestBerthIndes(map, goods, berths);
-//     for (auto &good : goods)
-//     {
-//         if (good.status == 0)
-//         {
-//             clusterValue[berthCluster[bestBerthIndex[good.id][0]]] += good.value / cost2berths[good.id][bestBerthIndex[good.id][0]];
-//         }
-//     }
-//     int clusterValue_avg = std::accumulate(clusterValue.begin(), clusterValue.end(), 0.0) / clusterValue.size();
+    // 需要统计（机器人空闲率）和泊位类的价值
+    vector<float> clusterValue(clusters.size(), 0);
+    for (auto &good : goods)
+    {
+        if (good.status == 0 && !good.distsToBerths.empty())
+        {
+            // todo 可能有问题
+            clusterValue[berthCluster->at(int(good.distsToBerths[0].first))] += good.value *1.0 / good.distsToBerths[0].second;
+        }
+    }
+    float clusterValue_avg = std::accumulate(clusterValue.begin(), clusterValue.end(), 0.0) / clusterValue.size();
 
-//     // 将机器人从价值低的类中释放
-//     int freeRobotNum = 0;
-//     for (int i = 0; i < clusters.size(); i++)
-//     {
-//         if (freeRobotNum >= 2)
-//             break;
-//         if (clusterValue[i] < 0.8 * clusterValue_avg && assignBound[i] > 0)
-//         {
-//             assignBound[i]--;
-//             freeRobotNum++;
-//         }
-//     }
+    // 将机器人从价值低的类中释放
+    int freeRobotNum = 0;
+    for (int i = 0; i < clusters.size(); i++)
+    {
+        if (freeRobotNum >= 2)
+            break;
+        if (clusterValue[i] < robotReleaseBound * clusterValue_avg && assignBound[i] > 1) // 至少留一个机器人
+        {
+            assignBound[i]--;
+            freeRobotNum++;
+        }
+    }
+    
+    // 将自由机器人分配给高价值类
+    if (freeRobotNum == 0) return;
+    while (freeRobotNum > 0)
+    {
+        auto max_iter = std::max_element(clusterValue.begin(), clusterValue.end());
+        int max_index = std::distance(clusterValue.begin(), max_iter);
+        assignBound[max_index]++;
+        freeRobotNum--;
+        clusterValue[max_index] = 0; // 此类不再参与分配
+    }
+    LOGI("reassignRobotsByCluster");
 
-//     // 将自由机器人分配给高价值类
-//     while (freeRobotNum > 0)
-//     {
-//         auto max_iter = std::max_element(clusterValue.begin(), clusterValue.end());
-//         int max_index = std::distance(clusterValue.begin(), max_iter);
-//         assignBound[max_index]++;
-//         freeRobotNum--;
-//         clusterValue[max_index] = 0; // 此类不再参与分配
-//     }
-//     if (freeRobotNum == 0)
-//         return;
-
-//     assignRobotsByCluster(robots, map, assignBound);
-// }
+    assignRobotsByCluster(robots, map, assignBound);
+}
 
 bool GreedyRobotScheduler::shouldFetchGoods(const Robot &robot)
 {
@@ -286,9 +305,9 @@ GreedyRobotScheduler::getProfitsAndSortedIndex(std::vector<std::reference_wrappe
     for (int j = 0; j < availableGoods.size(); j++)
         indices[j] = j;
     std::sort(indices.begin(), indices.end(), [&](int a, int b)
-              {
-                  return profits[a] > profits[b]; // 根据第二个维度进行降序排序
-              });
+    {
+        return profits[a] > profits[b]; // 根据第二个维度进行降序排序
+    });
 
     return std::make_pair(profits, indices);
 }
@@ -332,7 +351,7 @@ void GreedyRobotScheduler::findGoodsForRobot(const Map &map,
             continue;
         int berthsIndex = good.distsToBerths[0].first;
         // LOGI("货物id：",good.id,"货物状态：",good.status,"货物收益：",profits[good.id]);
-        if (PartitionScheduling && !enterFinal && berthCluster->at(berthsIndex)!=assignment[robot.id]) continue;
+        if (PartitionScheduling && !assignment.empty() && robot.id<assignment.size() && !enterFinal && berthCluster->at(berthsIndex)!=assignment[robot.id]) continue;
 
         if (good.status == 0 && profits[goodIndex] > 0 && good.TTL + 10 >= timeToGoods)
         {

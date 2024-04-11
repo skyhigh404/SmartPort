@@ -28,6 +28,11 @@ private:
     float TTL_ProfitWeight;
     int TTL_Bound;
     bool PartitionScheduling; // 是否分区调度
+    int maxRobotNum;
+    std::vector<int> ASSIGNBOUND;
+    float robotReleaseBound;
+    bool DynamicPartitionScheduling;
+    int DynamicSchedulingInterval;
     // 等等
     std::vector<std::pair<BerthID, int>> maxRobotsPerBerth; // 记录每个泊位分配机器人的上限
 private:
@@ -36,13 +41,14 @@ private:
     std::vector<std::vector<Berth>> clusters;                     // 每个簇对应的泊位
     std::shared_ptr<std::vector<int>> berthCluster;         // 每个泊位所对应的类
     std::vector<int> assignment;
+    int lastReassignFrame = 0; //上次动态调度的时刻
     bool enterFinal; // 判断是否进入终局
 
 private:
     // 根据类来分配机器人
     void assignRobotsByCluster(vector<Robot> &robots, const Map &map, vector<int> assignBound = vector<int>());
     // 根据类来重新分配机器人
-    void reassignRobotsByCluster(vector<Goods> &goods, vector<Robot> &robots, Map &map, std::vector<Berth> &berths);
+    void reassignRobotsByCluster(vector<Goods> &goods, vector<Robot> &robots, const Map &map, const std::vector<Berth> &berths);
     // 统计每个泊位分配了多少机器人，维护 robotAllocationPerBerth 变量
     void countRobotsPerBerth(const std::vector<Robot> &robots);
     // 判断机器人是否需要去拿货物

@@ -293,6 +293,13 @@ public:
             }
         }
         LOGI("路径上没有冲突的点：", intersection);
+        // 打印当前点的地图情况
+        // std::pair<Point2d, Point2d> temp = SpatialUtils::getShipOccupancyRect(intersection);
+        // for( int x = temp.first.x; x <= temp.second.x; x++){
+        //     for (int y = temp.first.y; y <= temp.second.y; y++){
+        //         LOGI(Point2d(x, y), "元素：", static_cast<int>(map.getCell({x, y})));
+        //     }
+        // }
         i = std::max(0, i);
         std::variant<Path<VectorPosition>, PathfindingFailureReason> path = pathFinder.findPath(locAndDir, intersection, map);
         if (std::holds_alternative<Path<VectorPosition>>(path))
@@ -485,7 +492,11 @@ public:
 
     friend std::ostream &operator<<(std::ostream &os, const Ship &ship)
     {
-        os << "Ship id: " << ship.id << " state: " << ship.state << " locAndDir: " << ship.locAndDir << " nextlocAndDir: " << ship.nextLocAndDir << " dst: " << ship.destination << " path: " << ship.path.size() << ", ";
+        auto a = SpatialUtils::getShipOccupancyRect(ship.locAndDir);
+        auto b = SpatialUtils::getShipOccupancyRect(ship.nextLocAndDir);
+        os << "Ship id: " << ship.id << " state: " << ship.state << " locAndDir: " << ship.locAndDir << " nextlocAndDir: " << ship.nextLocAndDir \
+        << " 当前船占用范围: " << a.first << a.second << ", 下一帧占地: " << b.first << b.second\
+        << ", dst: " << ship.destination << " path: " << ship.path.size() << ", ";
         for (int i = (int)ship.path.size() - 1; i >= std::max(0, (int)ship.path.size() - 5); --i)
         {
             os << ship.path[i];

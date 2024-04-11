@@ -13,7 +13,7 @@ void GreedyShipScheduler::setParameter(const Params &params)
 void GreedyShipScheduler::scheduleShips(Map &map, std::vector<Ship> &ships, std::vector<Berth> &berths, std::vector<Goods> &goods, std::vector<Robot> &robots) {
     //需要迁移，更新泊位和货物的状态
     updateBerthStatus(ships, berths, goods);
-    LOGI("初始化泊位状态完毕");
+    // LOGI("初始化泊位状态完毕");
 
     // 2. 决定调度策略
     std::vector<std::pair<ShipID, ShipActionSpace::ShipAction>> actions;
@@ -46,13 +46,13 @@ void GreedyShipScheduler::scheduleShips(Map &map, std::vector<Ship> &ships, std:
 void GreedyShipScheduler::handleShipOnRoute(Map& map, Ship &ship,std::vector<Berth> &berths,std::vector<Goods> &goods){
     BerthID berthId = ship.berthId;
     // LOGI("handleShipOnRoute");
-    ship.info();
+    // ship.info();
 
     // 船是空闲状态
     if (ship.isIdle()){
         LOGI("船舶空闲状态：", ship.id);
         scheduleShipAtShipShops(map, ship, berths, goods);
-        ship.info();
+        // ship.info();
         // ship.info();
         // BerthID berthId = findBestBerthForShip(map, ship, berths, goods);
         // ship.updateMoveToBerthStatus(berthId, VectorPosition(berths[berthId].pos, berths[berthId].orientation));

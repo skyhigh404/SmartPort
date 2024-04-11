@@ -410,12 +410,12 @@ void Map::addTemporaryObstacle(const VectorPosition& vecPos) {
                 if (item == MapItemSpace::MapItem::OBSTACLE || item == MapItemSpace::MapItem::SPACE)
                 {
                     LOGE("往船舶不可通行位置上放置临时障碍, pos: ", pos);
-                    return;
+                    continue;
                 }
                 else if (isInSealane(pos))
                 {
                     // LOGE("往海洋主干道上放置临时障碍, pos: ", pos);
-                    return;
+                    continue;
                 }
                 grid[pos.x][pos.y] = MapItemSpace::MapItem::SHIP; // 标记为障碍物
                 temporaryObstacles.push_back(pos);                 // 添加到临时障碍物列表

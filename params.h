@@ -14,7 +14,7 @@ struct Params
     
     // 购买策略超参
     int maxRobotNum = 12;    // 最多购买机器人数目
-    int maxShipNum = 3;     // 最多购买船只数目
+    int maxShipNum = 2;     // 最多购买船只数目
     std::vector<std::vector<int>> robotPurchaseAssign = {{8, 100}, {1, 4}, {1, 4}};
     // std::vector<std::vector<int>> shipPurchaseAssign = {{4, 4, 4, 5, 6, 7, 8, 9, 10}, {1, 2, 3, 4, 5, 6}, {1, 2, 3, 4, 5, 6}};
     std::vector<std::vector<int>> shipPurchaseAssign = {{1, 4, 10}, {0, 0, 0}, {0, 0, 0}};

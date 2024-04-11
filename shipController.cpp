@@ -199,9 +199,18 @@ void ShipController::rePlanShipMove(Map &map, std::vector<Ship> &ships){
     for (auto& pair : refindPathActions) {
         Ship &ship = ships.at(pair.first);
         LOGI("船舶重新寻路: ", ship.id);
+        // LOGI("旧路径：");
+        // for (auto &item : ship.path){
+        //     LOGI(item);
+        // }
         map.removeTemporaryObstacle(ship.nextLocAndDir);
-        runPathfinding(map, ship);
+        // runPathfinding(map, ship);
+        ship.findDetourAndUpdatePath(map);
         ship.updateNextPos();
+        // LOGI("新路径：");
+        // for (auto &item : ship.path){
+        //     LOGI(item);
+        // }
         map.addTemporaryObstacle(ship.nextLocAndDir);
 
     }

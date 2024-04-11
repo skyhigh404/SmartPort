@@ -34,4 +34,5 @@
 build/*
 log/*
 .vscode/*
+script/output.txt
 .zip

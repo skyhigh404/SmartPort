@@ -161,6 +161,7 @@ void GreedyRobotScheduler::reassignRobotsByCluster(vector<Goods> &goods, vector<
             clusterValue[berthCluster->at(int(good.distsToBerths[0].first))] += good.value *1.0 / good.distsToBerths[0].second;
         }
     }
+    for (int i=0;i<clusters.size();i++) clusterValue[i] /= assignBound[i] * 1.0;
     float clusterValue_avg = std::accumulate(clusterValue.begin(), clusterValue.end(), 0.0) / clusterValue.size();
 
     // 将机器人从价值低的类中释放

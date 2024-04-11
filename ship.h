@@ -293,6 +293,13 @@ public:
             }
         }
         LOGI("路径上没有冲突的点：", intersection);
+        // 打印当前点的地图情况
+        // std::pair<Point2d, Point2d> temp = SpatialUtils::getShipOccupancyRect(intersection);
+        // for( int x = temp.first.x; x <= temp.second.x; x++){
+        //     for (int y = temp.first.y; y <= temp.second.y; y++){
+        //         LOGI(Point2d(x, y), "元素：", static_cast<int>(map.getCell({x, y})));
+        //     }
+        // }
         i = std::max(0, i);
         std::variant<Path<VectorPosition>, PathfindingFailureReason> path = pathFinder.findPath(locAndDir, intersection, map);
         if (std::holds_alternative<Path<VectorPosition>>(path))

@@ -180,6 +180,13 @@ void ShipController::rePlanShipMove(Map &map, std::vector<Ship> &ships){
             map.removeTemporaryObstacle(ship.nextLocAndDir);
             stopShip(ship);
             map.addTemporaryObstacle(ship.locAndDir);
+        //     LOGI("防止障碍物坐标：", ship.locAndDir);
+        //     std::pair<Point2d, Point2d> temp = SpatialUtils::getShipOccupancyRect(ship.locAndDir);
+        //     for( int x = temp.first.x; x <= temp.second.x; x++){
+        //     for (int y = temp.first.y; y <= temp.second.y; y++){
+        //         LOGI(Point2d(x, y), "防止障碍物:", static_cast<int>(map.getCell({x, y})));
+        //     }
+        // }
         }
         // 重置主航道
         else if (value.at(0).method == ResolutionAction::Dept) {

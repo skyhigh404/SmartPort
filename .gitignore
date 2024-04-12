@@ -35,5 +35,7 @@ build/*
 log/*
 .vscode/*
 script/output.txt
+script/param_now.txt
+script/scores.txt
 script/replay/*
 .zip

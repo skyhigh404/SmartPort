@@ -1,16 +1,18 @@
 #include "greedyRobotScheduler.h"
+#include <cstdlib>
 
 GreedyRobotScheduler::GreedyRobotScheduler(std::vector<std::vector<Berth>> &_clusters, std::vector<int> &_berthCluster)
     : clusters(_clusters), berthCluster(std::make_shared<std::vector<int>>(_berthCluster))
     // : clusters(_clusters), berthCluster(_berthCluster)
 {
     // assignment = vector<int>(10, -1);
+    srand(1500);
 }
 
 void GreedyRobotScheduler::scheduleRobots(const Map &map,
                                           std::vector<Robot> &robots,
                                           std::vector<Goods> &goods,
-                                          const std::vector<Berth> &berths,
+                                          std::vector<Berth> &berths,
                                           const int currentFrame)
 {
     // LOGI("货物数量：", goods.size());
@@ -22,6 +24,21 @@ void GreedyRobotScheduler::scheduleRobots(const Map &map,
     if (!assignment.empty() && DynamicPartitionScheduling && currentFrame - lastReassignFrame > DynamicSchedulingInterval) {
         reassignRobotsByCluster(goods, robots, map, berths);
         lastReassignFrame = currentFrame;
+    }
+    if (FinalgameScheduling && currentFrame >= FINAL_FRAME && !enterFinal) {
+        LOGI("机器人调度进入终局,", currentFrame, ' ',FINAL_FRAME);
+        // 关闭泊位、更新goods.distToBerths
+        FinalgameAdjustment(berths);
+        // 更新机器人状态
+        for (Robot& robot:robots) {
+            if (robot.targetid==-1) continue;
+            if ( (robot.status==MOVING_TO_BERTH && berths[robot.targetid].isEnable()==false) || (robot.status==MOVING_TO_GOODS && berths[goods[robot.targetid].distsToBerths[0].first].isEnable()==false)) {
+                robot.targetid = -1;
+                robot.destination = Point2d(-1,-1);
+                robot.path = Path<Point2d>();
+            }
+        }
+        enterFinal = true;
     }
 
     for (Robot &robot : robots)
@@ -58,6 +75,35 @@ void GreedyRobotScheduler::setParameter(const Params &params)
     DynamicPartitionScheduling = params.DynamicPartitionScheduling;
     DynamicSchedulingInterval = params.DynamicSchedulingInterval;
     startPartitionScheduling = params.startPartitionScheduling;
+    FINAL_FRAME = params.FINAL_FRAME;
+    FinalgameScheduling = params.FinalgameScheduling;
+    robot2goodWeight = params.robot2goodWeight;
+    good2berthWeight = params.good2berthWeight;
+}
+
+void GreedyRobotScheduler::FinalgameAdjustment(std::vector<Berth> &berths)
+{
+    // 关闭泊位、更新goods.distToBerths
+    for (int i=0;i<clusters.size();i++) {
+        float max=0;
+        int argmax = -1;
+        for (int j=0;j<clusters[i].size();j++) {
+            int berthID = clusters[i][j].id;
+            auto& berth = berths[berthID];
+            if (berth.estimateValue > max) { // 不一定合适，可更换
+                max = berth.estimateValue;
+                argmax = berthID;
+            }
+        }
+        for (int j=0;j<clusters[i].size();j++) 
+            if (clusters[i][j].id != argmax) {
+                berths[clusters[i][j].id].disable();
+                LOGI("泊位",clusters[i][j].id,"禁用");
+            }
+            else {
+                LOGI("泊位",clusters[i][j].id,"继续运行");
+            }
+    }
 }
 
 void GreedyRobotScheduler::assignRobotsByCluster(vector<Robot> &robots, const Map &map, vector<int> assignBound)
@@ -300,7 +346,7 @@ GreedyRobotScheduler::getProfitsAndSortedIndex(std::vector<std::reference_wrappe
     {
         if (cost_robot2good[j] >= INT_MAX || cost_good2berth[j] >= INT_MAX)
             continue;
-        profits[j] = availableGoods[j].get().value * 1.0 / (cost_robot2good[j] + cost_good2berth[j]);
+        profits[j] = availableGoods[j].get().value * 1.0 / (robot2goodWeight * cost_robot2good[j] + good2berthWeight * cost_good2berth[j]);
 
         if (availableGoods[j].get().TTL <= TTL_Bound && !enterFinal)
             profits[j] *= TTL_ProfitWeight;
@@ -339,6 +385,7 @@ void GreedyRobotScheduler::findGoodsForRobot(const Map &map,
     vector<int> index = profitsAndSortedIndex.second;
 
     // 选择得分第一的作为搬运目标
+    // for (int j = std::min((int)availableGoods.size()-2, rand()%3); j < availableGoods.size(); ++j)
     for (int j = 0; j < availableGoods.size(); ++j)
     {
         int goodIndex = index[j];

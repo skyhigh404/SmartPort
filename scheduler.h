@@ -26,7 +26,7 @@ public:
     scheduleRobots(const Map &map,
                    std::vector<Robot> &robots,
                    std::vector<Goods> &goods,
-                   const std::vector<Berth> &berths,
+                   std::vector<Berth> &berths,
                    const int currentFrame) = 0;
     // 设置参数，参数定义在子类里
     virtual void setParameter(const Params &params) = 0;

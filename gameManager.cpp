@@ -329,61 +329,8 @@ void GameManager::initializeComponents()
     goodsGenerationMap = vector<vector<int>> (MAPROWS, vector<int>(MAPCOLS, 0));
 }
 
-void GameManager::processFrameData()
+void GameManager::statisticGoods(int value, std::unordered_map<std::string, int> &statisticMap)
 {
-    int newItemCount;
-    int goodsX, goodsY, value;
-    int carrying, robotX, robotY, robotState;
-    // int shipState, berthId;
-    // 如果读取到了 EOF，则结束
-    if (cin.eof())
-    {
-        exit(0);
-    }
-    
-    // 清除临时障碍
-    LOGI("=======================================新的一帧====================================");
-    gameMap.clearTemporaryObstacles();
-
-    cin >> this->currentFrame >> this->currentMoney;
-    LOGI("当前帧数：", this->currentFrame, ",当前金额：", this->currentMoney);
-    CURRENT_MONEY = this->currentMoney;
-    int skipFrame = this->currentFrame - CURRENT_FRAME - 1;
-    this->skipFrame += skipFrame;
-    if(skipFrame)
-        LOGW("跳帧: ", skipFrame);
-    CURRENT_FRAME = this->currentFrame;
-    // 货物生命周期维护
-    for (auto& good : goods){
-        // todo 边界条件
-        if(good.TTL != INT_MAX && good.TTL >= 0){
-            // LOGI(good.id,",initFrame:",good.initFrame,",currentFrame:",currentFrame,",TTL:",good.TTL);
-            good.TTL = std::max(1000-(currentFrame - good.initFrame),-1);
-#ifdef DEBUG
-            if (good.TTL == -1)
-            {
-                if (good.value >= 100)
-                    LOGE("高价值货物过期 ID: ", good.id, ", value: ", good.value, ", pos: ", good.pos);
-                else
-                    LOGW("货物过期 ID: ", good.id, ", value: ", good.value, ", pos: ", good.pos);
-            }
-#endif
-        }
-    }
-    // 读取变化货物
-    // TODO: 使用Map::computePointToBerthsDistances计算货物到泊位距离
-    cin >> newItemCount;
-    // LOGI("变化货物数量：", newItemCount);
-    while (newItemCount--)
-    {
-        cin >> goodsX >> goodsY >> value;
-        // 金额为 0 表示上一帧被拿取或者该帧消失
-        if (value==0) 
-            continue;
-
-#ifdef DEBUG
-        // 进行统计
-        goodsGenerationMap[goodsX][goodsY]++;
         std::string range;
         if (value < 10) {
             range = "0-10";
@@ -417,11 +364,69 @@ void GameManager::processFrameData()
             range = "180-200";
         } 
         else {
-            LOGI("高价值 ", value);
             range = "200+";
         }
         // 对应区间的数量加一
-        valueDistribution[range]++;
+        statisticMap[range]++;
+}
+
+void GameManager::processFrameData()
+{
+    int newItemCount;
+    int goodsX, goodsY, value;
+    int carrying, robotX, robotY, robotState;
+    // int shipState, berthId;
+    // 如果读取到了 EOF，则结束
+    if (cin.eof())
+    {
+        exit(0);
+    }
+    
+    // 清除临时障碍
+    LOGI("=======================================新的一帧====================================");
+    gameMap.clearTemporaryObstacles();
+
+    cin >> this->currentFrame >> this->currentMoney;
+    LOGI("当前帧数：", this->currentFrame, ",当前金额：", this->currentMoney);
+    CURRENT_MONEY = this->currentMoney;
+    int skipFrame = this->currentFrame - CURRENT_FRAME - 1;
+    this->skipFrame += skipFrame;
+    if(skipFrame)
+        LOGW("跳帧: ", skipFrame);
+    CURRENT_FRAME = this->currentFrame;
+    // 货物生命周期维护
+    for (auto& good : goods){
+        // todo 边界条件
+        if(good.TTL != INT_MAX && good.TTL >= 0){
+            // LOGI(good.id,",initFrame:",good.initFrame,",currentFrame:",currentFrame,",TTL:",good.TTL);
+            good.TTL = std::max(1000-(currentFrame - good.initFrame),-1);
+#ifdef DEBUG
+            if (good.TTL == -1 && !good.distsToBerths.empty())
+            {
+                statisticGoods(good.value, expiredGoodsValueDistribution);
+                if (good.value >= 50)
+                    LOGE("高价值货物过期 ID: ", good.id, ", value: ", good.value, ", pos: ", good.pos, ", distsToBerths: ", good.distsToBerths[0].first, " : ", good.distsToBerths[0].second);
+                else
+                    LOGW("货物过期 ID: ", good.id, ", value: ", good.value, ", pos: ", good.pos, ", distsToBerths: ", good.distsToBerths[0].first, " : ", good.distsToBerths[0].second);
+            }
+#endif
+        }
+    }
+    // 读取变化货物
+    // TODO: 使用Map::computePointToBerthsDistances计算货物到泊位距离
+    cin >> newItemCount;
+    // LOGI("变化货物数量：", newItemCount);
+    while (newItemCount--)
+    {
+        cin >> goodsX >> goodsY >> value;
+        // 金额为 0 表示上一帧被拿取或者该帧消失
+        if (value==0) 
+            continue;
+
+#ifdef DEBUG
+        // 进行统计
+        goodsGenerationMap[goodsX][goodsY]++;
+        statisticGoods(value, generateGoodsValueDistribution);
 #endif
 
         Goods good(Point2d(goodsX, goodsY), value, currentFrame);
@@ -511,7 +516,7 @@ void GameManager::processFrameData()
         berth.unreached_goods = std::vector<Goods>();
         // berth.reached_goods = std::vector<Goods>();
     }
-    if(currentFrame % 1000 == 0)
+    if(currentFrame % 500 == 0)
     {
         LOGI("输出泊位信息");
         for(auto &berth : berths)
@@ -519,6 +524,7 @@ void GameManager::processFrameData()
         LOGI("输出船舶信息");
         for(auto &ship : ships)
             ship.info();
+        LOGI("机器人数目: ", robots.size());
     }
     // LOGI("processFrameData done");
 }
@@ -546,8 +552,10 @@ void GameManager::robotControl()
                 robot.carryingItemId = robot.targetid;
                 robot.status = RobotStatus::MOVING_TO_BERTH;
                 goods[robot.targetid].TTL = INT_MAX;
+#ifdef DEBUG
+                statisticGoods(goods[robot.targetid].value, getGoodsValueDistribution);
+#endif
                 robot.targetid = -1;
-                // Berth::maxLoadGoodNum += 1;
             }
             // 货物过期
             else {
@@ -753,10 +761,18 @@ void GameManager::logStatisticsInfo()
     if(currentFrame >=14990 && currentFrame <= 15000){
         LOGI("游戏结束");
         // 输出统计结果
-        LOGI("货物价值分布");
-        // std::vector<std::pair<std::string, int>> sortedValues(valueDistribution.begin(), valueDistribution.end());
-        // std::sort(sortedValues.begin(), sortedValues.end(), compare);
-        for (const auto &entry : valueDistribution)
+        LOGI("生成货物价值分布");
+        for (const auto &entry : generateGoodsValueDistribution)
+        {
+            LOGI("价值区间 ", entry.first, ": ", entry.second, " 个");
+        }
+        LOGI("拿取货物价值分布");
+        for (const auto &entry : getGoodsValueDistribution)
+        {
+            LOGI("价值区间 ", entry.first, ": ", entry.second, " 个");
+        }
+        LOGI("过期货物价值分布");
+        for (const auto &entry : expiredGoodsValueDistribution)
         {
             LOGI("价值区间 ", entry.first, ": ", entry.second, " 个");
         }

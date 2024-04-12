@@ -1,4 +1,5 @@
 #include "earlyGameAssetManager.h"
+#include <numeric>
 
 
 void EarlyGameAssetManager::setParameter(const Params &params)
@@ -319,7 +320,7 @@ Point2d EarlyGameAssetManager::buyRobot(const std::vector<Robot> &robots, const 
             if (purchasedRobotNum[i] >= robotPurchaseAssign[i][phase]) continue;
             // 为当前联通块购买机器人：找合适的购买点
             purchasedRobotNum[i]++; // 暂时在这更新，可能要移动到processFramedata去
-            return getProperRobotShop(landseaBlocks[i], gameMap);
+            return getProperRobotShop(landseaBlocks[i], robots, gameMap, goods);
         }
     }
     // 不购买 或 购买失败
@@ -343,11 +344,65 @@ Point2d EarlyGameAssetManager::buyShip(const std::vector<Ship> &ships, const std
     return Point2d(-1,-1);
 }
 
-Point2d EarlyGameAssetManager::getProperRobotShop(LandSeaBlock& block, const Map &gameMap)
+Point2d EarlyGameAssetManager::getProperRobotShop(LandSeaBlock& block, const std::vector<Robot> &robots, const Map &gameMap, const std::vector<Goods> &goods)
 {
-    if (!block.robotShops.empty())
-    return block.robotShops[0];
-    //未完成
+    if (block.robotShops.empty()) return Point2d(-1,-1);
+    // 计算各个泊位的机器人数目
+    std::vector<int> berthsRobotsNum(block.berths.size(), 0);
+    for (auto& robot:robots) {
+        if (robot.carryingItem && robot.targetid!=-1) 
+            for (int i=0;i<block.berths.size();i++) 
+                if (block.berths[i].id == robot.targetid) {
+                    berthsRobotsNum[i]++;
+                    break;
+                }
+        if (!robot.carryingItem && robot.targetid!=-1 && !goods[robot.targetid].distsToBerths.empty()) 
+            for (int i=0;i<block.berths.size();i++) 
+                if (!CentralizedTransportation && block.berths[i].id == goods[robot.targetid].distsToBerths[0].first) {
+                    berthsRobotsNum[i]++;
+                    break;
+                }
+    }
+    // 计算各个泊位周边的货物价值
+    std::vector<float> berthsValue(block.berths.size(), 0);
+    for (auto &good : goods)
+    {
+        if (good.status == 0 && !good.distsToBerths.empty())
+        {
+            int berthID = good.distsToBerths[0].first;
+            for (int i=0;i<block.berths.size();i++) 
+                if (block.berths[i].id == berthID) {
+                    berthsValue[i] += good.value *1.0 / good.distsToBerths[0].second;
+                    break;
+                }
+        }
+    }
+    // 计算泊位的价值（周边货物/机器人数目）
+    for (int i=0;i<block.berths.size();i++) {
+        if (berthsRobotsNum[i]==0) 
+            berthsValue[i] /= 0.5;
+        else berthsValue[i] /= berthsRobotsNum[i] * 1.0;
+    }
+    float berthsValue_avg = std::accumulate(berthsValue.begin(), berthsValue.end(), 0.0) / berthsValue.size();
+
+    // 根据泊位离购买点的距离，计算购买点的价值
+    std::vector<float> robotShopValue(block.robotShops.size(), 0);
+    for (int i=0;i<block.berths.size();i++) {
+        // 算出泊位到所有购买点的距离
+        std::vector<int> distanceToShop(block.robotShops.size(), 0);
+        for (int j=0;j<distanceToShop.size();j++) {
+            distanceToShop[j] = gameMap.berthDistanceMap.at(block.berths[i].id)[block.robotShops[j].x][block.robotShops[j].y];
+        }
+        // 最近的购买点加上泊位的价值
+        auto min_iter = std::min_element(distanceToShop.begin(), distanceToShop.end());
+        int min_index = std::distance(distanceToShop.begin(), min_iter);
+        robotShopValue[min_index] += berthsValue[i];
+    }
+    // 返回价值最大的购买点
+    auto max_iter = std::max_element(robotShopValue.begin(), robotShopValue.end());
+    int max_index = std::distance(robotShopValue.begin(), max_iter);
+    Point2d bestShop = block.robotShops[max_index];
+    return bestShop;
     return Point2d(-1,-1);
 }
 Point2d EarlyGameAssetManager::getProperShipShop(LandSeaBlock& block, const Map &gameMap)

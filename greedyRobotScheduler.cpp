@@ -15,8 +15,9 @@ void GreedyRobotScheduler::scheduleRobots(const Map &map,
 {
     // LOGI("货物数量：", goods.size());
     // countRobotsPerBerth(robots);
-    if (assignment.empty() && robots.size()==maxRobotNum) {
+    if (robots.size() >= startPartitionScheduling && robots.size() <= maxRobotNum && !allAssign) {
         assignRobotsByCluster(robots, map, ASSIGNBOUND);
+        if (robots.size()==maxRobotNum) allAssign = true;
     }
     if (!assignment.empty() && DynamicPartitionScheduling && currentFrame - lastReassignFrame > DynamicSchedulingInterval) {
         reassignRobotsByCluster(goods, robots, map, berths);
@@ -56,12 +57,13 @@ void GreedyRobotScheduler::setParameter(const Params &params)
     robotReleaseBound = params.robotReleaseBound;
     DynamicPartitionScheduling = params.DynamicPartitionScheduling;
     DynamicSchedulingInterval = params.DynamicSchedulingInterval;
+    startPartitionScheduling = params.startPartitionScheduling;
 }
 
 void GreedyRobotScheduler::assignRobotsByCluster(vector<Robot> &robots, const Map &map, vector<int> assignBound)
 {
-    if (assignment.empty()) 
-        assignment = vector<int>(robots.size(), -1);
+    // if (assignment.empty()) 
+    assignment = vector<int>(robots.size(), -1);
         
     vector<bool> assigned(robots.size(), false);
     if (assignBound.empty())
@@ -106,6 +108,7 @@ void GreedyRobotScheduler::assignRobotsByCluster(vector<Robot> &robots, const Ma
                 argmin = robot.id;
             }
         }
+        if (mini_dist == INT_MAX || argmin == -1) continue;
         assigned[argmin] = true;
         assignment[argmin] = i;
         assignNum[i]++;
@@ -137,6 +140,7 @@ void GreedyRobotScheduler::assignRobotsByCluster(vector<Robot> &robots, const Ma
                 argmin = i;
             }
         }
+        if (mini_dist == INT_MAX || argmin == -1) continue;
         assigned[robot.id] = true;
         assignment[robot.id] = argmin;
         assignNum[argmin]++;

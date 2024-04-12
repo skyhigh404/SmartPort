@@ -50,7 +50,7 @@ public:
     int totalGetGoodsValue = 0;
     int skipFrame = 0;
     int finalFrame = -1;                                                 // 进入终局调度的帧数
-    std::vector<std::vector<int>> goodsGenerationMap;                    // 存储每个地点生成的货物数目
+    std::vector<std::vector<int>> goodsExpiredMap;                    // 存储每个地点生成的货物数目
     std::unordered_map<std::string, int> generateGoodsValueDistribution; // 用于存储不同价值区间的货物数量
     std::unordered_map<std::string, int> expiredGoodsValueDistribution;  // 用于存储过期不同价值区间的货物数量
     std::unordered_map<std::string, int> getGoodsValueDistribution;      // 用于存储过期不同价值区间的货物数量

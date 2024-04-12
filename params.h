@@ -17,7 +17,7 @@ struct Params
 
     // 机器人调度超参
     float robot2goodWeight = 1;                 // 机器人到货物的距离权重
-    float good2berthWeight = 1.2;                 // 货物到泊位的距离权重
+    float good2berthWeight = 1;                 // 货物到泊位的距离权重
     float TTL_ProfitWeight = 1.5;
     int TTL_Bound = 500;
     bool PartitionScheduling = true;        // 是否分区调度
@@ -33,7 +33,7 @@ struct Params
     int maxShipNum = 2;                     // 最多购买船只数目
     std::vector<std::vector<int>> robotPurchaseAssign = {{8, 100}, {1, 4}, {1, 4}};
     // std::vector<std::vector<int>> shipPurchaseAssign = {{4, 4, 4, 5, 6, 7, 8, 9, 10}, {1, 2, 3, 4, 5, 6}, {1, 2, 3, 4, 5, 6}};
-    std::vector<std::vector<int>> shipPurchaseAssign = {{1, 4, 10}, {0, 0, 0}, {0, 0, 0}};
+    std::vector<std::vector<int>> shipPurchaseAssign = {{1, 4, 10}, {1, 2, 0}, {1, 2, 0}};
     int timeToBuyShip = 50;                 // 开始购买第二艘船的时间
     int startNum = 1;                       // 最初的数目（机器人、轮船）
     float landDistanceWeight = 10.0;        // 对泊位价值评估时的陆地访问距离权重

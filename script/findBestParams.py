@@ -62,6 +62,9 @@ def enumerateParameters():
     # 获取参数名和对应的取值范围
     param_names = list(params.keys())
     param_values = [params[name] for name in param_names]
+    length = 1
+    for val in param_values:
+        length *= len(val)
 
     # 使用itertools.product来生成所有可能的参数组合
     all_combinations = itertools.product(*param_values)
@@ -79,13 +82,11 @@ def enumerateParameters():
     #         file.write(line)
     # print("所有参数组合已成功写入到文件中。")
 
-    return param_names, all_combinations
+    return param_names, all_combinations, length
 
 
-param_names, combinations = enumerateParameters()
-with open("./scores.txt", 'w') as fscore:
-    fscore.write(', '.join(param_names) + ', ' + 'score' + '\n')
-
+param_names, combinations, length = enumerateParameters()
+print(f"参数组合数有：{length}个")
 
 min_heap = [] # 维护一个topK的小根堆
 k = 30 # topK

@@ -120,7 +120,7 @@ private:
 
     // 判断早期后船是否能去虚拟点
     bool canShipDepartLater(Ship &ship){
-        // 不是后期，返回false
+        // 早期，返回false
         if (CURRENT_FRAME < EARLY_DELIVERT_FRAME_LIMIT)
             return false;
         // 后期，当前运输金额达到阈值

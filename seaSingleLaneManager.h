@@ -145,7 +145,8 @@ public:
             for(int y = shipSpace.first.y; y <= shipSpace.second.y; y++){
                 // 节点无效 || 不可通行 || 在主航道内
                 // todo 后期考虑是否去掉 主航道内判断
-                if (!map.inBounds(Point2d(x, y)) || !map.seaPassable(Point2d(x, y)) || map.isInSealane(Point2d(x,y))){
+                // if (!map.inBounds(Point2d(x, y)) || !map.seaPassable(Point2d(x, y)) || map.isInSealane(Point2d(x,y))){
+                if (!map.inBounds(Point2d(x, y)) || !map.seaPassable(Point2d(x, y)) ){
                     // LOGI("不可通行");
                     return false;
                 }       

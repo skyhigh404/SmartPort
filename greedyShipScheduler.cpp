@@ -97,7 +97,7 @@ void GreedyShipScheduler::handleShipAtBerth(Map &map, Ship &ship,std::vector<Ber
     // 有货转货
     else if(isThereGoodsToLoad(berths[ship.berthId])){
         // 早期船赚够钱直接出发
-        if (CURRENT_FRAME <= EARLY_DELIVERT_FRAME_LIMIT && ship.loadGoodValue + CURRENT_MONEY >= EARLY_DELIVERY_VALUE_LIMIT){
+        if (mustShipDepartEarly(ship)){
             ship.updateMoveToDeliveryStatus(deliveryId, VectorPosition(map.deliveryLocations[deliveryId], Direction::EAST));
             berths[ship.berthId].shipInBerthNum = std::max(0, berths[ship.berthId].shipInBerthNum - 1);
         }
@@ -352,7 +352,7 @@ void GreedyShipScheduler::scheduleFreeShipAtBerth(Map& map, Ship &ship, std::vec
     // 去泊位收益最高 || 当前金额不够买一个机器人
     // todo 不去虚拟点的条件应该进行多次调参 || 可以限制只有当运输价值大于多少时才去虚拟点
     // if(bestBerthAndProfit.second > deliveryProfit || (ship.loadGoodValue < DELIVERY_VALUE_LIMIE || ship.loadGoodValue + CURRENT_MONEY < 2000)){
-    if(bestBerthAndProfit.second > deliveryProfit && !(mustShipDepartEarly(ship) || canShipDepartLater(ship))){
+    if(bestBerthAndProfit.second > deliveryProfit && !(mustShipDepartEarly(ship))){
         if (bestBerthAndProfit.first == ship.berthId && CURRENT_FRAME < FINAL_FRAME){
             LOGE("船选中相同泊位进行移动！");
             ship.info();

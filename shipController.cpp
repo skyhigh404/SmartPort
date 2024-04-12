@@ -243,7 +243,7 @@ ShipController::detectNextFrameConflict(Map &map, std::vector<Ship> &ships, SeaS
     for(size_t i = 0; i < ships.size(); ++i){
         Ship& ship1 = ships[i];
         // 检测水路单行路冲突
-        if (seaSingleLaneManager.canEnterSingleLane(ship1)){
+        if (!seaSingleLaneManager.canEnterSingleLane(ship1)){
             CollisionEvent event(ship1.id, CollisionEvent::EntryAttemptWhileOccupied);
             collision.insert(event);
         }

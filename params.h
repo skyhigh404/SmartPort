@@ -19,6 +19,7 @@ struct Params
     std::vector<int> ASSIGNBOUND;           // 手动设置各个类分配的机器人数目，总数目应等于机器人数目
     float robotReleaseBound = 0.7;          //低于平均泊位价值的比值时，释放机器人去其他泊位
     int DynamicSchedulingInterval = 200;    // 动态调度间隔
+    bool FinalgameScheduling = true;        // 是否终局调度
     
     // 购买策略超参
     int maxRobotNum = 14;                   // 最多购买机器人数目

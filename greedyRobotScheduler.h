@@ -9,7 +9,7 @@ public:
     void scheduleRobots(const Map &map,
                         std::vector<Robot> &robots,
                         std::vector<Goods> &goods,
-                        const std::vector<Berth> &berths,
+                        std::vector<Berth> &berths,
                         const int currentFrame) override;
     // 设置参数
     void setParameter(const Params &params) override;
@@ -34,6 +34,8 @@ private:
     bool DynamicPartitionScheduling;
     int DynamicSchedulingInterval;
     int startPartitionScheduling;
+    int FINAL_FRAME;
+    bool FinalgameScheduling;
     // 等等
     std::vector<std::pair<BerthID, int>> maxRobotsPerBerth; // 记录每个泊位分配机器人的上限
 private:
@@ -47,6 +49,7 @@ private:
     bool allAssign = false;
 
 private:
+    void FinalgameAdjustment(std::vector<Berth> &berths);
     // 根据类来分配机器人
     void assignRobotsByCluster(vector<Robot> &robots, const Map &map, vector<int> assignBound = vector<int>());
     // 根据类来重新分配机器人

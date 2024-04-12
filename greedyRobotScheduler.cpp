@@ -10,7 +10,7 @@ GreedyRobotScheduler::GreedyRobotScheduler(std::vector<std::vector<Berth>> &_clu
 void GreedyRobotScheduler::scheduleRobots(const Map &map,
                                           std::vector<Robot> &robots,
                                           std::vector<Goods> &goods,
-                                          const std::vector<Berth> &berths,
+                                          std::vector<Berth> &berths,
                                           const int currentFrame)
 {
     // LOGI("货物数量：", goods.size());
@@ -22,6 +22,21 @@ void GreedyRobotScheduler::scheduleRobots(const Map &map,
     if (!assignment.empty() && DynamicPartitionScheduling && currentFrame - lastReassignFrame > DynamicSchedulingInterval) {
         reassignRobotsByCluster(goods, robots, map, berths);
         lastReassignFrame = currentFrame;
+    }
+    if (FinalgameScheduling && currentFrame >= FINAL_FRAME && !enterFinal) {
+        LOGI("机器人调度进入终局,", currentFrame, ' ',FINAL_FRAME);
+        // 关闭泊位、更新goods.distToBerths
+        FinalgameAdjustment(berths);
+        // 更新机器人状态
+        for (Robot& robot:robots) {
+            if (robot.targetid==-1) continue;
+            if ( (robot.status==MOVING_TO_BERTH && berths[robot.targetid].isEnable()==false) || (robot.status==MOVING_TO_GOODS && berths[goods[robot.targetid].distsToBerths[0].first].isEnable()==false)) {
+                robot.targetid = -1;
+                robot.destination = Point2d(-1,-1);
+                robot.path = Path<Point2d>();
+            }
+        }
+        enterFinal = true;
     }
 
     for (Robot &robot : robots)
@@ -58,6 +73,28 @@ void GreedyRobotScheduler::setParameter(const Params &params)
     DynamicPartitionScheduling = params.DynamicPartitionScheduling;
     DynamicSchedulingInterval = params.DynamicSchedulingInterval;
     startPartitionScheduling = params.startPartitionScheduling;
+    FINAL_FRAME = params.FINAL_FRAME;
+    FinalgameScheduling = params.FinalgameScheduling;
+}
+
+void GreedyRobotScheduler::FinalgameAdjustment(std::vector<Berth> &berths)
+{
+    // 关闭泊位、更新goods.distToBerths
+    for (int i=0;i<clusters.size();i++) {
+        float max=0;
+        int argmax = -1;
+        for (int j=0;j<clusters[i].size();j++) {
+            int berthID = clusters[i][j].id;
+            auto& berth = berths[berthID];
+            if (berth.estimateValue > max) { // 不一定合适，可更换
+                max = berth.estimateValue;
+                argmax = berthID;
+            }
+        }
+        for (int j=0;j<clusters[i].size();j++) 
+            if (clusters[i][j].id != argmax)
+                berths[clusters[i][j].id].disable();
+    }
 }
 
 void GreedyRobotScheduler::assignRobotsByCluster(vector<Robot> &robots, const Map &map, vector<int> assignBound)

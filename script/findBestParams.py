@@ -7,11 +7,12 @@ import numpy as np
 import heapq
 import subprocess
 from concurrent.futures import ThreadPoolExecutor
+import tqdm
 
 def run_program_with_seed(seed):
     # 使用给定的种子运行程序，并返回输出结果
     # main.exe: 输出"OK"就行
-    command = '..\judge\SemiFinalJudge.exe -m ..\judge\maps\map1.txt  -d ./output.txt .\main.exe -l NONE -s ' + str(seed)  # 替换'your_program'为你的程序名称
+    command = '..\judge\SemiFinalJudge.exe -m ..\judge\maps\map1.txt  -d ./output.txt ..\\build\main.exe -l NONE -s ' + str(seed)  # 替换'your_program'为你的程序名称
     process = subprocess.Popen(command, stdout=subprocess.PIPE)
 
     output, _ = process.communicate()
@@ -53,10 +54,10 @@ def enumerateParameters():
 
         # 船调度超参
         # "MAX_SHIP_NUM": range(1, 3, 1),
-        "SHIP_WAIT_TIME_LIMIT": range(0, 31, 10),
-        "GOOD_DISTANCE_LIMIT": range(50, 151, 50),
-        "EARLY_DELIVERT_FRAME_LIMIT": range(1000, 3001, 1000),
-        "EARLY_DELIVERY_VALUE_LIMIT": range(2000, 6000, 2000)
+        # "SHIP_WAIT_TIME_LIMIT": range(0, 31, 10),
+        # "GOOD_DISTANCE_LIMIT": range(50, 151, 50),
+        # "EARLY_DELIVERT_FRAME_LIMIT": range(1000, 3001, 1000),
+        # "EARLY_DELIVERY_VALUE_LIMIT": range(2000, 6000, 2000)
     }
 
     # 获取参数名和对应的取值范围
@@ -87,11 +88,14 @@ def enumerateParameters():
 
 param_names, combinations, length = enumerateParameters()
 print(f"参数组合数有：{length}个")
+combinations = list(combinations)
+random.shuffle(combinations)
 
 min_heap = [] # 维护一个topK的小根堆
 k = 30 # topK
-for combination in combinations:
-    with open("./param_now.txt", 'w') as fparam:
+for combination in tqdm.tqdm(combinations):
+    # print(combination)
+    with open("../param/param_now.txt", 'w') as fparam:
         for key,val in zip(param_names, combination):
             fparam.write(key + ' ' + str(val) + '\n')
     

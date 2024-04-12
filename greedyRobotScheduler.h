@@ -36,6 +36,8 @@ private:
     int startPartitionScheduling;
     int FINAL_FRAME;
     bool FinalgameScheduling;
+    float robot2goodWeight;
+    float good2berthWeight;
     // 等等
     std::vector<std::pair<BerthID, int>> maxRobotsPerBerth; // 记录每个泊位分配机器人的上限
 private:

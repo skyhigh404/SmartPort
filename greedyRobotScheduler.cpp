@@ -75,6 +75,8 @@ void GreedyRobotScheduler::setParameter(const Params &params)
     startPartitionScheduling = params.startPartitionScheduling;
     FINAL_FRAME = params.FINAL_FRAME;
     FinalgameScheduling = params.FinalgameScheduling;
+    robot2goodWeight = params.robot2goodWeight;
+    good2berthWeight = params.good2berthWeight;
 }
 
 void GreedyRobotScheduler::FinalgameAdjustment(std::vector<Berth> &berths)
@@ -337,7 +339,7 @@ GreedyRobotScheduler::getProfitsAndSortedIndex(std::vector<std::reference_wrappe
     {
         if (cost_robot2good[j] >= INT_MAX || cost_good2berth[j] >= INT_MAX)
             continue;
-        profits[j] = availableGoods[j].get().value * 1.0 / (cost_robot2good[j] + cost_good2berth[j]);
+        profits[j] = availableGoods[j].get().value * 1.0 / (robot2goodWeight * cost_robot2good[j] + good2berthWeight * cost_good2berth[j]);
 
         if (availableGoods[j].get().TTL <= TTL_Bound && !enterFinal)
             profits[j] *= TTL_ProfitWeight;

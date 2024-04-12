@@ -124,7 +124,7 @@ public:
 private:
     void initLogImpl(const std::string &filepath = "log.log")
     {
-        m_OutputStream.open(filepath, std::ios::out); // 追加模式
+        m_OutputStream.open(filepath, std::ios::out); // 设置 app 就是为追加模式
         assert(m_OutputStream);
         writeHeader();
     }

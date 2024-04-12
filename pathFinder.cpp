@@ -19,7 +19,39 @@ AStarPathfinder<Location, Graph>::findPath(const Location &start,
 
     std::unordered_map<Location, Location> came_from; // came_from 用于追踪路径
     std::unordered_map<Location, int> cost_so_far;    // cost_so_far 用于记录到达每个点的成本
+    came_from.reserve(50000);
+    cost_so_far.reserve(50000);
+
     aStarSearch(graph, start, goal, came_from, cost_so_far);
+
+    // std::unordered_map<Location, Location> &myMap = came_from;
+    // float average_bucket_size = 1.0 * myMap.size() / myMap.bucket_count();
+    // size_t max_bucket_size = 0;
+    // for (size_t i = 0; i < myMap.bucket_count(); ++i)
+    // {
+    //     if (myMap.bucket_size(i) > max_bucket_size)
+    //     {
+    //         max_bucket_size = myMap.bucket_size(i);
+    //     }
+    // }
+
+    // size_t empty_buckets = 0;
+    // for (size_t i = 0; i < myMap.bucket_count(); ++i)
+    // {
+    //     if (myMap.bucket_size(i) == 0)
+    //     {
+    //         ++empty_buckets;
+    //     }
+    // }
+    // double sum_diff_squared = 0;
+    // for (size_t i = 0; i < myMap.bucket_count(); ++i)
+    // {
+    //     size_t diff = myMap.bucket_size(i) - average_bucket_size;
+    //     sum_diff_squared += diff * diff;
+    // }
+    // double standard_deviation = sqrt(sum_diff_squared / myMap.bucket_count());
+
+    // LOGI("size: ",myMap.size(), ", bucket count: ",myMap.bucket_count(),", average_bucket_size: ", average_bucket_size, ", max_bucket_size: ", max_bucket_size, ", empty_buckets: ", empty_buckets, ", standard_deviation: ", standard_deviation);
 
     // 如果未找到路径（即目标不在 came_from 中）
     if (came_from.find(goal) == came_from.end())
@@ -61,14 +93,14 @@ void AStarPathfinder<Location, Graph>::aStarSearch(const Graph &graph,
 #endif
         for (const Location &next : graph.neighbors(current))
         {
+            if (cost_so_far.find(next) != cost_so_far.end())
+                continue;
             int new_cost = cost_so_far[current] + graph.cost(current, next);
-            if (cost_so_far.find(next) == cost_so_far.end() || new_cost < cost_so_far[next])
-            {
-                cost_so_far[next] = new_cost;
-                int priority = new_cost + heuristic(next, goal);
-                frontier.put(next, priority);
-                came_from[next] = current;
-            }
+            // if (cost_so_far.find(next) == cost_so_far.end() || new_cost < cost_so_far[next])
+            cost_so_far[next] = new_cost;
+            int priority = new_cost + heuristic(next, goal);
+            frontier.put(next, priority);
+            came_from[next] = current;
         }
     }
     // LOGI("A* 搜索节点个数：", calTime);

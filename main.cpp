@@ -3,6 +3,7 @@
 #include "log.h"
 #include "pathFinder.h"
 #include "finalShipScheduler.h"
+#include "bidirectionalAStar.h"
 #include <chrono>
 
 
@@ -24,32 +25,32 @@ int main()
     LOGI("===================================================================");
 
     // 测试 A* 算法
-    // VectorPosition startPos(49, 120, Direction::EAST);
-    // VectorPosition targetPos(169, 99, Direction::EAST);
+    // Point2d startPos(0, 100);
+    // Point2d targetPos(173, 187);
     // if (startPos == targetPos)
     //     LOGE("startPos==targetPos");
 
-    // AStarPathfinder<VectorPosition, Map> astar;
+    // AStarPathfinder<Point2d, Map> astar;
 
     // LOGI("Start: ",startPos," target: ", targetPos);
     
     // start = std::chrono::high_resolution_clock::now();
-    // std::variant<Path<VectorPosition>, PathfindingFailureReason> path = 
+    // std::variant<Path<Point2d>, PathfindingFailureReason> path = 
     //     astar.findPath(startPos, targetPos, gameManager.gameMap);
     // stop = std::chrono::high_resolution_clock::now();
     // duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
     // LOGI("A* calculate take time: ",duration.count()," ms");
 
-    // std::vector<VectorPosition> *p = std::get_if<std::vector<VectorPosition>>(&path);
+    // std::vector<Point2d> *p = std::get_if<std::vector<Point2d>>(&path);
     // if(p){
     //     LOGI("Log A* from point ", startPos," to ",targetPos);
     //     std::vector<Point2d> path2D;
     //     for(auto &point : *p){
-    //         path2D.push_back(point.pos);
+    //         path2D.push_back(point);
     //         // LOGI(point);
     //     }
         
-    //     LOGI(gameManager.gameMap.drawMap(nullptr,nullptr, &path2D, &startPos.pos, &targetPos.pos));
+    //     LOGI(gameManager.gameMap.drawMap(nullptr,nullptr, &path2D, &startPos, &targetPos));
     // }
     // else{
     //     PathfindingFailureReason *p = std::get_if<PathfindingFailureReason>(&path);

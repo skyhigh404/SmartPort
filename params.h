@@ -16,7 +16,7 @@ struct Params
     bool PartitionScheduling = true;        // 是否分区调度
     bool DynamicPartitionScheduling = true; // 是否动态分区调度
     std::vector<int> ASSIGNBOUND;           // 手动设置各个类分配的机器人数目，总数目应等于机器人数目
-    float robotReleaseBound = 0.8;          //低于平均泊位价值的比值时，释放机器人去其他泊位
+    float robotReleaseBound = 0.7;          //低于平均泊位价值的比值时，释放机器人去其他泊位
     int DynamicSchedulingInterval = 200;    // 动态调度间隔
     
     // 购买策略超参

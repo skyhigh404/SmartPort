@@ -10,6 +10,8 @@ void GreedyShipScheduler::setParameter(const Params &params)
     SHIP_WAIT_TIME_LIMIT = params.SHIP_WAIT_TIME_LIMIT;
     GOOD_DISTANCE_LIMIT = params.GOOD_DISTANCE_LIMIT;
     DELIVERY_VALUE_LIMIE = params.DELIVERY_VALUE_LIMIE;
+    EARLY_DELIVERT_FRAME_LIMIT = params.EARLY_DELIVERT_FRAME_LIMIT;
+    EARLY_DELIVERY_VALUE_LIMIT = params.EARLY_DELIVERY_VALUE_LIMIT;
 }
 
 void GreedyShipScheduler::scheduleShips(Map &map, std::vector<Ship> &ships, std::vector<Berth> &berths, std::vector<Goods> &goods, std::vector<Robot> &robots) {
@@ -94,6 +96,12 @@ void GreedyShipScheduler::handleShipAtBerth(Map &map, Ship &ship,std::vector<Ber
     }
     // 有货转货
     else if(isThereGoodsToLoad(berths[ship.berthId])){
+        // 早期船赚够钱直接出发
+        if (CURRENT_FRAME <= EARLY_DELIVERT_FRAME_LIMIT && ship.loadGoodValue + CURRENT_MONEY >= EARLY_DELIVERY_VALUE_LIMIT){
+            ship.updateMoveToDeliveryStatus(deliveryId, VectorPosition(map.deliveryLocations[deliveryId], Direction::EAST));
+            berths[ship.berthId].shipInBerthNum = std::max(0, berths[ship.berthId].shipInBerthNum - 1);
+        }
+
         BerthID berthId = ship.berthId;
         int shipment = std::min(static_cast<int>(berths[berthId].reached_goods.size()),berths[berthId].velocity);
         int res = ship.loadGoods(shipment); // 装货
@@ -343,8 +351,8 @@ void GreedyShipScheduler::scheduleFreeShipAtBerth(Map& map, Ship &ship, std::vec
 
     // 去泊位收益最高 || 当前金额不够买一个机器人
     // todo 不去虚拟点的条件应该进行多次调参 || 可以限制只有当运输价值大于多少时才去虚拟点
-    // if(bestBerthAndProfit.second > deliveryProfit || (ship.loadGoodValue < 1500 || ship.loadGoodValue + CURRENT_MONEY < 2000 || ship.loadGoodValue != 0)){
-    if(bestBerthAndProfit.second > deliveryProfit || (ship.loadGoodValue < DELIVERY_VALUE_LIMIE || ship.loadGoodValue + CURRENT_MONEY < 2000)){
+    // if(bestBerthAndProfit.second > deliveryProfit || (ship.loadGoodValue < DELIVERY_VALUE_LIMIE || ship.loadGoodValue + CURRENT_MONEY < 2000)){
+    if(bestBerthAndProfit.second > deliveryProfit && !(mustShipDepartEarly(ship) || canShipDepartLater(ship))){
         if (bestBerthAndProfit.first == ship.berthId && CURRENT_FRAME < FINAL_FRAME){
             LOGE("船选中相同泊位进行移动！");
             ship.info();

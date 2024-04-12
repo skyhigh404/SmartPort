@@ -173,7 +173,7 @@ public:
         singleLaneMap = std::vector<std::vector<int>>(map.rows,std::vector<int>(map.cols,-1));
         visited = std::vector<std::vector<VisitType>>(map.rows,std::vector<VisitType>(map.cols,VisitType::UNVISITED));
         // 初始化地图
-        initMap();
+        initMap(map);
         // 找到所有单行路
         findAllSingleLanes(map);
     }
@@ -215,10 +215,10 @@ public:
     }
 
     // 空地或者泊位用0初始化，其他用-1初始化
-    void initMap(){
+    void initMap(const Map &map){
         for(int i=0;i < rows; i++){
             for(int j=0;j < cols;j++){
-                if(grid[i][j] == MapItemSpace::MapItem::SPACE ||grid[i][j] == MapItemSpace::MapItem::BERTH){
+                if(canPass(map, {i,j})){
                     singleLaneMap[i][j] = 0;
                 }
                 else{

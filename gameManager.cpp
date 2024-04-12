@@ -140,15 +140,15 @@ void GameManager::initializeGame()
     // 打印单行路
     // LOGI("单行路数量：",this->singleLaneManager.singleLanes.size());
     // int singleLaneSize = this->singleLaneManager.singleLanes.size();
-    LOGI("原地图：");
-    LOGI(this->gameMap.drawMap(nullptr, nullptr, nullptr, nullptr, nullptr));
-    LOGI("水路单行路数量：",this->seaSingleLaneManager.singleLanes.size());
-    int seaSingleLaneSize = this->seaSingleLaneManager.singleLanes.size();
-    LOGI("水路单行路：");
-    LOGI(this->gameMap.drawMap(this->seaSingleLaneManager.singleLaneMap, 6));
+    // LOGI("原地图：");
+    // LOGI(this->gameMap.drawMap(nullptr, nullptr, nullptr, nullptr, nullptr));
+    // LOGI("水路单行路数量：",this->seaSingleLaneManager.singleLanes.size());
+    // int seaSingleLaneSize = this->seaSingleLaneManager.singleLanes.size();
+    // LOGI("水路单行路：");
+    // LOGI(this->gameMap.drawMap(this->seaSingleLaneManager.singleLaneMap, 4));
     // LOGI("Log berth 0 BFS map.");
     // LOGI(Map::drawMap(this->gameMap.berthDistanceMap[9],12));
-    exit(0);
+    // exit(0);
 }
 
 void GameManager::initializeComponents()
@@ -567,6 +567,9 @@ void GameManager::robotControl()
 }
 
 void GameManager::shipControl(){
+    // 重置水路单行路的锁情况
+    this->seaSingleLaneManager.initSeaSingleLineLock(ships);
+
     auto start = std::chrono::steady_clock::now();
     // 执行船调度
     this->shipScheduler->scheduleShips(this->gameMap, this->ships, this->berths, this->goods, this->robots);

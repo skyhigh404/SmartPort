@@ -7,54 +7,49 @@
 #include "utils.h"
 #include "map.h"
 #include "robot.h"
+#include <unordered_set>
 
 struct SeaSingleLaneLock
 {
     std::pair<Point2d, Point2d> startPos;
     std::pair<Point2d, Point2d> endPos;
+    bool lock = false;  //有船在单行路内，则该lock为true，表明该单行路不可通行
+    Direction enterDirection; // 船进去单行路的方向
+    int lockShipId = -1;
     // Point2d entrance;   //startPos往外扩展一格
     // Point2d exit;   //endPos的往外扩展一格
 
-    bool startLock;
-    bool endLock;
-    int count;
-    SeaSingleLaneLock(std::pair<Point2d, Point2d> start,std::pair<Point2d, Point2d> end):startPos(start),endPos(end),startLock(false),endLock(false),count(0){}
+    // bool startLock;
+    // bool endLock;
+    // int count;
+    // SeaSingleLaneLock(std::pair<Point2d, Point2d> start,std::pair<Point2d, Point2d> end):startPos(start),endPos(end),startLock(false),endLock(false),count(0){}
+    SeaSingleLaneLock(std::pair<Point2d, Point2d> start,std::pair<Point2d, Point2d> end):startPos(start),endPos(end){}
     SeaSingleLaneLock(){}
 
-    inline bool isDeadEnd() const {
-        return endPos.first == Point2d(-1, -1) || endPos.second == Point2d(-1, -1);
+    // bool canEntering(Ship &ship){
+    //     // 没有上锁
+    //     if(!lock) return !lock;
+        
+    // }
+
+    void reset(){
+        // 恢复锁的情况
+        lock = false;
+        lockShipId = -1;
     }
 
-    // 加锁函数，参数指明是从startPos进入还是从endPos进入
-    void lock(bool fromStart) {
-        if (isDeadEnd()) {
-            // 对于死路，无论从哪个方向进入，都只锁定startLock
-            startLock = true;
-        }
-        // 给进入的另一端加锁
-        else {
-            if (fromStart)
-                endLock = true;
-            else
-                startLock = true;
-        }
-        count++; // 增加在单行道内的机器人数量
-    }
 
-    // 释放锁函数，参数指明是从startPos退出还是从endPos退出
-    void unlock(bool fromStart) {
-        count--; // 减少在单行道内的机器人数量
-        if (count == 0) { // 如果单行道为空，则解锁两端
-            startLock = false;
-            endLock = false;
+    bool lockLane(Ship &ship){
+        if (lock == true && lockShipId != ship.id){
+            // todo 如果前进方向和单行路内船只的方向一致，则让其通过
+            // todo 未考虑单行路死路以及单行路曲折的情况
+            LOGE("水路单行路被重复上锁,船",lockShipId, "已上锁，船", ship.id, "尝试上锁");
+            return false;
         }
-        else if (count < 0) {
-            startLock = false;
-            endLock = false;
-            // 机器人可能就出生在单行道内
-            LOGE("错误的释放单行路锁, count: ", count);
-            count = 0;
-        }
+        lock = true;
+        lockShipId = ship.id;
+        this->enterDirection = ship.locAndDir.direction;
+        return true;
     }
 };
 
@@ -88,82 +83,53 @@ public:
         findAllSingleLanes(map);
     }
 
-    // void lock(int laneId, const Point2d& entryPoint) {
-    //     if (singleLaneLocks.find(laneId) != singleLaneLocks.end()) {
-    //         SeaSingleLaneLock& lock = singleLaneLocks.at(laneId);
-    //         // 不对死路进行特殊处理
-    //         if (entryPoint == lock.startPos)
-    //             lock.lock(true);
-    //         else if (entryPoint == lock.endPos)
-    //             lock.lock(false);
-    //         else
-    //             LOGW("传入错误的加锁位置, pos: ", entryPoint);
-    //     }
-    //     else {
-    //         LOGE("尝试从singleLaneLocks获取不存在的锁的情况 laneId: ", laneId);
-    //     }
-    // }
+    // 每一帧遍历船的位置，初始化地图中单行路的锁情况
+    void initSeaSingleLineLock(std::vector<Ship> &ships){
+        // 重置所有单行路
+        for (auto & [laneId, singleLock] : singleLaneLocks)
+            singleLock.reset(); //重置单行路锁的情况
+        for (auto &ship: ships){
+            // 获取船所在单行路的id
+            std::unordered_set<int> laneIds = getLaneIds(ship.locAndDir);
+            // 对所在单行路进行上锁
+            for (auto &laneId : laneIds){
+                singleLaneLocks[laneId].lockLane(ship);
+            }
+        }
+    }
 
-    // void unlock(int laneId, const Point2d& entryPoint) {
-    //     if (singleLaneLocks.find(laneId) != singleLaneLocks.end()) {
-    //         SeaSingleLaneLock& lock = singleLaneLocks.at(laneId);
-    //         // 不对死路进行特殊处理
-    //         if (entryPoint == lock.startPos)
-    //             lock.unlock(true);
-    //         else if (entryPoint == lock.endPos)
-    //             lock.unlock(false);
-    //         else
-    //             LOGW("传入错误的解锁位置, pos: ", entryPoint);
-    //     }
-    //     else {
-    //         LOGE("尝试从singleLaneLocks获取不存在的锁的情况 laneId: ", laneId);
-    //     }
-    // }
+    // 传入船的核心点坐标，判断船是否可以通行
+    // 如果船不位于单行路内，返回true
+    // 如果船位于单行路内，判断是否可以通行
+    bool canEnterSingleLane(Ship &ship){
+        // 获取船所处的单行路id集合
+        std::unordered_set<int> laneIds = getLaneIds(ship.nextLocAndDir);
+        // 如果集合为空，表明船不位于单行路，返回true
+        if (laneIds.size() == 0) return true;
+        
+        // 遍历所处单行路（可能有多个），判断单行路是否被其他船上锁
+        for(auto &landId : laneIds){
+            // 上锁成功
+            if (singleLaneLocks[landId].lockLane(ship))
+                return true;
+            // 上锁失败，不可通行
+            else 
+                return false;
+        }
+    }
 
-    // inline int getSingleLaneId(const Point2d& point) const {
-    //     if (point.x >= 0 && point.x < rows && point.y >= 0 && point.y < cols) {
-    //         return singleLaneMap[point.x][point.y];
-    //     }
-    //     return -1; // 超出边界
-    // }
+    // 传入船的核心点位置，返回所处的单行路id
+    std::unordered_set<int> getLaneIds(VectorPosition &vecPos){
+        std::pair<Point2d, Point2d> shipSpace = SpatialUtils::getShipOccupancyRect(vecPos);
+        std::unordered_set<int> laneIds;
+        
+        for (int x = shipSpace.first.x; x < shipSpace.second.x; x++){
+            for (int y = shipSpace.first.y; y < shipSpace.second.y; y++){
+                if (singleLaneMap[x][y] > 0) laneIds.insert(singleLaneMap[x][y]);
+            }
+        }
 
-    // // 根据提供的位置，判断是否在单行道的入口处
-    // bool isEnteringSingleLane(int laneId, const Point2d& entryPoint) const {
-    //     if (singleLaneLocks.find(laneId) != singleLaneLocks.end()) {
-    //         const SeaSingleLaneLock& lock = singleLaneLocks.at(laneId);
-    //         // 不对死路进行特殊处理
-    //         if(entryPoint == lock.startPos || entryPoint == lock.endPos)
-    //             return true;
-    //     }
-    //     else {
-    //         LOGE("尝试从singleLaneLocks获取不存在的锁的情况 laneId: ", laneId);
-    //     }
-    //     return false;
-    // }
-    // // 提供单行路的进入点，检查单行路是否被锁定
-    // bool isLocked(int laneId, const Point2d& entryPoint) const {
-    //     if (singleLaneLocks.find(laneId) != singleLaneLocks.end()) {
-    //         const SeaSingleLaneLock& lock = singleLaneLocks.at(laneId);
-    //         if (lock.isDeadEnd()) {
-    //             // 对于死路，只检查startLock
-    //             return lock.startLock;
-    //         } 
-    //         else {
-    //             // 检查进入方向是否被加锁
-    //             if (lock.startPos == entryPoint && lock.startLock)
-    //                 return true;
-    //             if (lock.endPos == entryPoint && lock.endLock)
-    //                 return true;
-    //         }
-    //     }
-    //     else {
-    //         LOGE("尝试从singleLaneLocks获取不存在的锁的情况 laneId: ", laneId);
-    //     }
-    //     return false;
-    // }
-
-    SeaSingleLaneLock& getLock(int laneId) {
-        return singleLaneLocks[laneId];
+        return laneIds;
     }
 
     void init(const Map& map){
@@ -191,8 +157,6 @@ public:
             for(int y = shipSpace.first.y; y <= shipSpace.second.y; y++){
                 // 节点无效 || 不可通行 || 在主航道内
                 // todo 后期考虑是否去掉 主航道内判断
-                // LOGI("seaPass：",Point2d(x,y),"，地图元素：",static_cast<int>(map.getCell({x,y})));
-                // LOGI("判断结果：",!map.inBounds(Point2d(x, y)), !map.seaPassable(Point2d(x, y)) , map.isInSealane(Point2d(x,y)));
                 if (!map.inBounds(Point2d(x, y)) || !map.seaPassable(Point2d(x, y)) || map.isInSealane(Point2d(x,y))){
                     // LOGI("不可通行");
                     return false;

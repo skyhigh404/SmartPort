@@ -33,6 +33,9 @@ private:
     int SHIP_WAIT_TIME_LIMIT; // 船在泊位上等待的时间限制
     int GOOD_DISTANCE_LIMIT;  // 只考虑距离泊位[0, GOOD_DISTNACE_LIMIT]内的货物价值
     int DELIVERY_VALUE_LIMIE;   //当船运输价值 > DELIVERY_VALUE_LIMIE 时才能去虚拟点（终局时刻例外）
+
+    int EARLY_DELIVERT_FRAME_LIMIT = 1000;  // 当前帧数< EARLY_DELIVERT_FRAME_LIMIT时，船赚到EARLY_DELIVERY_VALUE_LIMIT钱就去虚拟点
+    int EARLY_DELIVERY_VALUE_LIMIT = 1000; 
     // 等等
 
 private:
@@ -100,4 +103,30 @@ private:
     // 判断船是否可以前往一个泊位
     // 时间足够去虚拟点 && 可以在预定船来临前进入泊位
     bool canShipMoveToBerth(Map &map, Ship &ship, Berth &berth);
+
+    // 判断早期船是否能去虚拟点
+    bool mustShipDepartEarly(Ship &ship){
+        // 不是早期，返回false
+        if (CURRENT_FRAME > EARLY_DELIVERT_FRAME_LIMIT) 
+            return false;
+        // 早期，当前运输金额和当前资金之和达到阈值
+        if (CURRENT_MONEY + ship.loadGoodValue >= EARLY_DELIVERY_VALUE_LIMIT) {
+            LOGI("早期船出发,当前金额：", CURRENT_MONEY, ",船运输金额：", ship.loadGoodValue, ", 金额限制：", EARLY_DELIVERY_VALUE_LIMIT);
+            return true;
+        }
+        else 
+            return false;
+    }
+
+    // 判断早期后船是否能去虚拟点
+    bool canShipDepartLater(Ship &ship){
+        // 不是后期，返回false
+        if (CURRENT_FRAME < EARLY_DELIVERT_FRAME_LIMIT)
+            return false;
+        // 后期，当前运输金额达到阈值
+        if (ship.loadGoodValue >= DELIVERY_VALUE_LIMIE)
+            return true;
+        else
+            return false;
+    }
 };

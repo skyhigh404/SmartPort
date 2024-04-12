@@ -39,7 +39,10 @@ struct Params
     int CAPACITY_GAP = 10;                  // 泊位溢出货物量和船的容量差
     int SHIP_WAIT_TIME_LIMIT = 10;           //船在泊位上等待货物的时间
     int GOOD_DISTANCE_LIMIT = 100;  // 只考虑距离泊位[0, GOOD_DISTNACE_LIMIT]内的货物价值
-    int DELIVERY_VALUE_LIMIE = 1000;   //当船运输价值 > DELIVERY_VALUE_LIMIE 时才能去虚拟点（终局时刻例外）
+    int DELIVERY_VALUE_LIMIE = 1000;   // 当船运输价值 > DELIVERY_VALUE_LIMIE 时才能去虚拟点（终局时刻例外）
+
+    int EARLY_DELIVERT_FRAME_LIMIT = 1000;  // 当前帧数< EARLY_DELIVERT_FRAME_LIMIT时，船赚到EARLY_DELIVERY_VALUE_LIMIT - CURRERY_MONEY钱就去虚拟点
+    int EARLY_DELIVERY_VALUE_LIMIT = 2000; 
     
 
     

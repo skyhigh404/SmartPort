@@ -49,6 +49,8 @@ public:
     int totalGetGoodsValue = 0;
     int skipFrame = 0;
     int finalFrame = -1; // 进入终局调度的帧数
+    std::vector<std::vector<int>> goodsGenerationMap;   // 存储每个地点生成的货物数目
+    std::unordered_map<std::string, int> valueDistribution; // 用于存储不同价值区间的货物数量
 
     int SHIP_STILL_FRAMES_LIMIE;    // 船阻塞帧数限制
 
@@ -63,6 +65,7 @@ public:
     void shipControl();           // 运行船控制器
     void assetControl();          // 运行资产管理
     void updateSingleLaneLocks(); // 维护单行路的锁
+    void logStatisticsInfo();
     StageType nowStateType();
 
 private:

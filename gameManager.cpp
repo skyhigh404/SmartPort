@@ -325,6 +325,8 @@ void GameManager::initializeComponents()
     this->assetManager->setParameter(params);
     // 18. 初始化资产管理类
     this->assetManager->init(this->gameMap, berths);
+    // 18. 初始化统计信息
+    goodsGenerationMap = vector<vector<int>> (MAPROWS, vector<int>(MAPCOLS, 0));
 }
 
 void GameManager::processFrameData()
@@ -357,8 +359,15 @@ void GameManager::processFrameData()
         if(good.TTL != INT_MAX && good.TTL >= 0){
             // LOGI(good.id,",initFrame:",good.initFrame,",currentFrame:",currentFrame,",TTL:",good.TTL);
             good.TTL = std::max(1000-(currentFrame - good.initFrame),-1);
-            if(good.TTL == -1)
-                LOGW("货物过期 ID: ", good.id,", value: ", good.value, ", pos: ", good.pos);
+#ifdef DEBUG
+            if (good.TTL == -1)
+            {
+                if (good.value >= 100)
+                    LOGE("高价值货物过期 ID: ", good.id, ", value: ", good.value, ", pos: ", good.pos);
+                else
+                    LOGW("货物过期 ID: ", good.id, ", value: ", good.value, ", pos: ", good.pos);
+            }
+#endif
         }
     }
     // 读取变化货物
@@ -369,11 +378,56 @@ void GameManager::processFrameData()
     {
         cin >> goodsX >> goodsY >> value;
         // 金额为 0 表示上一帧被拿取或者该帧消失
-        if (value==0) continue;
+        if (value==0) 
+            continue;
+
+#ifdef DEBUG
+        // 进行统计
+        goodsGenerationMap[goodsX][goodsY]++;
+        std::string range;
+        if (value < 10) {
+            range = "0-10";
+        } else if (value < 20) {
+            range = "10-20";
+        } else if (value < 30) {
+            range = "20-30";
+        } else if (value < 40) {
+            range = "30-40";
+        } else if (value < 50) {
+            range = "40-50";
+        } else if (value < 60) {
+            range = "50-60";
+        } else if (value < 70) {
+            range = "60-70";
+        } else if (value < 80) {
+            range = "70-80";
+        } else if (value < 90) {
+            range = "80-90";
+        } else if (value < 100) {
+            range = "90-100";
+        } else if (value < 120) {
+            range = "100-120";
+        } else if (value < 140) {
+            range = "120-140";
+        } else if (value < 160) {
+            range = "140-160";
+        } else if (value < 180) {
+            range = "160-180";
+        } else if (value < 200) {
+            range = "180-200";
+        } 
+        else {
+            LOGI("高价值 ", value);
+            range = "200+";
+        }
+        // 对应区间的数量加一
+        valueDistribution[range]++;
+#endif
+
         Goods good(Point2d(goodsX, goodsY), value, currentFrame);
         good.distsToBerths = gameMap.computePointToBerthsDistances(Point2d(goodsX, goodsY));
         this->goods.push_back(good);
-        
+
         int tempGoodDistrubtID = this->gameMap.getNearestBerthID(Point2d(goodsX, goodsY));
         if(tempGoodDistrubtID>=0 && tempGoodDistrubtID<berths.size()) {
             berthDistrubtGoodNumCount[tempGoodDistrubtID]++;
@@ -684,8 +738,11 @@ void GameManager::update()
     LOGI("船命令执行完毕");
 
     assetControl();
+    logStatisticsInfo();
+}
 
-
+void GameManager::logStatisticsInfo()
+{
     if(currentFrame>=14900 && currentFrame <= 14905){
         LOGI("skipFrame: ", skipFrame, ", 已搬运到泊位的货物价值: ", totalGetGoodsValue);
         LOGI("berthDistrubtGoodNumCount: ",Log::printVector(berthDistrubtGoodNumCount));
@@ -694,9 +751,19 @@ void GameManager::update()
         LOGI("产生货物数量: ", std::accumulate(berthDistrubtGoodNumCount.begin(), berthDistrubtGoodNumCount.end(),0));
     }
     if(currentFrame >=14990 && currentFrame <= 15000){
-        LOGI("游戏结束，泊位剩余情况：");
+        LOGI("游戏结束");
+        // 输出统计结果
+        LOGI("货物价值分布");
+        // std::vector<std::pair<std::string, int>> sortedValues(valueDistribution.begin(), valueDistribution.end());
+        // std::sort(sortedValues.begin(), sortedValues.end(), compare);
+        for (const auto &entry : valueDistribution)
+        {
+            LOGI("价值区间 ", entry.first, ": ", entry.second, " 个");
+        }
+        // LOGI("货物生成图");
+        // LOGI(Map::drawMap(goodsGenerationMap, 3));
+        LOGI("泊位剩余情况：");
         for(auto &berth : berths){
-            // if(debug){LOGI("计算泊位收益-----");berth.info();}
             berth.totalValue = 0;
             for(auto & good : berth.reached_goods) berth.totalValue += good.value;
         }

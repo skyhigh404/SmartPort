@@ -174,6 +174,7 @@ void GameManager::initializeComponents()
     // 2. 预先计算海图航线
     // 计算泊位之间的航线
     std::vector<std::thread> threads;
+    std::vector<std::thread> backgroundThreads;
     // 计算泊位间的航线
     for(int i = 0; i < berths.size(); ++i)
     {
@@ -225,6 +226,9 @@ void GameManager::initializeComponents()
         }
     }
     // 等待所有线程完成
+    // for(auto& t : backgroundThreads) {
+    //     t.detach();
+    // }
     for(auto& t : threads) {
         t.join();
     }

@@ -26,11 +26,11 @@ std::vector<Point2d> Map::neighbors(const Point2d &pos) const
         }
     }
 
-    if ((pos.x + pos.y) % 2 == 0)
-    {
-        // see "Ugly paths" section for an explanation:
-        std::reverse(results.begin(), results.end());
-    }
+    // if ((pos.x + pos.y) % 2 == 0)
+    // {
+    //     // see "Ugly paths" section for an explanation:
+    //     std::reverse(results.begin(), results.end());
+    // }
 
     return results;
 }

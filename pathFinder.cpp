@@ -93,14 +93,14 @@ void AStarPathfinder<Location, Graph>::aStarSearch(const Graph &graph,
 #endif
         for (const Location &next : graph.neighbors(current))
         {
+            if (cost_so_far.find(next) != cost_so_far.end())
+                continue;
             int new_cost = cost_so_far[current] + graph.cost(current, next);
-            if (cost_so_far.find(next) == cost_so_far.end() || new_cost < cost_so_far[next])
-            {
-                cost_so_far[next] = new_cost;
-                int priority = new_cost + heuristic(next, goal);
-                frontier.put(next, priority);
-                came_from[next] = current;
-            }
+            // if (cost_so_far.find(next) == cost_so_far.end() || new_cost < cost_so_far[next])
+            cost_so_far[next] = new_cost;
+            int priority = new_cost + heuristic(next, goal);
+            frontier.put(next, priority);
+            came_from[next] = current;
         }
     }
     // LOGI("A* 搜索节点个数：", calTime);

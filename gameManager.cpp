@@ -357,6 +357,8 @@ void GameManager::processFrameData()
         if(good.TTL != INT_MAX && good.TTL >= 0){
             // LOGI(good.id,",initFrame:",good.initFrame,",currentFrame:",currentFrame,",TTL:",good.TTL);
             good.TTL = std::max(1000-(currentFrame - good.initFrame),-1);
+            if(good.TTL == -1)
+                LOGW("货物过期 ID: ", good.id,", value: ", good.value, ", pos: ", good.pos);
         }
     }
     // 读取变化货物

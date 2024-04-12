@@ -1,10 +1,12 @@
 #include "greedyRobotScheduler.h"
+#include <cstdlib>
 
 GreedyRobotScheduler::GreedyRobotScheduler(std::vector<std::vector<Berth>> &_clusters, std::vector<int> &_berthCluster)
     : clusters(_clusters), berthCluster(std::make_shared<std::vector<int>>(_berthCluster))
     // : clusters(_clusters), berthCluster(_berthCluster)
 {
     // assignment = vector<int>(10, -1);
+    srand(1500);
 }
 
 void GreedyRobotScheduler::scheduleRobots(const Map &map,
@@ -383,6 +385,7 @@ void GreedyRobotScheduler::findGoodsForRobot(const Map &map,
     vector<int> index = profitsAndSortedIndex.second;
 
     // 选择得分第一的作为搬运目标
+    // for (int j = std::min((int)availableGoods.size()-2, rand()%3); j < availableGoods.size(); ++j)
     for (int j = 0; j < availableGoods.size(); ++j)
     {
         int goodIndex = index[j];

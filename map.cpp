@@ -604,3 +604,15 @@ bool Map::hasOverlap(VectorPosition &a, VectorPosition &b) {
     }
     return false;
 }
+
+// 给定船核心点，判断船是否位于主航道
+bool Map::isShipInSeaLane(VectorPosition &vecPos){
+    std::pair<Point2d, Point2d> shipSpace = SpatialUtils::getShipOccupancyRect(vecPos);
+    for (int x = shipSpace.first.x; x <= shipSpace.second.x; x++){
+        for (int y = shipSpace.first.y; y <= shipSpace.second.y; y++){
+            if (isInSealane({x, y})) 
+                return true;
+        }
+    }
+    return false;
+}

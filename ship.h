@@ -80,12 +80,24 @@ public:
     }
     
     // 获取航线长度
-    static int getPathLength(const VectorPosition &start, const VectorPosition &destination)
+    // 考虑主航道内的速度
+    static int getPathLength(Map &map, const VectorPosition &start, const VectorPosition &destination)
     {
         int length = 0;
         if (getInstance().seaRoutes.find(std::make_pair(start, destination)) !=
-            getInstance().seaRoutes.end())
-            length = getInstance().seaRoutes[std::make_pair(start, destination)].size();
+            getInstance().seaRoutes.end()){
+                std::vector<VectorPosition> path = getInstance().seaRoutes[std::make_pair(start, destination)];
+                // 遍历路径，获取实际的路径代价
+                for (auto &step: path){
+                    if(map.isShipInSeaLane(step))
+                        length += 2;
+                    else
+                        length += 1;
+                }
+                // LOGI("路径长度:", path.size(), ",实际路径代价：", length);
+                // length = getInstance().seaRoutes[std::make_pair(start, destination)].size();
+            }
+            
         return length;
     }
 };
@@ -243,7 +255,7 @@ public:
         shipStatusStr[ShipStatusSpace::ShipStatus::LOADING] = "装载状态";
         LOGI("船只", id, ",状态", state, ",路径长度：", path.size(), ",泊位id：", berthId, ",交货点id：", deliveryId, ",船舶状态：",shipStatusStr[shipStatus], ",目的地：", destination, ";");
         LOGI("当前位置：", locAndDir, ",下一帧位置：", nextLocAndDir, "路径长度：", path.size());
-        LOGI("装货量：", capacity,", 装载价值: ", loadGoodValue,",剩余容量：", nowCapacity(), ",剩余容量比例：", nowCapacity() * 1.0 / capacity);
+        LOGI("装货量：", goodsCount,", 装载价值: ", loadGoodValue,",剩余容量：", nowCapacity(), ",剩余容量比例：", nowCapacity() * 1.0 / capacity);
     }
 
     float capacityScale()

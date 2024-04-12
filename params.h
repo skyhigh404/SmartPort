@@ -1,5 +1,10 @@
 #pragma once
 #include "map.h"
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <unordered_map>
+#include <sstream>
 
 struct Params
 {
@@ -8,7 +13,7 @@ struct Params
     // 例如，float greedyRobotScheduleTTLProfitWeight
     // 泊位聚类超参
     int CLUSTERNUMS = 4;                    // 泊位的聚类类别数目
-    int FINAL_FRAME = 14500;    // 终局帧数
+    int FINAL_FRAME = 14000;    // 终局帧数
 
     // 机器人调度超参
     float robot2goodWeight = 1;                 // 机器人到货物的距离权重
@@ -21,10 +26,10 @@ struct Params
     std::vector<int> ASSIGNBOUND;           // 手动设置各个类分配的机器人数目，总数目应等于机器人数目
     float robotReleaseBound = 0.8;          //低于平均泊位价值的比值时，释放机器人去其他泊位
     int DynamicSchedulingInterval = 200;    // 动态调度间隔
-    bool FinalgameScheduling = false;        // 是否终局调度
+    bool FinalgameScheduling = true;        // 是否终局调度
     
     // 购买策略超参
-    int maxRobotNum = 14;                   // 最多购买机器人数目
+    int maxRobotNum = 15;                   // 最多购买机器人数目
     int maxShipNum = 2;                     // 最多购买船只数目
     std::vector<std::vector<int>> robotPurchaseAssign = {{8, 100}, {1, 4}, {1, 4}};
     // std::vector<std::vector<int>> shipPurchaseAssign = {{4, 4, 4, 5, 6, 7, 8, 9, 10}, {1, 2, 3, 4, 5, 6}, {1, 2, 3, 4, 5, 6}};
@@ -69,4 +74,98 @@ struct Params
         else
             LOGE("初始化参数为失败");
     }
+};
+
+// 参数读取类
+class ParamReader {
+public:
+    ParamReader() {}
+
+    bool readParams(const std::string filename) {
+        LOGI("读取文件中:", filename);
+        std::ifstream file(filename);
+        if (!file.is_open()) {
+            LOGE("无法打开文件");
+            return false;
+        }
+
+        std::string line;
+        while (getline(file, line)) {
+            std::istringstream iss(line);
+            std::string key;
+            std::string value;
+
+            if (!(iss >> key >> value)) {
+                LOGI("读取参数时报错");
+                continue; // 跳过有误的行
+            }
+
+            params_[key] = value;
+        }
+        LOGI("读取超参数成功");
+        file.close();
+        return true;
+    }
+    
+    // 设置地图的超参数类
+    void setParams(Params &param){
+        auto setIntParam = [this](int& param, const std::string& key) {
+            if (params_.find(key) != params_.end()) {
+                param = std::stoi(params_[key]);
+            }
+        };
+
+        auto setFloatParam = [this](float& param, const std::string& key) {
+            if (params_.find(key) != params_.end()) {
+                param = std::stof(params_[key]);
+            }
+        };
+
+        auto setBoolParam = [this](bool& param, const std::string& key) {
+            if (params_.find(key) != params_.end()) {
+                param = params_[key] == "1";
+            }
+        };
+
+        setIntParam(param.FINAL_FRAME, "FINAL_FRAME");
+        setIntParam(param.maxRobotNum, "maxRobotNum");
+        setFloatParam(param.landDistanceWeight, "landDistanceWeight");
+        setFloatParam(param.deliveryDistanceWeight, "deliveryDistanceWeight");
+        setBoolParam(param.CentralizedTransportation, "CentralizedTransportation");
+        setBoolParam(param.robotFirst, "robotFirst");
+        setBoolParam(param.PartitionScheduling, "PartitionScheduling");
+        setBoolParam(param.DynamicPartitionScheduling, "DynamicPartitionScheduling");
+        setFloatParam(param.robotReleaseBound, "robotReleaseBound");
+        setBoolParam(param.FinalgameScheduling, "FinalgameScheduling");
+        setIntParam(param.SHIP_WAIT_TIME_LIMIT, "SHIP_WAIT_TIME_LIMIT");
+        setIntParam(param.GOOD_DISTANCE_LIMIT, "GOOD_DISTANCE_LIMIT");
+        setIntParam(param.EARLY_DELIVERT_FRAME_LIMIT, "EARLY_DELIVERT_FRAME_LIMIT");
+        setIntParam(param.EARLY_DELIVERY_VALUE_LIMIT, "EARLY_DELIVERY_VALUE_LIMIT");
+    }
+
+    void logParams(const Params &param){
+        LOGI("设置的超参数：");
+        LOGI(param.FINAL_FRAME, "FINAL_FRAME");
+        LOGI(param.maxRobotNum, "maxRobotNum");
+        LOGI(param.landDistanceWeight, "landDistanceWeight");
+        LOGI(param.deliveryDistanceWeight, "deliveryDistanceWeight");
+        LOGI(param.CentralizedTransportation, "CentralizedTransportation");
+        LOGI(param.robotFirst, "robotFirst");
+        LOGI(param.PartitionScheduling, "PartitionScheduling");
+        LOGI(param.DynamicPartitionScheduling, "DynamicPartitionScheduling");
+        LOGI(param.robotReleaseBound, "robotReleaseBound");
+        LOGI(param.FinalgameScheduling, "FinalgameScheduling");
+        LOGI(param.SHIP_WAIT_TIME_LIMIT, "SHIP_WAIT_TIME_LIMIT");
+        LOGI(param.GOOD_DISTANCE_LIMIT, "GOOD_DISTANCE_LIMIT");
+        LOGI(param.EARLY_DELIVERT_FRAME_LIMIT, "EARLY_DELIVERT_FRAME_LIMIT");
+        LOGI(param.EARLY_DELIVERY_VALUE_LIMIT, "EARLY_DELIVERY_VALUE_LIMIT");
+    }
+
+    const std::unordered_map<std::string, std::string>& getParams() const {
+        return params_;
+    }
+
+private:
+    std::string filename_;
+    std::unordered_map<std::string, std::string> params_;
 };

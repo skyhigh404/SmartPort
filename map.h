@@ -146,6 +146,9 @@ public:
 
     float costCosin(const Point2d &robotPos, const Point2d &goodPos, const Point2d &berthPos, const int berthID);
 
+    // 判断船是否有区域位于主航道
+    bool isShipInSeaLane(VectorPosition &vecPos);
+
 public:
     // 计算泊位到地图上所有陆地点的距离，不可通行的记录为 INT_MAX
     void computeDistancesToBerthViaBFS(BerthID id, const std::vector<Point2d> &positions);
@@ -171,6 +174,7 @@ public:
     std::vector<std::pair<int, int>> initializeBerthToDeliveryDistances(BerthID berthId);
     // TODO: 评估海图上不同方向进入的路径和成本
     Direction evaluateBestApproachDirection(const VectorPosition &shipPosition, const Point2d &pos);
+
 
 public:
     // This outputs a grid. Pass in a distances map if you want to print

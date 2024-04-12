@@ -111,8 +111,8 @@ public:
         std::pair<Point2d, Point2d> shipSpace = SpatialUtils::getShipOccupancyRect(vecPos);
         std::unordered_set<int> laneIds;
         
-        for (int x = shipSpace.first.x; x < shipSpace.second.x; x++){
-            for (int y = shipSpace.first.y; y < shipSpace.second.y; y++){
+        for (int x = shipSpace.first.x; x <= shipSpace.second.x; x++){
+            for (int y = shipSpace.first.y; y <= shipSpace.second.y; y++){
                 if (singleLaneMap[x][y] > 0) laneIds.insert(singleLaneMap[x][y]);
             }
         }

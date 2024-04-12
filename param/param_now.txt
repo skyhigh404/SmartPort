@@ -1,0 +1,14 @@
+FINAL_FRAME 14000
+maxRobotNum 12
+landDistanceWeight 10
+deliveryDistanceWeight 10
+CentralizedTransportation 0
+robotFirst 0
+PartitionScheduling 0
+DynamicPartitionScheduling 0
+robotReleaseBound 0.5
+FinalgameScheduling 0
+SHIP_WAIT_TIME_LIMIT 0
+GOOD_DISTANCE_LIMIT 50
+EARLY_DELIVERT_FRAME_LIMIT 2000
+EARLY_DELIVERY_VALUE_LIMIT 2000

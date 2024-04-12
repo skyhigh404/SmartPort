@@ -123,6 +123,7 @@ void GameManager::initializeGame()
     // 初始化数据读取完成
     // 进行其他部件的初始化
     initializeComponents();
+
     
 
     string ok;
@@ -243,7 +244,7 @@ void GameManager::initializeComponents()
             }
             VectorPosition startVP(berths[i].pos, berths[i].orientation);
             VectorPosition targetVP(berths[j].pos, berths[j].orientation);
-            gameMap.berthToBerthDistance.at(berths[i].id).at(berths[j].id) = SeaRoute::getPathLength(startVP, targetVP);
+            gameMap.berthToBerthDistance.at(berths[i].id).at(berths[j].id) = SeaRoute::getPathLength(this->gameMap, startVP, targetVP);
         }
         LOGI(Log::printVector(gameMap.berthToBerthDistance[i]));
     }
@@ -255,7 +256,7 @@ void GameManager::initializeComponents()
             Point2d deliveryLocation = gameMap.deliveryLocations[j];
             VectorPosition startVP(berths[i].pos, berths[i].orientation);
             VectorPosition targetVP(deliveryLocation, Direction::EAST);
-            int length  = SeaRoute::getPathLength(startVP, targetVP);
+            int length  = SeaRoute::getPathLength(this->gameMap, startVP, targetVP);
             gameMap.berthToDeliveryDistance.at(berths[i].id).at(j) = length;
             berths[i].distsToDelivery.emplace_back(j, length);
         }
@@ -304,7 +305,12 @@ void GameManager::initializeComponents()
     // 8. 判断地图类型，后续封装在其他函数中实现
     MAP_TYPE = MapFlag::NORMAL;
     // 9. 读取参数
+    // 初始化超参数
     Params params(MAP_TYPE);
+    // this->paramReader.logParams(params);
+    this->paramReader.readParams(std::string("../param/param_now.txt"));
+    this->paramReader.setParams(params);
+    // this->paramReader.logParams(params);
     FINAL_FRAME = params.FINAL_FRAME;   // 设置终局参数
     SHIP_STILL_FRAMES_LIMIE = params.SHIP_STILL_FRAMES_LIMIE;
     LOGI("终局帧数：", FINAL_FRAME);
@@ -472,6 +478,7 @@ void GameManager::processFrameData()
     int shipNum, shipId, goodsCount, shipX, shipY, direction, shipState;
     std::cin >> shipNum;
     // LOGI("轮船数目：", shipNum);
+    int unreachValue = 0;
     for (int i = 0; i < shipNum; ++i)
     {
         cin >> shipId >> goodsCount >> shipX >> shipY >> direction >> shipState;
@@ -498,6 +505,11 @@ void GameManager::processFrameData()
             LOGI("本次运货产生价值：", lastFrameLoadGoodValue, ",运货数量：", lastFrameGoodsCount);
             this->ships[shipId].loadGoodValue = 0;
         }
+        if (this->currentFrame == 15000){
+            unreachValue += lastFrameLoadGoodValue;
+            this->ships[shipId].info();
+            LOGI("损失价值：", lastFrameLoadGoodValue);
+        }
         // 判断船是否阻塞在冲突中
         // 当船不在恢复状态和装货状态时，静止不动则累加 阻塞帧数
         if (this->ships[shipId].state != 1
@@ -512,6 +524,9 @@ void GameManager::processFrameData()
             // 恢复
             this->ships[shipId].stillnessFrames = 0;
         }
+    }
+    if (this->currentFrame == 15000){
+        LOGI("因未到达交货点损失的货物价值：", unreachValue);
     }
     // 确认已接收完本帧的所有数据
     string ok;

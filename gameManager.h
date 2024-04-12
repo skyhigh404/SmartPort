@@ -38,6 +38,7 @@ public:
     CommandManager commandManager;
     SingleLaneManager singleLaneManager;
     SeaSingleLaneManager seaSingleLaneManager;
+    ParamReader paramReader;
     std::vector<Robot> robots;
     std::vector<Ship> ships;
     std::vector<Goods> goods;

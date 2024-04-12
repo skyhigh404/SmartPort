@@ -108,7 +108,7 @@ for combination in tqdm.tqdm(combinations):
         heapq.heapreplace(min_heap, (score, combination))
     top_k = sorted(min_heap, reverse=True, key=lambda x: x[0])
 
-    with open("./scores.txt", 'w') as fscore:
+    with open("./scores.csv", 'w') as fscore:
         fscore.write(', '.join(param_names) + ', ' + 'score' + '\n')
         for score,params in top_k:
             line = ', '.join(map(str, params)) + ', ' + str(score) + '\n'

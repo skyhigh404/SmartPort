@@ -15,6 +15,11 @@ cmake --build ./build
 cd build
 ..\judge\PreliminaryJudge.exe -m ..\judge\maps\map1.txt  -d ./output.txt .\main.exe
 ..\judge\SemiFinalJudge.exe -m ..\judge\maps\map1.txt  -d ./output.txt .\main.exe
+
+在主目录执行：
+chmod +x ./*
+在build下执行：
+../judge/SemiFinalJudge -m ../judge/maps/map1.txt -d ./output.txt ./main
 ```
 
 ## LOG 函数使用示例

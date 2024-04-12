@@ -12,7 +12,7 @@ struct Params
 
     // 机器人调度超参
     float robot2goodWeight = 1;                 // 机器人到货物的距离权重
-    float good2berthWeight = 1.2;                 // 货物到泊位的距离权重
+    float good2berthWeight = 1;                 // 货物到泊位的距离权重
     float TTL_ProfitWeight = 1.5;
     int TTL_Bound = 500;
     bool PartitionScheduling = true;        // 是否分区调度
@@ -21,7 +21,7 @@ struct Params
     std::vector<int> ASSIGNBOUND;           // 手动设置各个类分配的机器人数目，总数目应等于机器人数目
     float robotReleaseBound = 0.8;          //低于平均泊位价值的比值时，释放机器人去其他泊位
     int DynamicSchedulingInterval = 200;    // 动态调度间隔
-    bool FinalgameScheduling = false;        // 是否终局调度
+    bool FinalgameScheduling = true;        // 是否终局调度
     
     // 购买策略超参
     int maxRobotNum = 14;                   // 最多购买机器人数目

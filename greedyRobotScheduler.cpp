@@ -94,8 +94,13 @@ void GreedyRobotScheduler::FinalgameAdjustment(std::vector<Berth> &berths)
             }
         }
         for (int j=0;j<clusters[i].size();j++) 
-            if (clusters[i][j].id != argmax)
+            if (clusters[i][j].id != argmax) {
                 berths[clusters[i][j].id].disable();
+                LOGI("泊位",clusters[i][j].id,"禁用");
+            }
+            else {
+                LOGI("泊位",clusters[i][j].id,"继续运行");
+            }
     }
 }
 

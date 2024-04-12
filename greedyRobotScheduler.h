@@ -33,6 +33,7 @@ private:
     float robotReleaseBound;
     bool DynamicPartitionScheduling;
     int DynamicSchedulingInterval;
+    int startPartitionScheduling;
     // 等等
     std::vector<std::pair<BerthID, int>> maxRobotsPerBerth; // 记录每个泊位分配机器人的上限
 private:
@@ -43,6 +44,7 @@ private:
     std::vector<int> assignment;
     int lastReassignFrame = 0; //上次动态调度的时刻
     bool enterFinal; // 判断是否进入终局
+    bool allAssign = false;
 
 private:
     // 根据类来分配机器人

@@ -330,7 +330,7 @@ void GameManager::initializeComponents()
     // 18. 初始化资产管理类
     this->assetManager->init(this->gameMap, berths);
     // 18. 初始化统计信息
-    goodsGenerationMap = vector<vector<int>> (MAPROWS, vector<int>(MAPCOLS, 0));
+    goodsExpiredMap = vector<vector<int>> (MAPROWS, vector<int>(MAPCOLS, 0));
 }
 
 void GameManager::statisticGoods(int value, std::unordered_map<std::string, int> &statisticMap)
@@ -407,6 +407,7 @@ void GameManager::processFrameData()
 #ifdef DEBUG
             if (good.TTL == -1 && !good.distsToBerths.empty())
             {
+                goodsExpiredMap[good.pos.x][good.pos.y]++;
                 statisticGoods(good.value, expiredGoodsValueDistribution);
                 if (good.value >= 50)
                     LOGE("高价值货物过期 ID: ", good.id, ", value: ", good.value, ", pos: ", good.pos, ", distsToBerths: ", good.distsToBerths[0].first, " : ", good.distsToBerths[0].second);
@@ -429,7 +430,6 @@ void GameManager::processFrameData()
 
 #ifdef DEBUG
         // 进行统计
-        goodsGenerationMap[goodsX][goodsY]++;
         statisticGoods(value, generateGoodsValueDistribution);
 #endif
 
@@ -783,8 +783,8 @@ void GameManager::logStatisticsInfo()
         {
             LOGI("价值区间 ", entry.first, ": ", entry.second, " 个");
         }
-        // LOGI("货物生成图");
-        // LOGI(Map::drawMap(goodsGenerationMap, 3));
+        LOGI("货物过期图绘制");
+        LOGI(Map::drawMap(goodsExpiredMap, 3));
         LOGI("泊位剩余情况：");
         for(auto &berth : berths){
             berth.totalValue = 0;

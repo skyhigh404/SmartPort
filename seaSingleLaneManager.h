@@ -16,21 +16,10 @@ struct SeaSingleLaneLock
     bool lock = false;  //有船在单行路内，则该lock为true，表明该单行路不可通行
     Direction enterDirection; // 船进去单行路的方向
     int lockShipId = -1;
-    // Point2d entrance;   //startPos往外扩展一格
-    // Point2d exit;   //endPos的往外扩展一格
 
-    // bool startLock;
-    // bool endLock;
-    // int count;
-    // SeaSingleLaneLock(std::pair<Point2d, Point2d> start,std::pair<Point2d, Point2d> end):startPos(start),endPos(end),startLock(false),endLock(false),count(0){}
     SeaSingleLaneLock(std::pair<Point2d, Point2d> start,std::pair<Point2d, Point2d> end):startPos(start),endPos(end){}
     SeaSingleLaneLock(){}
 
-    // bool canEntering(Ship &ship){
-    //     // 没有上锁
-    //     if(!lock) return !lock;
-        
-    // }
 
     void reset(){
         // 恢复锁的情况
@@ -109,13 +98,12 @@ public:
         
         // 遍历所处单行路（可能有多个），判断单行路是否被其他船上锁
         for(auto &landId : laneIds){
-            // 上锁成功
-            if (singleLaneLocks[landId].lockLane(ship))
-                return true;
+            bool flag = singleLaneLocks[landId].lockLane(ship);
             // 上锁失败，不可通行
-            else 
+            if (!flag) 
                 return false;
         }
+        return true;
     }
 
     // 传入船的核心点位置，返回所处的单行路id

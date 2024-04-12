@@ -47,7 +47,12 @@ void ShipController::runController(Map &map,std::vector<Ship> &ships, SeaSingleL
 
         LOGI("船舶发现冲突");
         for(const auto &collision : collisions) {
-            LOGI(collision.shipId1, ", ", collision.shipId2, ", ", collision.type);
+            if (collision.type == CollisionEvent::EntryAttemptWhileOccupied){
+                LOGI("单行路冲突：船", collision.shipId1);
+            } 
+            else {
+                LOGI(collision.shipId1, ", ", collision.shipId2, ", ", collision.type);
+            }
         }
         // 遍历冲突船舶集合
         for(const auto &collision : collisions) {
@@ -106,10 +111,17 @@ void ShipController::runPathfinding(const Map &map, Ship &ship)
 void ShipController::tryResolveConflict(Map &map, std::vector<Ship> &ships, const CollisionEvent &event)
 {
     // 重新寻路或等待，根据它们的代价来判断，或者往空位走一格
+    LOGI("========解决冲突=========");
     Ship &ship1 = ships[event.shipId1];
     Ship &ship2 = (event.shipId2 != -1) ? ships[event.shipId2] : ship1; // 用于单一船事件处理
+    //单行路冲突
+    if (event.type == CollisionEvent::CollisionType::EntryAttemptWhileOccupied){
+        LOGI("尝试进入单行路冲突");
+        LOGI("让船",ship1.id, "等待");
+        makeShipWait(ship1);
+    }
     // 下一帧位置冲突
-    if(event.type == CollisionEvent::CollisionType::NextOverlapCollision){
+    else if(event.type == CollisionEvent::CollisionType::NextOverlapCollision){
         LOGI("下一帧位置重合冲突");
         // 船 1 的下一帧位置不和船 2 当前位置重合，那么让船 2 等待
         if (!map.hasOverlap(ship1.nextLocAndDir, ship2.locAndDir) && ship1.state != 1){
@@ -230,6 +242,11 @@ ShipController::detectNextFrameConflict(Map &map, std::vector<Ship> &ships, SeaS
     std::set<CollisionEvent, CollisionEventCompare> collision; // 使用 set 保证输出的机器人对不重复
     for(size_t i = 0; i < ships.size(); ++i){
         Ship& ship1 = ships[i];
+        // 检测水路单行路冲突
+        if (seaSingleLaneManager.canEnterSingleLane(ship1)){
+            CollisionEvent event(ship1.id, CollisionEvent::EntryAttemptWhileOccupied);
+            collision.insert(event);
+        }
 
         for(size_t j = i + 1; j < ships.size(); ++j){
             Ship& ship2 = ships[j];
@@ -243,8 +260,6 @@ ShipController::detectNextFrameConflict(Map &map, std::vector<Ship> &ships, SeaS
                 CollisionEvent event(ship1.id, ship2.id ,CollisionEvent::PathCrossingCollision);
                 collision.insert(event);
             }
-            // 判断水路单行路冲突
-            
         }
     }
     return collision;

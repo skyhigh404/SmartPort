@@ -293,8 +293,14 @@ void GameManager::initializeComponents()
     for (auto &berth : berths)
         berth.registerObserver(this);
     // 7. 初始化单行路
+    auto start = std::chrono::steady_clock::now();
     this->singleLaneManager.init(gameMap);
+    auto end = std::chrono::steady_clock::now();
+    LOGI("初始化陆地单行路时间: ",std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()," ms");
+    start = std::chrono::steady_clock::now();
     this->seaSingleLaneManager.init(gameMap);
+    end = std::chrono::steady_clock::now();
+    LOGI("初始化海洋单行路时间: ",std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()," ms");
     // 8. 判断地图类型，后续封装在其他函数中实现
     MAP_TYPE = MapFlag::NORMAL;
     // 9. 读取参数

@@ -24,6 +24,7 @@ public:
     // 判题器输入数据
     int id;                 // 机器人 ID
     Point2d pos;            // 机器人目前位置
+    int type = 0;               // 0\1
     int carryingItem;       // 0 表示未携带物品，1 表示携带1个物品，2表示携带2个物品
     // const int price = 2000; // 购买价格
     // int state;        // 0 表示恢复状态，1 表示正常运行状态

@@ -57,7 +57,7 @@ public:
     static std::string lbot(const Point2d &pos)
     {
         using namespace std::string_literals;
-        return "lbot "s + std::to_string(pos.x) + " "s + std::to_string(pos.y);
+        return "lbot "s + std::to_string(pos.x) + " "s + std::to_string(pos.y) + " 0";
     }
 
     void assignGoodOrBerth()

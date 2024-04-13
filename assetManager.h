@@ -61,4 +61,7 @@ public:
     const int robotPrice = 2000;
     const int robot2Price = 5000;
     const int shipPrice = 8000;
+    std::vector<int> purchasedRobotNum;
+    std::vector<int> purchasedShipNum;
+    std::vector<int> purchasedRobot2Num;
 };

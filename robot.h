@@ -235,7 +235,7 @@ public:
 
     friend std::ostream &operator<<(std::ostream &os, const Robot &robot)
     {
-        os << "id: " << robot.id << " pos: " << robot.pos << " nextPos: " << robot.nextPos << " dst: " << robot.destination << " path: " << robot.path.size() << ", ";
+        os << "id: " << robot.id << "type: " << robot.type << " pos: " << robot.pos << " nextPos: " << robot.nextPos << " dst: " << robot.destination << " path: " << robot.path.size() << ", ";
         for (int i = (int)robot.path.size() - 1; i >= std::max(0, (int)robot.path.size() - 3); --i)
         {
             os << robot.path[i];

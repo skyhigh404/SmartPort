@@ -487,10 +487,14 @@ void GameManager::processFrameData()
         if (i >= this->robots.size()) {
             // 根据购买类型设置机器人
             this->robots.emplace_back(robotId, Point2d(robotX, robotY), robotsPurchaseType[tmp++]);
+            if (this->robots[robotId].type == 0)
+                this->assetManager->purchasedRobotNum[0]++;
+            else this->assetManager->purchasedRobot2Num[0]++;
         }
         this->robots[robotId].carryingItem = carryNum;
         this->robots[robotId].pos.x = robotX;
         this->robots[robotId].pos.y = robotY;
+        LOGI(this->robots[robotId]);
 
         // 暂时处理程序认为机器人放下了货物并且分配了下一个货物的id，但是判题器认为机器人还拿着上一个货物的情况
         if (this->robots[robotId].carryingItem == 0)

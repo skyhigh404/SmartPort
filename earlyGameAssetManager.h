@@ -49,8 +49,6 @@ public:
     std::vector<SeaBlock> seaBlocks;
     std::vector<LandSeaBlock> landseaBlocks;
     
-    std::vector<int> purchasedRobotNum;
-    std::vector<int> purchasedShipNum;
 
 public:
 
@@ -60,6 +58,7 @@ private:
     int maxShipNum;                 // 最多购买船只数目
     std::vector<std::vector<int>> robotPurchaseAssign;
     std::vector<std::vector<int>> shipPurchaseAssign;
+    std::vector<std::vector<int>> robot2PurchaseAssign;
     int timeToBuyShip;              // 开始买船的时刻（除第一艘船外）
     int startNum;                   // 最初的数目（机器人、轮船）
     float landDistanceWeight;       // 对泊位价值评估时的陆地访问距离权重
@@ -78,5 +77,6 @@ private:
     Point2d buyShip(const std::vector<Ship> &ships, const std::vector<Goods> &goods, const Map &gameMap, int currentFunds);
     Point2d getProperRobotShop(LandSeaBlock& block, const std::vector<Robot> &robots, const Map &gameMap, const std::vector<Goods> &goods);
     Point2d getProperShipShop(LandSeaBlock& l, const Map &gameMap);
+    int buyRobotType(const std::vector<Robot> &robots, const std::vector<Goods> &goods, const Map &gameMap, int currentFunds);
     int getAssignId(Point2d shopPos, const std::vector<Berth> &berths);
 };

@@ -31,7 +31,8 @@ struct Params
     // 购买策略超参
     int maxRobotNum = 14;                   // 最多购买机器人数目
     int maxShipNum = 2;                     // 最多购买船只数目
-    std::vector<std::vector<int>> robotPurchaseAssign = {{8, 14,100}, {1, 1, 4}, {1, 1, 4}};
+    std::vector<std::vector<int>> robotPurchaseAssign = {{8, 11, 100}, {1, 1, 4}, {1, 1, 4}};
+    std::vector<std::vector<int>> robot2PurchaseAssign = {{0, 3, 3}, {0, 0, 0}, {0, 0, 0}};
     // std::vector<std::vector<int>> shipPurchaseAssign = {{4, 4, 4, 5, 6, 7, 8, 9, 10}, {1, 2, 3, 4, 5, 6}, {1, 2, 3, 4, 5, 6}};
     std::vector<std::vector<int>> shipPurchaseAssign = {{1, 2, 10}, {1, 1, 1}, {1, 1, 1}};
     int timeToBuyShip = 50;                 // 开始购买第二艘船的时间

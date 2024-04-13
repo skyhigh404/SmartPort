@@ -7,6 +7,8 @@
 #include <climits>
 #include "log.h"
 #include <unordered_set>
+#include <cstdlib>
+
 
 std::array<Point2d, 4> Map::DIRS = {
     /* East, West, North, South */
@@ -26,11 +28,11 @@ std::vector<Point2d> Map::neighbors(const Point2d &pos) const
         }
     }
 
-    // if ((pos.x + pos.y) % 2 == 0)
-    // {
-    //     // see "Ugly paths" section for an explanation:
-    //     std::reverse(results.begin(), results.end());
-    // }
+    if ((pos.x + pos.y) % (rand()%3+1) == 0)
+    {
+        // see "Ugly paths" section for an explanation:
+        std::reverse(results.begin(), results.end());
+    }
 
     return results;
 }

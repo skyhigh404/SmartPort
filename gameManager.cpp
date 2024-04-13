@@ -156,6 +156,8 @@ void GameManager::initializeGame()
 
 void GameManager::initializeComponents()
 {
+    // 8. 判断地图类型，后续封装在其他函数中实现
+    MapFlag mapType = this->gameMap.getMapType();
     // 1. 让地图实时跟踪机器人位置
     // for (Robot &robot : this->robots)
     //     this->gameMap.robotPosition.push_back(robot.pos);
@@ -205,21 +207,25 @@ void GameManager::initializeComponents()
             if(gameMap.passable(targetVP)) {
                 threads.emplace_back(findPathWrapper, std::ref(gameMap), startVP, targetVP);
                 threads.emplace_back(findPathWrapper, std::ref(gameMap), targetVP, startVP);
+                if(mapType == MapFlag::MAP3) continue;
             }
             targetVP.direction = Direction::WEST;
             if(gameMap.passable(targetVP)) {
                 threads.emplace_back(findPathWrapper, std::ref(gameMap), startVP, targetVP);
                 threads.emplace_back(findPathWrapper, std::ref(gameMap), targetVP, startVP);
+                if(mapType == MapFlag::MAP3) continue;
             }
             targetVP.direction = Direction::NORTH;
             if(gameMap.passable(targetVP)) {
                 threads.emplace_back(findPathWrapper, std::ref(gameMap), startVP, targetVP);
                 threads.emplace_back(findPathWrapper, std::ref(gameMap), targetVP, startVP);
+                if(mapType == MapFlag::MAP3) continue;
             }
             targetVP.direction = Direction::SOUTH;
             if(gameMap.passable(targetVP)) {
                 threads.emplace_back(findPathWrapper, std::ref(gameMap), startVP, targetVP);
                 threads.emplace_back(findPathWrapper, std::ref(gameMap), targetVP, startVP);
+                if(mapType == MapFlag::MAP3) continue;
             }
         }
     }
@@ -316,17 +322,15 @@ void GameManager::initializeComponents()
     this->seaSingleLaneManager.init(gameMap);
     end = std::chrono::steady_clock::now();
     LOGI("初始化海洋单行路时间: ",std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()," ms");
-    // 8. 判断地图类型，后续封装在其他函数中实现
-    MapFlag mapType = this->gameMap.getMapType();
     // 9. 读取参数
     // 初始化超参数
     Params params(mapType);
     // 从文件读取参数
     // this->paramReader.logParams(params);
 #ifdef DEBUG
-    this->paramReader.readParams(std::string("../param/param_now.txt"));
+    // this->paramReader.readParams(std::string("../param/param_now.txt"));
 
-    this->paramReader.setParams(params);
+    // this->paramReader.setParams(params);
 #endif
     // 设置终局参数
     FINAL_FRAME = params.FINAL_FRAME;   // 设置终局参数

@@ -25,6 +25,8 @@ int FINAL_FRAME;
 
 std::vector<int> berthDistrubtGoodNumCount;
 std::vector<int> berthDistrubtGoodValueCount;
+std::vector<int> robotsPurchaseType;
+
 
 int canUnload(Point2d pos, const Map& map) {
     if (map.readOnlyGrid[pos.x][pos.y]==MapItemSpace::MapItem::BERTH) 
@@ -156,6 +158,8 @@ void GameManager::initializeGame()
 
 void GameManager::initializeComponents()
 {
+    // 8. 判断地图类型，后续封装在其他函数中实现
+    MapFlag mapType = this->gameMap.getMapType();
     // 1. 让地图实时跟踪机器人位置
     // for (Robot &robot : this->robots)
     //     this->gameMap.robotPosition.push_back(robot.pos);
@@ -205,21 +209,25 @@ void GameManager::initializeComponents()
             if(gameMap.passable(targetVP)) {
                 threads.emplace_back(findPathWrapper, std::ref(gameMap), startVP, targetVP);
                 threads.emplace_back(findPathWrapper, std::ref(gameMap), targetVP, startVP);
+                if(mapType == MapFlag::MAP3) continue;
             }
             targetVP.direction = Direction::WEST;
             if(gameMap.passable(targetVP)) {
                 threads.emplace_back(findPathWrapper, std::ref(gameMap), startVP, targetVP);
                 threads.emplace_back(findPathWrapper, std::ref(gameMap), targetVP, startVP);
+                if(mapType == MapFlag::MAP3) continue;
             }
             targetVP.direction = Direction::NORTH;
             if(gameMap.passable(targetVP)) {
                 threads.emplace_back(findPathWrapper, std::ref(gameMap), startVP, targetVP);
                 threads.emplace_back(findPathWrapper, std::ref(gameMap), targetVP, startVP);
+                if(mapType == MapFlag::MAP3) continue;
             }
             targetVP.direction = Direction::SOUTH;
             if(gameMap.passable(targetVP)) {
                 threads.emplace_back(findPathWrapper, std::ref(gameMap), startVP, targetVP);
                 threads.emplace_back(findPathWrapper, std::ref(gameMap), targetVP, startVP);
+                if(mapType == MapFlag::MAP3) continue;
             }
         }
     }
@@ -316,17 +324,15 @@ void GameManager::initializeComponents()
     this->seaSingleLaneManager.init(gameMap);
     end = std::chrono::steady_clock::now();
     LOGI("初始化海洋单行路时间: ",std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()," ms");
-    // 8. 判断地图类型，后续封装在其他函数中实现
-    MapFlag mapType = this->gameMap.getMapType();
     // 9. 读取参数
     // 初始化超参数
     Params params(mapType);
     // 从文件读取参数
     // this->paramReader.logParams(params);
 #ifdef DEBUG
-    this->paramReader.readParams(std::string("../param/param_now.txt"));
+    // this->paramReader.readParams(std::string("../param/param_now.txt"));
 
-    this->paramReader.setParams(params);
+    // this->paramReader.setParams(params);
 #endif
     // 设置终局参数
     FINAL_FRAME = params.FINAL_FRAME;   // 设置终局参数
@@ -473,11 +479,15 @@ void GameManager::processFrameData()
     int robotNum=0, robotId, carryNum;
     std::cin >> robotNum;
     // LOGI("机器人数目：",robotNum);
+    int tmp = 0;
     for (int i = 0; i < robotNum; ++i)
     {
         cin >> robotId >> carryNum >> robotX >> robotY;
         // 创建机器人
-        if (i >= this->robots.size()) this->robots.emplace_back(Robot(robotId, Point2d(robotX, robotY)));
+        if (i >= this->robots.size()) {
+            // 根据购买类型设置机器人
+            this->robots.emplace_back(robotId, Point2d(robotX, robotY), robotsPurchaseType[tmp++]);
+        }
         this->robots[robotId].carryingItem = carryNum;
         this->robots[robotId].pos.x = robotX;
         this->robots[robotId].pos.y = robotY;
@@ -735,10 +745,12 @@ void GameManager::assetControl()
     std::vector<PurchaseDecision> purchaseDecisions =
         assetManager->makePurchaseDecision(gameMap, goods, robots, ships, berths,
                                            currentMoney, currentFrame);
+    robotsPurchaseType.clear();
     for (const auto &purchaseDecision : purchaseDecisions)
     {
         if (purchaseDecision.assetType == AssetType::ROBOT)
             for (int i = 0; i < purchaseDecision.quantity; ++i) {
+                robotsPurchaseType.push_back(purchaseDecision.type);
                 commandManager.addRobotCommand(Robot::lbot(purchaseDecision.pos, purchaseDecision.type));
                 // 集中搬货
                 robotScheduler->assignedBerthID = BerthID(purchaseDecision.assignId);

@@ -44,9 +44,10 @@ private:
     AStarPathfinder<Point2d, Map> pathFinder;
 
 public:
-    Robot(int id, Point2d pos)
+    Robot(int id, Point2d pos, int type_)
         : id(id),
           pos(pos),
+          type(type_),
           carryingItem(0),
           status(RobotStatus::IDLE),
           carryingItemId(-1),

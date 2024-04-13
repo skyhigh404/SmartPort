@@ -30,7 +30,7 @@ struct Params
     
     // 购买策略超参
     int maxRobotNum = 14;                   // 最多购买机器人数目
-    int maxShipNum = 1;                     // 最多购买船只数目
+    int maxShipNum = 2;                     // 最多购买船只数目
     std::vector<std::vector<int>> robotPurchaseAssign = {{8, 14,100}, {1, 1, 4}, {1, 1, 4}};
     // std::vector<std::vector<int>> shipPurchaseAssign = {{4, 4, 4, 5, 6, 7, 8, 9, 10}, {1, 2, 3, 4, 5, 6}, {1, 2, 3, 4, 5, 6}};
     std::vector<std::vector<int>> shipPurchaseAssign = {{1, 2, 10}, {1, 1, 1}, {1, 1, 1}};
@@ -61,19 +61,25 @@ struct Params
     {
         if (mapFalg == MapFlag::MAP1)
         {
+            MAX_SHIP_NUM = 2;
         }
         else if (mapFalg == MapFlag::MAP2)
         {
+            LOGI("识别到图二");
+            MAX_SHIP_NUM = 2;
         }
         else if (mapFalg == MapFlag::MAP3)
         {
         }
         else if (mapFalg == MapFlag::NORMAL)
         {
+            LOGI("NORMAL状态下船的数量：", MAX_SHIP_NUM);
         }
         else
             LOGE("初始化参数为失败");
+        LOGI("当前船的数量：", MAX_SHIP_NUM);
     }
+    
 };
 
 // 参数读取类

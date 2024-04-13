@@ -2,19 +2,19 @@ import random
 import subprocess
 import time
 # 假设你的数据保存在一个列表中，这里用data_list表示
-data_list = ['65 37', '61 69', '63 111', '59 142', '157 158']
+data_list = ['6 69', '178 123', '166 143', '138 138', '115 150']
 
 def run_program_with_seed(seed):
     # 使用给定的种子运行程序，并返回输出结果
     # main.exe: 输出"OK"就行
-    command = '..\judge\SemiFinalJudge.exe -m ..\judge\maps\map1.txt  -d ./output.txt .\findSeed.exe -l NONE -s ' + str(seed)  # 替换'your_program'为你的程序名称
+    command = '..\judge\SemiFinalJudge.exe -m ..\judge\maps\map2.txt  -d ./output.txt .\findSeed.exe -l NONE -s ' + str(seed)  # 替换'your_program'为你的程序名称
     process = subprocess.Popen(command, stdout=subprocess.PIPE)
 
-    time.sleep(0.1)
+    time.sleep(0.15)
     process.kill()
     # output, _ = process.communicate()
 
-    file_path = './script/output.txt'  # 文件路径
+    file_path = './output.txt'  # 文件路径
     with open(file_path, 'r') as file:
         # 读取文件内容
         file_contents = file.read()

@@ -39,7 +39,6 @@ enum class MapFlag
     MAP3
 };
 
-extern MapFlag MAP_TYPE;
 
 class Map
 {

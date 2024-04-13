@@ -21,7 +21,6 @@ int CURRENT_FRAME = 0;  //当前帧数
 int last_assign = 0;
 int CURRENT_MONEY;
 int FINAL_FRAME;
-MapFlag MAP_TYPE;
 
 
 std::vector<int> berthDistrubtGoodNumCount;
@@ -307,10 +306,10 @@ void GameManager::initializeComponents()
     end = std::chrono::steady_clock::now();
     LOGI("初始化海洋单行路时间: ",std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()," ms");
     // 8. 判断地图类型，后续封装在其他函数中实现
-    MAP_TYPE = MapFlag::NORMAL;
+    MapFlag mapType = this->gameMap.getMapType();
     // 9. 读取参数
     // 初始化超参数
-    Params params(MAP_TYPE);
+    Params params(mapType);
     // 从文件读取参数
     // this->paramReader.logParams(params);
 #ifdef DEBUG

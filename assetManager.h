@@ -36,6 +36,7 @@ struct PurchaseDecision
     AssetType assetType;
     Point2d pos;  // 购买位置
     int quantity; // 购买数量
+    int type;     // 购买的机器人类型：0（携带1个货物）、1（携带2个货物）
     int assignId; // 游戏初期对机器人集中分配的泊位id
 };
 

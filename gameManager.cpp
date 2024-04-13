@@ -462,15 +462,15 @@ void GameManager::processFrameData()
         }
     }
     // 读取机器人状态
-    int robotNum=0, robotId;
+    int robotNum=0, robotId, carryNum;
     std::cin >> robotNum;
     // LOGI("机器人数目：",robotNum);
     for (int i = 0; i < robotNum; ++i)
     {
-        cin >> robotId >> carrying >> robotX >> robotY;
+        cin >> robotId >> carryNum >> robotX >> robotY;
         // 创建机器人
         if (i >= this->robots.size()) this->robots.emplace_back(Robot(robotId, Point2d(robotX, robotY)));
-        this->robots[robotId].carryingItem = carrying;
+        this->robots[robotId].carryingItem = carryNum;
         this->robots[robotId].pos.x = robotX;
         this->robots[robotId].pos.y = robotY;
 
@@ -711,7 +711,7 @@ void GameManager::assetControl()
     {
         if (purchaseDecision.assetType == AssetType::ROBOT)
             for (int i = 0; i < purchaseDecision.quantity; ++i) {
-                commandManager.addRobotCommand(Robot::lbot(purchaseDecision.pos));
+                commandManager.addRobotCommand(Robot::lbot(purchaseDecision.pos, purchaseDecision.type));
                 // 集中搬货
                 robotScheduler->assignedBerthID = BerthID(purchaseDecision.assignId);
             }

@@ -57,7 +57,7 @@ std::vector<PurchaseDecision> EarlyGameAssetManager::makePurchaseDecision(const 
             currentFunds -= robotPrice;
             int assignId = getAssignId(shopPos, berths);
             LOGI("购买机器人并分配泊位id:", assignId);
-            purchaseDecisions.push_back(PurchaseDecision{AssetType::ROBOT, shopPos, 1, assignId});
+            purchaseDecisions.push_back(PurchaseDecision{AssetType::ROBOT, shopPos, 1, 0, assignId});
         }
     }
     if (needToBuyShip(ships, goods, gameMap, currentFunds, currentTime)) {
@@ -66,7 +66,7 @@ std::vector<PurchaseDecision> EarlyGameAssetManager::makePurchaseDecision(const 
         if (shopPos != Point2d(-1,-1)) {
             currentFunds -= shipPrice;
             int assignId = getAssignId(shopPos, berths);
-            purchaseDecisions.push_back(PurchaseDecision{AssetType::SHIP, shopPos, 1, assignId});
+            purchaseDecisions.push_back(PurchaseDecision{AssetType::SHIP, shopPos, 1, 0, assignId});
         }
     }
     if (needToBuyRobot(robots, goods, gameMap, currentFunds) && !robotFirst) {
@@ -76,7 +76,7 @@ std::vector<PurchaseDecision> EarlyGameAssetManager::makePurchaseDecision(const 
             currentFunds -= robotPrice;
             int assignId = getAssignId(shopPos, berths);
             LOGI("购买机器人并分配泊位id:", assignId);
-            purchaseDecisions.push_back(PurchaseDecision{AssetType::ROBOT, shopPos, 1, assignId});
+            purchaseDecisions.push_back(PurchaseDecision{AssetType::ROBOT, shopPos, 1, 0, assignId});
         }
     }
     return purchaseDecisions;

@@ -44,6 +44,7 @@ public:
     std::vector<Goods> goods;
     std::vector<Berth> berths;
     BerthAssignAndControlService berthAssignAndControlService;
+    std::vector<PurchaseDecision> purchaseDecisions;    // 之前做出的购买决策
     int currentFrame;
     int currentMoney;
     // 统计

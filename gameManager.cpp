@@ -311,10 +311,13 @@ void GameManager::initializeComponents()
     // 9. 读取参数
     // 初始化超参数
     Params params(MAP_TYPE);
+    // 从文件读取参数
     // this->paramReader.logParams(params);
+#ifdef DEBUG
     this->paramReader.readParams(std::string("../param/param_now.txt"));
     this->paramReader.setParams(params);
-    // this->paramReader.logParams(params);
+#endif
+    // 设置终局参数
     FINAL_FRAME = params.FINAL_FRAME;   // 设置终局参数
     SHIP_STILL_FRAMES_LIMIE = params.SHIP_STILL_FRAMES_LIMIE;
     LOGI("终局帧数：", FINAL_FRAME);

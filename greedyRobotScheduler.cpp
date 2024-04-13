@@ -247,6 +247,8 @@ bool GreedyRobotScheduler::shouldFetchGoods(const Robot &robot)
     // 机器人没携带货物，并且没有目标
     if (robot.carryingItem == 0 && robot.targetid == -1)
         return true;
+    if (robot.type == 1 && robot.carryingItem < 2 && robot.targetid == -1)
+        return true;
     return false;
 }
 

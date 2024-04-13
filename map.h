@@ -140,7 +140,17 @@ public:
     bool isInSealane(const Point2d &pos) const;
 
     float costCosin(const Point2d &robotPos, const Point2d &goodPos, const Point2d &berthPos, const int berthID);
-
+    
+    bool isShipInSeaLane(VectorPosition &vecPos){
+    std::pair<Point2d, Point2d> shipSpace = SpatialUtils::getShipOccupancyRect(vecPos);
+    for (int x = shipSpace.first.x; x <= shipSpace.second.x; x++){
+        for (int y = shipSpace.first.y; y <= shipSpace.second.y; y++){
+            if (isInSealane({x, y})) 
+                return true;
+        }
+    }
+    return false;
+}
 public:
     // 计算泊位到地图上所有陆地点的距离，不可通行的记录为 INT_MAX
     void computeDistancesToBerthViaBFS(BerthID id, const std::vector<Point2d> &positions);

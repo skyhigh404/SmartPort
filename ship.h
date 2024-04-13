@@ -80,12 +80,23 @@ public:
     }
     
     // 获取航线长度
-    static int getPathLength(const VectorPosition &start, const VectorPosition &destination)
+    static int getPathLength(Map &map, const VectorPosition &start, const VectorPosition &destination)
     {
         int length = 0;
         if (getInstance().seaRoutes.find(std::make_pair(start, destination)) !=
-            getInstance().seaRoutes.end())
-            length = getInstance().seaRoutes[std::make_pair(start, destination)].size();
+            getInstance().seaRoutes.end()){
+                std::vector<VectorPosition> path = getInstance().seaRoutes[std::make_pair(start, destination)];
+                // 遍历路径，获取实际的路径代价
+                for (auto &step: path){
+                    if(map.isShipInSeaLane(step))
+                        length += 2;
+                    else
+                        length += 1;
+                }
+                // LOGI("路径长度:", path.size(), ",实际路径代价：", length);
+                // length = getInstance().seaRoutes[std::make_pair(start, destination)].size();
+            }
+            
         return length;
     }
 };

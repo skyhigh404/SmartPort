@@ -241,7 +241,7 @@ void GameManager::initializeComponents()
             }
             VectorPosition startVP(berths[i].pos, berths[i].orientation);
             VectorPosition targetVP(berths[j].pos, berths[j].orientation);
-            gameMap.berthToBerthDistance.at(berths[i].id).at(berths[j].id) = SeaRoute::getPathLength(startVP, targetVP);
+            gameMap.berthToBerthDistance.at(berths[i].id).at(berths[j].id) = SeaRoute::getPathLength(gameMap, startVP, targetVP);
         }
         LOGI(Log::printVector(gameMap.berthToBerthDistance[i]));
     }
@@ -253,7 +253,7 @@ void GameManager::initializeComponents()
             Point2d deliveryLocation = gameMap.deliveryLocations[j];
             VectorPosition startVP(berths[i].pos, berths[i].orientation);
             VectorPosition targetVP(deliveryLocation, Direction::EAST);
-            int length  = SeaRoute::getPathLength(startVP, targetVP);
+            int length  = SeaRoute::getPathLength(gameMap, startVP, targetVP);
             gameMap.berthToDeliveryDistance.at(berths[i].id).at(j) = length;
             berths[i].distsToDelivery.emplace_back(j, length);
         }

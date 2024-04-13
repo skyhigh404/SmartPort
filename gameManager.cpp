@@ -25,6 +25,8 @@ int FINAL_FRAME;
 
 std::vector<int> berthDistrubtGoodNumCount;
 std::vector<int> berthDistrubtGoodValueCount;
+std::vector<int> robotsPurchaseType;
+
 
 int canUnload(Point2d pos, const Map& map) {
     if (map.readOnlyGrid[pos.x][pos.y]==MapItemSpace::MapItem::BERTH) 
@@ -479,12 +481,8 @@ void GameManager::processFrameData()
         cin >> robotId >> carryNum >> robotX >> robotY;
         // 创建机器人
         if (i >= this->robots.size()) {
-            while (tmp < purchaseDecisions.size() && purchaseDecisions.at(tmp).assetType != AssetType::ROBOT)
-            {
-                ++tmp;
-            }
-            // 找到了机器人
-            this->robots.emplace_back(Robot(robotId, Point2d(robotX, robotY)));
+            // 根据购买类型设置机器人
+            this->robots.emplace_back(robotId, Point2d(robotX, robotY), robotsPurchaseType[tmp++]);
         }
         this->robots[robotId].carryingItem = carryNum;
         this->robots[robotId].pos.x = robotX;
@@ -720,12 +718,15 @@ void GameManager::shipControl(){
 
 void GameManager::assetControl()
 {
-    purchaseDecisions = assetManager->makePurchaseDecision(gameMap, goods, robots, ships, berths,
-                                                           currentMoney, currentFrame);
+    std::vector<PurchaseDecision> purchaseDecisions =
+        assetManager->makePurchaseDecision(gameMap, goods, robots, ships, berths,
+                                           currentMoney, currentFrame);
+    robotsPurchaseType.clear();
     for (const auto &purchaseDecision : purchaseDecisions)
     {
         if (purchaseDecision.assetType == AssetType::ROBOT)
             for (int i = 0; i < purchaseDecision.quantity; ++i) {
+                robotsPurchaseType.push_back(purchaseDecision.type);
                 commandManager.addRobotCommand(Robot::lbot(purchaseDecision.pos, purchaseDecision.type));
                 // 集中搬货
                 robotScheduler->assignedBerthID = BerthID(purchaseDecision.assignId);

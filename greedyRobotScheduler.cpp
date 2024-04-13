@@ -255,7 +255,9 @@ bool GreedyRobotScheduler::shouldFetchGoods(const Robot &robot)
 bool GreedyRobotScheduler::shouldMoveToBerth(const Robot &robot)
 {
     // 机器人携带货物，并且没有目标
-    if (robot.carryingItem == 1 && robot.carryingItemId != -1 && robot.targetid == -1)
+    if (robot.type == 0 && robot.carryingItem == 1 && robot.carryingItemId != -1 && robot.targetid == -1)
+        return true;
+    if (robot.type == 1 && robot.carryingItem == 2 && robot.targetid == -1)
         return true;
     return false;
 }
@@ -315,6 +317,7 @@ GreedyRobotScheduler::Cost_RobotToGood(const Robot &robot,
                 cost_robot2good[j] = INT_MAX;
             else
                 cost_robot2good[j] = map.cost(robot.pos, availableGoods[j].get().pos);
+                //  Point2d::calculateManhattanDistance(robot.pos, availableGoods[j].get().pos);
         }
         else
             cost_robot2good[j] = map.berthDistanceMap.at(berthid)[availableGoods[j].get().pos.x][availableGoods[j].get().pos.y];
@@ -430,7 +433,9 @@ void GreedyRobotScheduler::findBerthForRobot(Robot &robot,
     }
 
     // 查询机器人所持有货物被分配的泊位 ID，直接构造 pair 并返回
-    const Berth &berth = berths[goods[robot.carryingItemId].distsToBerths[0].first];
+    const Berth &berth = robot.type==0 ? 
+                         berths[goods[robot.carryingItemId].distsToBerths[0].first] :
+                         berths[goods[robot.carryingItemId2].distsToBerths[0].first];
     // 不考虑泊位 isEnabled 为 False 的情况，这应该由其他函数更新所有货物被分配的泊位 ID，而不是由该调度函数负责
     // 但是要检查 berths isEnabled的情况，如果为 False， LOGE 记录。
     if (!berth.isEnable())

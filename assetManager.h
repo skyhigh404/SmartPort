@@ -59,5 +59,6 @@ public:
 
 public:
     const int robotPrice = 2000;
+    const int robot2Price = 5000;
     const int shipPrice = 8000;
 };

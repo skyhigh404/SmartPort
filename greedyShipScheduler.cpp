@@ -176,8 +176,12 @@ void GreedyShipScheduler::updateBerthStatus(std::vector<Ship> &ships,std::vector
         }
         for (auto &robot: robots){
             // 累加运送途中的货物价值
-            if (robot.carryingItemId != -1 && robot.targetid != -1){
+            if (robot.type==0 && robot.carryingItem == 1 && robot.carryingItemId != -1 && robot.targetid != -1){
                 berths[robot.targetid].futureValue += calculateGoodValueByDist(goods[robot.carryingItemId]);
+            }
+            if (robot.type==1 && robot.carryingItem == 2 && robot.carryingItemId != -1 && robot.carryingItemId2 != -1 && robot.targetid != -1) {
+                berths[robot.targetid].futureValue += calculateGoodValueByDist(goods[robot.carryingItemId]);
+                berths[robot.targetid].futureValue += calculateGoodValueByDist(goods[robot.carryingItemId2]);
             }
         }
     }

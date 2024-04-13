@@ -577,7 +577,7 @@ void GameManager::robotControl()
         // if (robot.status==DEATH) continue;
 
         // 机器人状态更新
-        if (robot.carryingItem==0) robot.status = MOVING_TO_GOODS;
+        if (robot.carryingItem==0 || (robot.type==1 && robot.carryingItem==1)) robot.status = MOVING_TO_GOODS;
         else robot.status = RobotStatus::MOVING_TO_BERTH;
     }
 
@@ -585,16 +585,27 @@ void GameManager::robotControl()
     for (Robot& robot : robots) {
         // if (robot.status==DEATH) continue;
         if (robot.status==MOVING_TO_GOODS && robot.targetid!=-1 && robot.pos == goods[robot.targetid].pos) {
+            LOGI("开始取货");
             if (goods[robot.targetid].TTL>0) {
                 commandManager.addRobotCommand(robot.get());
-                robot.carryingItem = 1;
-                robot.carryingItemId = robot.targetid;
-                robot.status = RobotStatus::MOVING_TO_BERTH;
+                // robot.carryingItem = 1;
+                robot.carryingItem++;
                 goods[robot.targetid].TTL = INT_MAX;
 #ifdef DEBUG
                 statisticGoods(goods[robot.targetid].value, getGoodsValueDistribution);
 #endif
-                robot.targetid = -1;
+                if (robot.carryingItem==1) {
+                    robot.carryingItemId = robot.targetid;
+                    robot.targetid = -1;
+                    if (robot.type==1) continue;
+                }
+                else if (robot.carryingItem==2) {
+                    LOGI("取到第二个货物");
+                    robot.carryingItemId2 = robot.targetid;
+                    robot.targetid = -1;
+                }
+                robot.status = RobotStatus::MOVING_TO_BERTH;
+                
             }
             // 货物过期
             else {
@@ -604,6 +615,7 @@ void GameManager::robotControl()
             }
         }
         else if(robot.status==MOVING_TO_BERTH && robot.targetid!=-1) {
+            LOGI("开始放货");
             Berth &berth = berths[robot.targetid];
             // LOGI(robot);
             if (canUnload(robot.pos, gameMap)) {
@@ -615,12 +627,20 @@ void GameManager::robotControl()
                     totalGetGoodsValue += goods[robot.carryingItemId].value;
                     berth.reached_goods.push_back(goods[robot.carryingItemId]);
                     goods[robot.carryingItemId].status = 3;
+                    if (robot.type==1 && robot.carryingItemId2!=-1) {
+                        Berth::deliverGoodNum++;
+                        totalGetGoodsValue += goods[robot.carryingItemId2].value;
+                        berth.reached_goods.push_back(goods[robot.carryingItemId2]);
+                    }
                 }
                 LOGI("机器人效率统计, 当前时间, ",currentFrame,", robotID, ", robot.id, ", goodValue, ", goods[robot.carryingItemId].value, ", berthID, ", berth.id);
                 goods[robot.carryingItemId].status = 3;
+                if (robot.type==1 && robot.carryingItemId2!=-1)
+                    goods[robot.carryingItemId2].status = 3;
                 robot.status = MOVING_TO_GOODS;
                 robot.carryingItem = 0;
                 robot.carryingItemId = -1;
+                robot.carryingItemId2 = -1;
                 robot.targetid = -1;
                 robot.path = Path<Point2d>();
             }
@@ -630,18 +650,18 @@ void GameManager::robotControl()
         }
     }
 
-    if (this->nowStateType()==StageType::FINAL) {
-        LOGI("機器人調度進入終局");
-        for (Robot& robot:robots) {
-            if (robot.targetid==-1) continue;
-            if ( (robot.status==MOVING_TO_BERTH && berths[robot.targetid].isEnable()==false) || (robot.status==MOVING_TO_GOODS && berths[goods[robot.targetid].distsToBerths[0].first].isEnable()==false)) {
-                robot.targetid = -1;
-                robot.destination = Point2d(-1,-1);
-                robot.path = Path<Point2d>();
-            }
-        }
-        LOGI("機器人調度進入終局");
-    }
+    // if (this->nowStateType()==StageType::FINAL) {
+    //     LOGI("機器人調度進入終局");
+    //     for (Robot& robot:robots) {
+    //         if (robot.targetid==-1) continue;
+    //         if ( (robot.status==MOVING_TO_BERTH && berths[robot.targetid].isEnable()==false) || (robot.status==MOVING_TO_GOODS && berths[goods[robot.targetid].distsToBerths[0].first].isEnable()==false)) {
+    //             robot.targetid = -1;
+    //             robot.destination = Point2d(-1,-1);
+    //             robot.path = Path<Point2d>();
+    //         }
+    //     }
+    //     LOGI("機器人調度進入終局");
+    // }
     
     auto start = std::chrono::steady_clock::now();
     // 对所有需要调度的机器人进行调度

@@ -31,6 +31,7 @@ public:
 public:
     RobotStatus status;
     int carryingItemId;  // 携带的物品 ID
+    int carryingItemId2 = -1; // 携带的第二个物品ID
     int targetid;        // 机器人目标货物或泊位的 ID
     Point2d destination; // 机器人的目的地
     // BerthID assignedBerthID; // 机器人被分配的泊位 ID
@@ -58,6 +59,7 @@ public:
     static std::string lbot(const Point2d &pos, const int type)
     {
         using namespace std::string_literals;
+        // LOGI("lbot "s + std::to_string(pos.x) + " "s + std::to_string(pos.y) + " "s + std::to_string(type));
         return "lbot "s + std::to_string(pos.x) + " "s + std::to_string(pos.y) + " "s + std::to_string(type);
     }
 

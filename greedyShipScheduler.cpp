@@ -563,6 +563,10 @@ bool GreedyShipScheduler::canShipMoveToBerth(Map &map, Ship &ship, Berth &berth)
     else if(ship.berthId != -1){
         timeCostToBerth = map.berthToBerthDistance[ship.berthId][berth.id];
     }
+    else{
+        timeCostToBerth = map.berthToDeliveryDistance[berth.id][ship.deliveryId];
+        LOGI("虚拟点前往泊位:", timeCostToBerth);
+    }
     // 时间：移动到泊位距离 + 目标泊位到虚拟点距离 + 装货时间
     int deliveryId = allocateDelivery(berth);
     int timeCost = timeCostToBerth +  map.berthToDeliveryDistance[berth.id][deliveryId] + std::min(ship.nowCapacity(), static_cast<int>(berth.reached_goods.size()));

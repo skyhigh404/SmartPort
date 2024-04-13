@@ -299,6 +299,11 @@ bool EarlyGameAssetManager::needToBuyRobot(const std::vector<Robot> &robots, con
     // 超出最大限制
     if (robots.size() >= maxRobotNum) return false;
     if (currentFunds < robotPrice) return false;
+    // 当前阶段船没买完(仅限于单连通块)
+    for (int phase=0;phase<shipPurchaseAssign[0].size();phase++) {
+        if (robots.size()>robotPurchaseAssign[0][phase] && purchasedShipNum[0]<shipPurchaseAssign[0][phase]) 
+            return false;
+    }
     return true;
 }
 bool EarlyGameAssetManager::needToBuyShip(const std::vector<Ship> &ships, const std::vector<Goods> &goods, const Map &gameMap, int currentFunds, int currentTime)

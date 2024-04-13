@@ -312,7 +312,7 @@ void GameManager::initializeComponents()
     // 初始化超参数
     Params params(MAP_TYPE);
     // this->paramReader.logParams(params);
-    this->paramReader.readParams(std::string("../param/param_now.txt"));
+    // this->paramReader.readParams(std::string("../param/param_now.txt"));
     this->paramReader.setParams(params);
     // this->paramReader.logParams(params);
     FINAL_FRAME = params.FINAL_FRAME;   // 设置终局参数

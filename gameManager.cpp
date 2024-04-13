@@ -202,17 +202,25 @@ void GameManager::initializeComponents()
                 continue;
             VectorPosition startVP(berths[i].pos, berths[i].orientation);
             VectorPosition targetVP(deliveryLocation, Direction::EAST);
-            threads.emplace_back(findPathWrapper, std::ref(gameMap), startVP, targetVP);
-            threads.emplace_back(findPathWrapper, std::ref(gameMap), targetVP, startVP);
+            if(gameMap.passable(targetVP)) {
+                threads.emplace_back(findPathWrapper, std::ref(gameMap), startVP, targetVP);
+                threads.emplace_back(findPathWrapper, std::ref(gameMap), targetVP, startVP);
+            }
             targetVP.direction = Direction::WEST;
-            threads.emplace_back(findPathWrapper, std::ref(gameMap), startVP, targetVP);
-            threads.emplace_back(findPathWrapper, std::ref(gameMap), targetVP, startVP);
+            if(gameMap.passable(targetVP)) {
+                threads.emplace_back(findPathWrapper, std::ref(gameMap), startVP, targetVP);
+                threads.emplace_back(findPathWrapper, std::ref(gameMap), targetVP, startVP);
+            }
             targetVP.direction = Direction::NORTH;
-            threads.emplace_back(findPathWrapper, std::ref(gameMap), startVP, targetVP);
-            threads.emplace_back(findPathWrapper, std::ref(gameMap), targetVP, startVP);
+            if(gameMap.passable(targetVP)) {
+                threads.emplace_back(findPathWrapper, std::ref(gameMap), startVP, targetVP);
+                threads.emplace_back(findPathWrapper, std::ref(gameMap), targetVP, startVP);
+            }
             targetVP.direction = Direction::SOUTH;
-            threads.emplace_back(findPathWrapper, std::ref(gameMap), startVP, targetVP);
-            threads.emplace_back(findPathWrapper, std::ref(gameMap), targetVP, startVP);
+            if(gameMap.passable(targetVP)) {
+                threads.emplace_back(findPathWrapper, std::ref(gameMap), startVP, targetVP);
+                threads.emplace_back(findPathWrapper, std::ref(gameMap), targetVP, startVP);
+            }
         }
     }
     // 计算船舶购买点到泊位的航线

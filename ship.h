@@ -65,6 +65,8 @@ public:
         }
         else
         {
+            PathfindingFailureReason *p = std::get_if<PathfindingFailureReason>(&path);
+            LOGE("Find path error.", static_cast<int>(*p));
             return false;
         }
     }

@@ -69,10 +69,12 @@ void GameManager::initializeGame()
             case 'R':
                 this->gameMap.setCell(i, j, MapItemSpace::MapItem::ROBOT_SHOP);
                 this->gameMap.robotShops.emplace_back(i, j);
+                LOGI("ROBOT_SHOP: ", Point2d(i, j));
                 break;
             case 'S':
                 this->gameMap.setCell(i, j, MapItemSpace::MapItem::SHIP_SHOP);
                 this->gameMap.shipShops.emplace_back(i, j);
+                LOGI("SHIP_SHOP: ", Point2d(i, j));
                 break;
             case 'B':
                 this->gameMap.setCell(i, j, MapItemSpace::MapItem::BERTH);
@@ -88,6 +90,7 @@ void GameManager::initializeGame()
                 break;
             case 'T':
                 this->gameMap.setCell(i, j, MapItemSpace::MapItem::DELIVERY_POINT);
+                LOGI("DELIVERY_POINT: ", Point2d(i, j));
                 this->gameMap.deliveryLocations.push_back({i,j});
                 break;
             default:

@@ -72,12 +72,27 @@ public:
     }
 
     // 获取航线路径
-    static std::vector<VectorPosition> getPath(const Map &map, const VectorPosition &start, const VectorPosition &destination)
+    static std::vector<VectorPosition> getPath(const Map &map, const VectorPosition &start, VectorPosition &destination)
     {
+        // std::vector<VectorPosition> path;
+        // if (getInstance().seaRoutes.find(std::make_pair(start, destination)) !=
+        //     getInstance().seaRoutes.end())
+        //     path = getInstance().seaRoutes[std::make_pair(start, destination)];
+        // return path;
         std::vector<VectorPosition> path;
         if (getInstance().seaRoutes.find(std::make_pair(start, destination)) !=
             getInstance().seaRoutes.end())
             path = getInstance().seaRoutes[std::make_pair(start, destination)];
+        if (!path.empty()) return path;
+        std::vector<Direction> directions = std::vector<Direction>{Direction::EAST,  Direction::WEST, Direction::NORTH, Direction::SOUTH};
+        // todo 选取当前最短的路径
+        for(auto &direction : directions){
+            destination.direction = direction;
+            if (getInstance().seaRoutes.find(std::make_pair(start, destination)) !=
+            getInstance().seaRoutes.end())
+            path = getInstance().seaRoutes[std::make_pair(start, destination)];
+            if (!path.empty()) return path;
+        }
         return path;
     }
     

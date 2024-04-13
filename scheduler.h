@@ -1,45 +1,60 @@
 #pragma once
 #include <vector>
+#include <numeric>
 #include "goods.h"
 #include "map.h"
 #include "robot.h"
 #include "ship.h"
 #include "berth.h"
+#include "params.h"
+#include "utils.h"
 
-enum ActionType
+enum class SchedulerName
 {
-    MOVE_TO_POSITION,
-    PICK_UP_GOODS,
-    DROP_OFF_GOODS,
-    MOVE_TO_BERTH,
-    DEPART_BERTH
+    Greedy_ROBOT_SCHEDULER,
+    Greedy_SHIP_SCHEDULER,
+    Final_SHIP_SCHEDULER
 };
 
-struct Action
-{
-    ActionType type;
-    Point2d position; // 用于移动
-    int targetId;     // 用于标识具体的货物或泊位，根据上下文决定其含义
-};
+using std::vector;
 
-
-class Scheduler
-{
-    // 去哪里
-public:
-    virtual std::vector<std::pair<int, Action>>  scheduleRobots(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods) = 0;
-    virtual std::vector<std::pair<int, Action>>  scheduleShips(std::vector<Ship> &ships, std::vector<Berth> &berths) = 0;
-};
-
-class SimpleTransportStrategy : public Scheduler
+class RobotScheduler
 {
 public:
-    std::vector<std::pair<int, Action>>  scheduleRobots(std::vector<Robot> &robots, const Map &map, std::vector<Goods> &goods) override;
-    std::vector<std::pair<int, Action>>  scheduleShips(std::vector<Ship> &ships, std::vector<Berth> &berths) override;
+    // 总的调度函数，在子类里进一步封装实现
+    virtual void
+    scheduleRobots(const Map &map,
+                   std::vector<Robot> &robots,
+                   std::vector<Goods> &goods,
+                   std::vector<Berth> &berths,
+                   const int currentFrame) = 0;
+    // 设置参数，参数定义在子类里
+    virtual void setParameter(const Params &params) = 0;
+    // 返回调度器名字
+    virtual SchedulerName getSchedulerName() = 0;
+    // 初始化
+    virtual void initialize() = 0;
+    virtual ~RobotScheduler() {}
+
+    // 用于游戏初期的集中调度
+    BerthID assignedBerthID = -1;
 };
 
-// class EfficientTransportStrategy : public Scheduler {
-// public:
-//     virtual void scheduleRobots(std::vector<Robot>& robots, const Map& map, std::vector<Goods>& goods) = 0;
-//     virtual void scheduleShips(std::vector<Ship>& ships, std::vector<Berth>& berths) = 0;
-// };
+class ShipScheduler
+{
+public:
+    // 总的调度函数，在子类里进一步封装实现
+    virtual void
+    scheduleShips(Map &map,
+                  std::vector<Ship> &ships,
+                  std::vector<Berth> &berths,
+                  std::vector<Goods> &goods,
+                  std::vector<Robot> &robots) = 0;
+    // 设置参数，参数定义在子类里
+    virtual void setParameter(const Params &params) = 0;
+    // 返回调度器名字
+    virtual SchedulerName getSchedulerName() = 0;
+    // 初始化
+    virtual void initialize() = 0;
+    virtual ~ShipScheduler() {}
+};
